@@ -1,0 +1,98 @@
+package edu.illinois.cs.cogcomp.temporal.lbjava;
+
+import edu.illinois.cs.cogcomp.temporal.eventAxisDetector.EventTokenCandidate;
+import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.lang.Object;
+
+discrete Label(EventTokenCandidate etc) <-
+{
+    return etc.getLabel();
+}
+
+// real LabelArray(EventTokenCandidate etc) <-
+// {
+//     return etc.getLabelArray()[0];
+// }
+
+discrete POS(EventTokenCandidate etc) <- 
+{
+    return etc.getPos();
+}
+
+discrete Lemma(EventTokenCandidate etc) <- 
+{
+    return etc.getLemma();
+}
+
+
+discrete PPHead(EventTokenCandidate etc) <- 
+{
+    return etc.getPp_head();
+}
+
+discrete[] POS_IN_WIN(EventTokenCandidate etc) <-
+{
+    int win = etc.getWindow();
+    int i;
+    String[] pos_window = etc.getPos_window();
+    for(i=0;i<win;i++){
+        sense "PREV_"+(win-i)+"_POS:"+pos_window[i];
+    }
+    for(i=win+1;i<2*win+1;i++){
+        sense "NEXT_"+(i-win)+"_POS:"+pos_window[i];
+    }
+}
+
+discrete[] Lemma_IN_WIN(EventTokenCandidate etc) <-
+{
+    int win = etc.getWindow();
+    int i;
+    String[] lemma_window = etc.getLemma_window();
+    for(i=0;i<win;i++){
+        sense "PREV_"+(win-i)+"_POS:"+lemma_window[i];
+    }
+    for(i=win+1;i<2*win+1;i++){
+        sense "NEXT_"+(i-win)+"_POS:"+lemma_window[i];
+    }
+}
+
+discrete% SignalWords(EventTokenCandidate etc) <-
+{
+    HashSet signals_before = etc.getSignals_before();
+    HashSet signals_after = etc.getSignals_after();
+    Iterator iter = signals_before.iterator();
+    while(iter.hasNext()){
+        sense "BEFORE:"+iter.next();
+    }
+    iter = signals_after.iterator();
+    while(iter.hasNext()){
+        sense "AFTER:"+iter.next();
+    }
+}
+
+discrete BiasTerm(EventTokenCandidate etc) <-
+{
+    return "bias";
+}
+
+discrete eventDetector(EventTokenCandidate etc) <-
+learn Label
+using
+    BiasTerm, POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN, SignalWords
+    with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EventDetectorPerceptronParams.learningRate,0,ParamLBJ.EventDetectorPerceptronParams.thickness))
+end
+
+// discrete eventDetector_MLP(EventTokenCandidate d) <-
+//   learn Label
+//   using POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN
+//   with NeuralNetLearner {
+//     inputCount = 4000;
+//     hiddenCount=100;
+//     outputCount=1;
+//     learningRate=.3f;
+//     momentum=.7f;
+//   }
+// end
