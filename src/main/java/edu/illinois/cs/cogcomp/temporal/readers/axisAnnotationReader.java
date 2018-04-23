@@ -50,7 +50,7 @@ public class axisAnnotationReader {
         return ret;
     }
     public static HashMap<String,HashMap<Integer,String>> readAxisMapFromCrowdFlower(String fileList){
-        // docid-->eventid-->axis_label
+        // docid-->eventid (index in doc)-->axis_label
         HashMap<String,HashMap<Integer,String>> axisMap = new HashMap<>();
         String[] files = fileList.split(",");
         for(String file:files){

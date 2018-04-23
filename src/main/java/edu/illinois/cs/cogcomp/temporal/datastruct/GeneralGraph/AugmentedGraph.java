@@ -1,7 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
-
-
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -78,6 +76,31 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         return 1;
     }
 
+    public boolean dropNode(String nodeUniqueId){
+        // nodeMap
+        if(!nodeMap.containsKey(nodeUniqueId))
+            return false;
+        nodeMap.remove(nodeUniqueId);
+        // relations
+        List<Relation> newRelations = new ArrayList<>();
+        for(Relation rel:relations){
+            if(rel.getSourceNode().getUniqueId().equals(nodeUniqueId)
+                    ||rel.getTargetNode().getUniqueId().equals(nodeUniqueId))
+                continue;
+            newRelations.add(rel);
+        }
+        relations = newRelations;
+        // nodeOutRelationMap and nodeInRelationMap
+        nodeInRelationMap.remove(nodeUniqueId);
+        nodeOutRelationMap.remove(nodeUniqueId);
+        return true;
+    }
+
+    public void dropAllNodes(){
+        nodeMap = new HashMap<>();
+        dropAllRelations();
+    }
+
     private void addNewRelation(Relation rel){
         relations.add(rel);
         relations.add((Relation)rel.getInverse());
@@ -93,6 +116,12 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         if(!map.containsKey(uniqueId))
             map.put(uniqueId,new ArrayList<>());
         map.get(uniqueId).add(rel);
+    }
+
+    public void dropAllRelations(){
+        relations = new ArrayList<>();
+        nodeInRelationMap = new HashMap<>();
+        nodeOutRelationMap = new HashMap<>();
     }
 
     /*Getters and Setters*/

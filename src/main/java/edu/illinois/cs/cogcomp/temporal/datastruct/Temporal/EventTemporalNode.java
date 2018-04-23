@@ -26,8 +26,11 @@ public class EventTemporalNode extends TemporalNode{
     // used when gold properties are available
     public String tense, aspect, eventclass, polarity;
 
-    public EventTemporalNode(int nodeId, String nodeType, String text, int tokenId, int sentId) {
+    public EventTemporalNode(int nodeId, String nodeType, String text, int eid, int eiid, int index_in_doc,int tokenId, int sentId) {
         super(nodeId, nodeType, text, sentId);
+        this.eid = eid;
+        this.eiid = eiid;
+        this.index_in_doc = index_in_doc;
         this.tokenId = tokenId;
     }
 
@@ -49,5 +52,13 @@ public class EventTemporalNode extends TemporalNode{
 
     public int getTokenId() {
         return tokenId;
+    }
+
+    public int getEiid() {
+        return eiid;
+    }
+
+    public int getIndex_in_doc() {
+        return index_in_doc;
     }
 }

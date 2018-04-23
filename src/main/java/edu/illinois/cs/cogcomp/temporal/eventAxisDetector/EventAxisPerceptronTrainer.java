@@ -49,7 +49,7 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
             ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
             String dir = rm.getString("TimeBank_Ser");
             List<TemporalDocument> timebank = TempEval3Reader.deserialize(dir);
-            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_TimeBank_Axis"));// docid-->eventid-->axis_label
+            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));// docid-->eventid-->axis_label
             // convert eventid in axisMap to tokenId
             for(int i=0;i<timebank.size();i++){
                 String docid = timebank.get(i).getDocID();
