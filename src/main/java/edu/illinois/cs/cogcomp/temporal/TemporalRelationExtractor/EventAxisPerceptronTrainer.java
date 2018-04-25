@@ -8,7 +8,7 @@ import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
-import edu.illinois.cs.cogcomp.temporal.lbjava.eventDetector;
+import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
@@ -77,12 +77,12 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
             for(int i=0;i<testDocSize;i++){
                 myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
                 if(!axisMap.containsKey(doc.getDocid())) continue;
-                testStructs.addAll(EventTokenCandidate.generateAllEventTokenCandidates(doc,window,axisMap.get(doc.getDocid())));
+                testStructs.addAll(doc.generateAllEventTokenCandidates(window,axisMap.get(doc.getDocid())));
             }
             for(int i=testDocSize;i<timebank.size();i++){
                 myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
                 if(!axisMap.containsKey(doc.getDocid())) continue;
-                trainingStructs.addAll(EventTokenCandidate.generateAllEventTokenCandidates(doc,window,axisMap.get(doc.getDocid())));
+                trainingStructs.addAll(doc.generateAllEventTokenCandidates(window,axisMap.get(doc.getDocid())));
             }
         }
         catch (Exception e){

@@ -4,6 +4,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
@@ -52,15 +54,13 @@ public class myTemporalDocument {
             for (EventChunk ec : allEvents) {
                 int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
                 EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta);
-                eventList.add(tmpNode);
-                graph.addNodeNoDup(tmpNode);
+                addEvent(tmpNode);
             }
             List<TemporalJointChunk> allTimexes = temporalDocument.getBodyTimexMentions();
             allTimexes.add(temporalDocument.getDocumentCreationTime());
             for (TemporalJointChunk tjc : allTimexes) {
                 TimexTemporalNode tmpNode = new TimexTemporalNode(tjc.getTID(), TimexNodeType, tjc.getOriginalText(), -1);
-                timexList.add(tmpNode);
-                graph.addNodeNoDup(tmpNode);
+                addTimex(tmpNode);
             }
         }
         if(mode>=2) {
@@ -124,6 +124,31 @@ public class myTemporalDocument {
         }
     }
 
+    public List<EventTokenCandidate> generateAllEventTokenCandidates(int window, HashMap<Integer,String> labelMap){
+        // labelMap: (tokenId, converted axis name)
+        String[] tokens = ta.getTokens();
+        List<EventTokenCandidate> allCandidates = new ArrayList<>();
+        for(int i=0;i<tokens.length;i++){
+            String label = labelMap.getOrDefault(i,LABEL_NOT_ON_ANY_AXIS);
+            allCandidates.add(new EventTokenCandidate(this,i,label,window));
+        }
+        return allCandidates;
+    }
+    public void addEvent(EventTemporalNode e){
+        eventList.add(e);
+        graph.addNodeNoDup(e);
+    }
+    public void addTimex(TimexTemporalNode t){
+        timexList.add(t);
+        graph.addNodeNoDup(t);
+    }
+    public void dropAllEventsAndTimexes(){
+        eventList = new ArrayList<>();
+        timexList = new ArrayList<>();
+        graph.dropAllNodes();
+    }
+
+    /*Getters and Setters*/
     public TextAnnotation getTextAnnotation() {
         return ta;
     }

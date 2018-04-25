@@ -8,3 +8,5 @@ out/
 src/main/java/edu/illinois/cs/cogcomp/temporal/explorations/
 src/main/java/edu/illinois/cs/cogcomp/temporal/lbjava/
 models/
+logs/
+scripts/

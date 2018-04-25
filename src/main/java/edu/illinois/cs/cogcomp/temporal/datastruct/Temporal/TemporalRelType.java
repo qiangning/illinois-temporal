@@ -56,13 +56,13 @@ public class TemporalRelType extends BinaryRelationType {
 
     public TemporalRelType(String reltype) {
         for(relTypes rel:relTypes.values()){
-            if(rel.getName().equals(reltype)) {
+            if(rel.getName().equals(reltype)||rel.getName().toLowerCase().equals(reltype)) {
                 this.reltype = rel;
                 return;
             }
         }
         this.reltype = relTypes.VAGUE;
-        System.out.printf("Error using TemporalRelType(%s): %s cannot be found.\n",reltype,reltype);
+        System.out.printf("Error using TemporalRelType (%s): %s cannot be found.\n",reltype,reltype);
     }
 
     /*Functions*/
@@ -79,8 +79,8 @@ public class TemporalRelType extends BinaryRelationType {
     }
 
     public boolean isNull() {
-        //return reltype==null || reltype==relTypes.VAGUE;
-        return reltype==null;
+        return reltype==null || reltype==relTypes.NULL;
+        //return reltype==null;
     }
 
     public boolean isEqual(BinaryRelationType other) {

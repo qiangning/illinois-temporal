@@ -13,25 +13,26 @@ public class TemporalRelation extends BinaryRelation<TemporalNode> {
     }
 
     /*Functions*/
-    public TemporalRelType getTemporalRelType(){
+    @Override
+    public TemporalRelType getRelType(){
         return (TemporalRelType) super.getRelType();
     }
 
     public boolean isNull() {
-        return getTemporalRelType().isNull();
+        return getRelType().isNull();
     }
 
     @Override
     public TemporalRelation inverse() {
-        return new TemporalRelation(getTargetNode(),getSourceNode(),(TemporalRelType) getTemporalRelType().inverse());
+        return new TemporalRelation(getTargetNode(),getSourceNode(),(TemporalRelType) getRelType().inverse());
     }
 
     public String getLabel(){
-        return getTemporalRelType().getReltype().getName();
+        return getRelType().getReltype().getName();
     }
 
     @Override
     public String toString() {
-        return String.format("%s-->%s: %s",getSourceNode().getUniqueId(),getTargetNode().getUniqueId(), getTemporalRelType().toString());
+        return String.format("%s-->%s: %s",getSourceNode().getUniqueId(),getTargetNode().getUniqueId(), getRelType().toString());
     }
 }
