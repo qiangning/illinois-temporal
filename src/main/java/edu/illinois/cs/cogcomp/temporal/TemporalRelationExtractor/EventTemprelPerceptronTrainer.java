@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.eventAxisDetector;
+package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
@@ -7,34 +7,39 @@ import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
-import edu.illinois.cs.cogcomp.temporal.lbjava.eventDetector;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
+import edu.illinois.cs.cogcomp.temporal.lbjava.eeTempRelCls;
+import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper;
+import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.util.*;
 
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
+import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
-public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventTokenCandidate>{
-    private List<EventTokenCandidate> testStructs;
+public class EventTemprelPerceptronTrainer  extends CrossValidationWrapper<TemporalRelation_EE> {
+    private List<TemporalRelation_EE> testStructs;
     private int window;
     private String modelPath, lexiconPath;
+    private int sentDiff = 0;
     private int evalMetric = 2;//0:prec. 1: recall. 2: f1
     private Learner classifier;
     private static double[] LEARNRATE = new double[]{0.0001,0.0002};
     private static double[] THICKNESS = new double[]{0,1};
-    private static double[] NEGVAGSAMRATE= new double[]{0.3,0.5,0.7};
+    private static double[] SAMRATE = new double[]{1};
     private static double[] ROUND = new double[]{5,10,20};
-    private static String[] LABEL_TO_IGNORE = new String[]{LABEL_NOT_ON_ANY_AXIS};
+    private static String[] LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName()};
 
     private static CommandLine cmd;
 
-    public EventAxisPerceptronTrainer(int seed, int totalFold, int window, int evalMetric) {
+    public EventTemprelPerceptronTrainer(int seed, int totalFold, int window, int sentDiff, int evalMetric) {
         super(seed, totalFold);
         this.window = window;
+        this.sentDiff = sentDiff;
         this.evalMetric = evalMetric;
     }
 
@@ -44,30 +49,27 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     }
 
     @Override
-    public void load(){
+    public void load() {
         try {
             ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+            WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
             String dir = rm.getString("TimeBank_Ser");
-            List<TemporalDocument> timebank = TempEval3Reader.deserialize(dir);
-            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));// docid-->eventid-->axis_label
-            // convert eventid in axisMap to tokenId
-            for(int i=0;i<timebank.size();i++){
-                String docid = timebank.get(i).getDocID();
-                if(!axisMap.containsKey(docid)) continue;
-                HashMap<Integer,Integer> index2TokId = eventIndex2TokId(timebank.get(i));
-                HashMap<Integer,String> tmpMap = axisMap.get(docid);
-                HashMap<Integer,String> tmpMap2 = new HashMap<>();
-                for(int eventid:tmpMap.keySet()){
-                    tmpMap2.put(index2TokId.get(eventid),tmpMap.get(eventid));
-                }
-                axisMap.put(docid,tmpMap2);
-            }
-            // convert labels in axisMap
-            for(String docid:axisMap.keySet()){
-                for(int id:axisMap.get(docid).keySet()){
-                    String label = axisMap.get(docid).get(id);
-                    String label_new = axis_label_conversion(label);
-                    axisMap.get(docid).put(id,label_new);
+            List<TemporalDocument> allDocs = TempEval3Reader.deserialize(dir);
+            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
+            HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
+            List<myTemporalDocument> myAllDocs = new ArrayList<>();
+            for(TemporalDocument d:allDocs){
+                myTemporalDocument doc = new myTemporalDocument(d,1);
+                String docid = doc.getDocid();
+                if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
+                    continue;
+                doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
+                doc.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
+                myAllDocs.add(doc);
+                List<EventTemporalNode> events = doc.getEventList();
+                for(EventTemporalNode e:events){
+                    e.extractPosLemmaWin(window);
+                    e.extractSynsets(wnsim);
                 }
             }
 
@@ -75,15 +77,17 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
             testStructs = new ArrayList<>();
             int testDocSize = 20;
             for(int i=0;i<testDocSize;i++){
-                myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
-                if(!axisMap.containsKey(doc.getDocid())) continue;
-                testStructs.addAll(EventTokenCandidate.generateAllEventTokenCandidates(doc,window,axisMap.get(doc.getDocid())));
+                myTemporalDocument doc = myAllDocs.get(i);
+                testStructs.addAll(doc.getGraph().getAllEERelations(sentDiff));
             }
-            for(int i=testDocSize;i<timebank.size();i++){
-                myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
-                if(!axisMap.containsKey(doc.getDocid())) continue;
-                trainingStructs.addAll(EventTokenCandidate.generateAllEventTokenCandidates(doc,window,axisMap.get(doc.getDocid())));
+            for(int i=testDocSize;i<myAllDocs.size();i++){
+                myTemporalDocument doc = myAllDocs.get(i);
+                trainingStructs.addAll(doc.getGraph().getAllEERelations(sentDiff));
             }
+            for(TemporalRelation_EE tmp:trainingStructs)
+                tmp.extractSignalWords();
+            for(TemporalRelation_EE tmp:testStructs)
+                tmp.extractSignalWords();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -91,40 +95,41 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     }
 
     @Override
-    public void learn(List<EventTokenCandidate> slist, double[] param, int seed) {
+    public void learn(List<TemporalRelation_EE> slist, double[] param, int seed) {
         double lr = param[0];
         double th = param[1];
-        double nvsr = param[2];
+        double sr = param[2];
         int round = (int) Math.round(param[3]);
-        List<EventTokenCandidate> slist_negSam = new ArrayList<>();
+        List<TemporalRelation_EE> slist_sample = new ArrayList<>();
         Random rng = new Random(seed++);
-        for(EventTokenCandidate st:slist){
-            if(!st.getLabel().equals(LABEL_NOT_ON_ANY_AXIS))
-                slist_negSam.add(st);
+        for(TemporalRelation_EE st:slist){
+            if(!st.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
+                    &&!st.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName()))
+                slist_sample.add(st);
             else {
-                if (nvsr <= 1) {
-                    if (rng.nextDouble() <= nvsr)
-                        slist_negSam.add(st);
+                if (sr <= 1) {
+                    if (rng.nextDouble() <= sr)
+                        slist_sample.add(st);
                 } else {
-                    double tmp = nvsr;
+                    double tmp = sr;
                     for (; tmp > 1; tmp--) {
-                        slist_negSam.add(st);
+                        slist_sample.add(st);
                     }
                     if (rng.nextDouble() <= tmp)
-                        slist_negSam.add(st);
+                        slist_sample.add(st);
                 }
             }
         }
-        ParamLBJ.EventDetectorPerceptronParams.learningRate = lr;
-        ParamLBJ.EventDetectorPerceptronParams.thickness = th;
-        classifier = new eventDetector(modelPath,lexiconPath);
+        ParamLBJ.EETempRelClassifierPerceptronParams.learningRate = lr;
+        ParamLBJ.EETempRelClassifierPerceptronParams.thickness = th;
+        classifier = new eeTempRelCls(modelPath,lexiconPath);
         classifier.forget();
         classifier.beginTraining();
         for(int iter=0;iter<round;iter++){
-            Collections.shuffle(slist_negSam, new Random(seed++));
-            for(EventTokenCandidate etc:slist_negSam){
+            Collections.shuffle(slist_sample, new Random(seed++));
+            for(TemporalRelation_EE ee:slist_sample){
                 try{
-                    classifier.learn(etc);
+                    classifier.learn(ee);
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -135,13 +140,13 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     }
 
     @Override
-    public double evaluate(List<EventTokenCandidate> slist, int verbose) {
+    public double evaluate(List<TemporalRelation_EE> slist, int verbose) {
         ExecutionTimeUtil timer = new ExecutionTimeUtil();
         PrecisionRecallManager evaluator = new PrecisionRecallManager();
         timer.start();
-        for(EventTokenCandidate etc:slist){
-            String p = classifier.discreteValue(etc);
-            String l = etc.getLabel();
+        for(TemporalRelation_EE ee:slist){
+            String p = classifier.discreteValue(ee);
+            String l = ee.getLabel();
             evaluator.addPredGoldLabels(p,l);
         }
         timer.end();
@@ -167,11 +172,11 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
 
     @Override
     public void setParams2tune() {
-        params2tune = new double[LEARNRATE.length*THICKNESS.length*NEGVAGSAMRATE.length*ROUND.length][4];
+        params2tune = new double[LEARNRATE.length*THICKNESS.length* SAMRATE.length*ROUND.length][4];
         int cnt = 0;
         for(double lr:LEARNRATE){
             for(double th:THICKNESS){
-                for(double nvsr:NEGVAGSAMRATE){
+                for(double nvsr: SAMRATE){
                     for(double r:ROUND){
                         params2tune[cnt] = new double[]{lr,th,nvsr,r};
                         cnt++;
@@ -180,6 +185,7 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
             }
         }
     }
+
     public double evaluateTest(){
         System.out.println("-------------------");
         System.out.println("Evaluating TestSet...");
@@ -203,13 +209,17 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
         window.setRequired(true);
         options.addOption(window);
 
+        Option sentDiff = new Option("s", "sentDiff", true, "sentence distance");
+        sentDiff.setRequired(true);
+        options.addOption(sentDiff);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("EventAxisPerceptronTrainer", options);
+            formatter.printHelp("EventTemprelPerceptronTrainer", options);
 
             System.exit(1);
         }
@@ -219,8 +229,10 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
         String modelDir = cmd.getOptionValue("modelDir");
         String modelName = cmd.getOptionValue("modelName");
         int window = Integer.valueOf(cmd.getOptionValue("window"));
+        int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
         modelName += "_win"+window;
-        EventAxisPerceptronTrainer exp = new EventAxisPerceptronTrainer(0,5,window,2);
+        modelName += "_sent"+sentDiff;
+        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,5,window,sentDiff,2);
         exp.load();
         exp.setModelPath(modelDir,modelName);
         exp.myParamTuner();

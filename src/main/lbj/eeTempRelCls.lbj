@@ -1,0 +1,105 @@
+package edu.illinois.cs.cogcomp.temporal.lbjava;
+
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode;
+import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.lang.Object;
+
+discrete Label(TemporalRelation_EE ee) <-
+{
+    return ee.getLabel();
+}
+
+discrete SentDist(TemporalRelation_EE ee) <- 
+{
+    int sentDiff = ee.getSentDiff();
+    if(sentDiff==0)
+        return "SentDist:Same";
+    else if(sentDiff==1)
+        return "SentDist:One";
+    else
+        return "SentDist:Many";
+}
+real TokenDist(TemporalRelation_EE ee) <-
+{
+    return ee.getTokDiff();
+}
+
+discrete% POS(TemporalRelation_EE ee) <- 
+{
+    EventTemporalNode e1 = ee.getSourceEvent();
+    EventTemporalNode e2 = ee.getTargetEvent();
+    sense "E1_POS:"+e1.getPos();
+    sense "E2_POS:"+e2.getPos();
+    sense "E1_E2_POS:"+e1.getPos() +":"+ e2.getPos();
+
+    String[] e1_pos_win = e1.getPos_window();
+    String[] e2_pos_win = e2.getPos_window();
+    int i=0;
+    for(;i<e1_pos_win.length;i++){
+        sense "E1_POS_WIN:"+i+":"+e1_pos_win[i];
+    }
+    for(i=0;i<e2_pos_win.length;i++){
+        sense "E2_POS_WIN:"+i+":"+e2_pos_win[i];
+    }
+}
+
+discrete SameSynSet(TemporalRelation_EE ee) <-
+{
+    if(ee.sameSynset())
+        return "SAME_SYNSET:YES";
+    else
+        return "SAME_SYNSET:NO";
+}
+
+discrete% PPHead(TemporalRelation_EE ee)<-
+{
+    EventTemporalNode e1 = ee.getSourceEvent();
+    EventTemporalNode e2 = ee.getTargetEvent();
+    sense "E1_PP_HEAD:"+e1.getPp_head();
+    sense "E2_PP_HEAD:"+e2.getPp_head();
+    if(!e1.getPp_head().equals("N/A")){
+        if(e1.getPp_head().equals(e2.getPp_head()))
+            sense "E1E2_SAME_PP_HEAD:YES";
+        else
+            sense "E1E2_SAME_PP_HEAD:NO";
+    }
+}
+
+
+discrete% SignalWords(TemporalRelation_EE ee) <-
+{
+    HashSet signals_before = ee.getSignals_before();
+    HashSet signals_between = ee.getSignals_between();
+    HashSet signals_after = ee.getSignals_after();
+
+    Iterator iter = signals_before.iterator();
+    while(iter.hasNext()){
+        sense "BEFORE:"+iter.next();
+    }
+
+    iter = signals_between.iterator();
+    while(iter.hasNext()){
+        sense "BETWEEN:"+iter.next();
+    }
+
+    iter = signals_after.iterator();
+    while(iter.hasNext()){
+        sense "AFTER:"+iter.next();
+    }
+}
+
+discrete BiasTerm(TemporalRelation_EE ee) <-
+{
+    return "bias";
+}
+
+discrete eeTempRelCls(TemporalRelation_EE ee) <-
+learn Label
+using
+    BiasTerm,SentDist,TokenDist,POS,SameSynSet,PPHead,SignalWords
+    with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EETempRelClassifierPerceptronParams.learningRate,0,ParamLBJ.EETempRelClassifierPerceptronParams.thickness))
+end

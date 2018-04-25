@@ -1,6 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.lbjava;
 
-import edu.illinois.cs.cogcomp.temporal.eventAxisDetector.EventTokenCandidate;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import java.util.List;
 import java.util.HashSet;

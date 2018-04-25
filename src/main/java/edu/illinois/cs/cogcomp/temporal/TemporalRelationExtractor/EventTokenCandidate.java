@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.eventAxisDetector;
+package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
