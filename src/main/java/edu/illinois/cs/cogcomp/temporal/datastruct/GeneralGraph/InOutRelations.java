@@ -1,7 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
-import java.util.HashMap;
-
 public class InOutRelations <Node extends AugmentedNode> {
     /*private Node node;
     private HashMap<String,BinaryRelation<Node>> in_rels = new HashMap<>();

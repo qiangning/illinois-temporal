@@ -1,13 +1,12 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 
-import java.util.*;
+import java.util.HashSet;
 
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.*;
 
 public class EventTokenCandidate {
@@ -73,16 +72,6 @@ public class EventTokenCandidate {
         signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
         signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_before, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
         signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_after, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
-    }
-
-    public static List<EventTokenCandidate> generateAllEventTokenCandidates(myTemporalDocument doc, int window, HashMap<Integer,String> labelMap){
-        String[] tokens = doc.getTextAnnotation().getTokens();
-        List<EventTokenCandidate> allCandidates = new ArrayList<>();
-        for(int i=0;i<tokens.length;i++){
-            String label = labelMap.getOrDefault(i,LABEL_NOT_ON_ANY_AXIS);
-            allCandidates.add(new EventTokenCandidate(doc,i,label,window));
-        }
-        return allCandidates;
     }
 
     public String getLabel() {

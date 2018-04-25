@@ -1,7 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
-import org.jetbrains.annotations.Nullable;
-
 public abstract class AugmentedNode {
     private int id;
     private String nodeType;

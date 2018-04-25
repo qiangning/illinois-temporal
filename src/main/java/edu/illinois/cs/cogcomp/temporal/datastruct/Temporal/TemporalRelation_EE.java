@@ -2,7 +2,6 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
-import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelation;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 
 import java.util.HashSet;
@@ -13,7 +12,7 @@ import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.endT
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.startTokInSent;
 
 public class TemporalRelation_EE extends TemporalRelation {
-    private int sentDiff, tokDiff;
+    private int sentDiff, tokDiff;// non-negative
     private HashSet<String> signals_before,signals_between,signals_after;
 
     public TemporalRelation_EE(EventTemporalNode sourceNode, EventTemporalNode targetNode, TemporalRelType relType) {
@@ -24,7 +23,7 @@ public class TemporalRelation_EE extends TemporalRelation {
 
     @Override
     public TemporalRelation_EE inverse(){
-        return new TemporalRelation_EE(getTargetEvent(),getSourceEvent(),getTemporalRelType().inverse());
+        return new TemporalRelation_EE(getTargetEvent(),getSourceEvent(),getRelType().inverse());
 
     }
 

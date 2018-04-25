@@ -5,7 +5,6 @@ import edu.illinois.cs.cogcomp.core.utilities.configuration.Property;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class temporalConfigurator extends Configurator {
     @Override

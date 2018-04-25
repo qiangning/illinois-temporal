@@ -2,7 +2,6 @@ package edu.illinois.cs.cogcomp.temporal.readers.RED;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class RedDoc {
     private String bodyText;

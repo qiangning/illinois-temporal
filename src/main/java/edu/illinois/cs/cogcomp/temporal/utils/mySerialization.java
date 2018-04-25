@@ -1,7 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.utils;
 
-import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-
 import java.io.*;
 
 public class mySerialization {

@@ -1,12 +1,13 @@
 package edu.illinois.cs.cogcomp.temporal.readers;
 
+import com.opencsv.CSVReader;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.opencsv.CSVReader;
-import org.jetbrains.annotations.NotNull;
 
 public class myCSVReader {
     private String dir = "";

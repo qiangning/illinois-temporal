@@ -3,7 +3,8 @@ package edu.illinois.cs.cogcomp.temporal.utils;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.nlp.util.CrossValidationSplit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class CrossValidationWrapper<LearningStruct> {
     public class PerformanceRecorder{

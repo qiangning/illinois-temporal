@@ -3,7 +3,9 @@ package edu.illinois.cs.cogcomp.temporal.configurations;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SignalWordSet {
     public Set<String> temporalConnectiveSet = new HashSet<>(),modalVerbSet = new HashSet<>(),axisSignalWordSet = new HashSet<>(),reportingVerbSet = new HashSet<>();
