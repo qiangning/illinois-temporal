@@ -115,7 +115,6 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
                 }
             }
         }
-        // TO-DO: set parameters of classifier
         ParamLBJ.EventDetectorPerceptronParams.learningRate = lr;
         ParamLBJ.EventDetectorPerceptronParams.thickness = th;
         classifier = new eventDetector(modelPath,lexiconPath);

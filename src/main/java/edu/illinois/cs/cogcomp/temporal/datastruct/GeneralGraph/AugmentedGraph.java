@@ -140,4 +140,8 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         }
         return null;
     }
+
+    public List<Relation> getRelations() {
+        return relations;
+    }
 }

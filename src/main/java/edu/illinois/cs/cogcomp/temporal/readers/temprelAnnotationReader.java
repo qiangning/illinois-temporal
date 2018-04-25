@@ -69,6 +69,7 @@ public class temprelAnnotationReader {
 
         }
     }
+
     public static class CrowdFlowerEntry{
         private int eventid1, eventid2;// eiid
         private Q1_Q2_temprel rel;
@@ -100,6 +101,7 @@ public class temprelAnnotationReader {
                     '}';
         }
     }
+
     public static HashMap<String,List<CrowdFlowerEntry>> readTemprelFromCrowdFlower(String fileList){
         // docid-->CrowdFlowerEntry
         HashMap<String,List<CrowdFlowerEntry>> relMap = new HashMap<>();
@@ -128,6 +130,7 @@ public class temprelAnnotationReader {
         }
         return relMap;
     }
+
     public static void main(String[] args) throws Exception{
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         HashMap<String,List<CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TimeBank_TempRel"));

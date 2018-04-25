@@ -51,8 +51,7 @@ public class myTemporalDocument {
             List<EventChunk> allEvents = temporalDocument.getBodyEventMentions();
             for (EventChunk ec : allEvents) {
                 int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
-                int sentId = ta.getSentenceId(tokenId);
-                EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId, sentId);
+                EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta);
                 eventList.add(tmpNode);
                 graph.addNodeNoDup(tmpNode);
             }
@@ -107,18 +106,20 @@ public class myTemporalDocument {
         eventList = newEventList;
     }
 
-    public void loadRelationsFromMap(List<temprelAnnotationReader.CrowdFlowerEntry> relMap){
+    public void loadRelationsFromMap(List<temprelAnnotationReader.CrowdFlowerEntry> relMap, int verbose){
+        // currently, relMap is EE only
         for(temprelAnnotationReader.CrowdFlowerEntry entry:relMap){
             int eiid1 = entry.getEventid1();
             int eiid2 = entry.getEventid2();
             TemporalRelType rel = entry.getRel().getRelType();
-            TemporalNode sourceNode = graph.getNode(EventNodeType+":"+eiid1);
-            TemporalNode targetNode = graph.getNode(EventNodeType+":"+eiid2);
+            EventTemporalNode sourceNode = (EventTemporalNode) graph.getNode(EventNodeType+":"+eiid1);
+            EventTemporalNode targetNode = (EventTemporalNode) graph.getNode(EventNodeType+":"+eiid2);
             if(sourceNode==null||targetNode==null){
-                System.out.printf("[WARNIGN] null node in graph.");
+                if(verbose>0)
+                    System.out.printf("[WARNING] null node in graph %s: %s\n", docid,entry.toString());
                 continue;
             }
-            TemporalRelation tmpRel = new TemporalRelation(sourceNode, targetNode, rel);
+            TemporalRelation_EE tmpRel = new TemporalRelation_EE(sourceNode, targetNode, rel);
             graph.addRelNoDup(tmpRel);
         }
     }
@@ -135,6 +136,10 @@ public class myTemporalDocument {
         return docid;
     }
 
+    public TemporalGraph getGraph() {
+        return graph;
+    }
+
     public static void main(String[] args) throws Exception{
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         String dir = rm.getString("TBDense_Ser");
@@ -144,7 +149,7 @@ public class myTemporalDocument {
         HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
         doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
-        doc.loadRelationsFromMap(relMap.get(doc.getDocid()));
+        doc.loadRelationsFromMap(relMap.get(doc.getDocid()),1);
         System.out.println();
     }
 }

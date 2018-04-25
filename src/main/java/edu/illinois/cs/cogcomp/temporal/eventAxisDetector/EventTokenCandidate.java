@@ -53,15 +53,9 @@ public class EventTokenCandidate {
         // PP Head
         this.pp_head = retrievePPHeadOfTokenId(ta,tokenId);
         // POS in a window
-        pos_window = new String[window*2+1];
-        for(int i=-window;i<window;i++){
-            pos_window[i+window] = retrievePOSAtTokenId(ta,tokenId+i);
-        }
+        pos_window = retrievePOSWindow(ta,tokenId,window);
         // Lemma in a window
-        lemma_window = new String[window*2+1];
-        for(int i=-window;i<window;i++){
-            lemma_window[i+window] = retrieveLemmaAtTokenId(ta,tokenId+i);
-        }
+        lemma_window = retrieveLemmaWindow(ta,tokenId,window);
         // Signal words before and after tokenId within the same sentence
         signals_before = new HashSet<>();
         signals_after = new HashSet<>();
