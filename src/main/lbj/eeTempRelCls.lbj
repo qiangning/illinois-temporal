@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.lbjava;
+package edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode;
@@ -92,7 +92,7 @@ discrete% SignalWords(TemporalRelation_EE ee) <-
     }
 }
 
-discrete BiasTerm(TemporalRelation_EE ee) <-
+discrete BiasTermTemprel(TemporalRelation_EE ee) <-
 {
     return "bias";
 }
@@ -100,6 +100,6 @@ discrete BiasTerm(TemporalRelation_EE ee) <-
 discrete eeTempRelCls(TemporalRelation_EE ee) <-
 learn Label
 using
-    BiasTerm,SentDist,TokenDist,POS,SameSynSet,PPHead,SignalWords
+    BiasTermTemprel,SentDist,TokenDist,POS,SameSynSet,PPHead,SignalWords
     with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EETempRelClassifierPerceptronParams.learningRate,0,ParamLBJ.EETempRelClassifierPerceptronParams.thickness))
 end

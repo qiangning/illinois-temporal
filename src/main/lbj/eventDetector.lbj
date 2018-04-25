@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.lbjava;
+package edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector;
 
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
@@ -73,7 +73,7 @@ discrete% SignalWords(EventTokenCandidate etc) <-
     }
 }
 
-discrete BiasTerm(EventTokenCandidate etc) <-
+discrete BiasTermDetector(EventTokenCandidate etc) <-
 {
     return "bias";
 }
@@ -81,7 +81,7 @@ discrete BiasTerm(EventTokenCandidate etc) <-
 discrete eventDetector(EventTokenCandidate etc) <-
 learn Label
 using
-    BiasTerm, POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN, SignalWords
+    BiasTermDetector, POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN, SignalWords
     with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EventDetectorPerceptronParams.learningRate,0,ParamLBJ.EventDetectorPerceptronParams.thickness))
 end
 
