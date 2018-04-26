@@ -27,13 +27,20 @@ public class TempRelAnnotator {
     private myTemporalDocument doc;
     private EventAxisLabeler axisLabeler;
     private TempRelLabeler tempRelLabeler;
+    private ResourceManager rm;
 
     public TempRelAnnotator(myTemporalDocument doc) {
         this.doc = doc;
+        try {
+            rm = new temporalConfigurator().getConfig("config/directory.properties");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void axisAnnotator(){
-        int window = 2;
+        int window = rm.getInt("EVENT_DETECTOR_WINDOW");
         doc.dropAllEventsAndTimexes();
         TextAnnotation ta = doc.getTextAnnotation();
         int eiid = 0;
@@ -49,7 +56,7 @@ public class TempRelAnnotator {
     }
 
     public void tempRelAnnotator(WNSim wnsim){
-        int window = 2;
+        int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
 
         // extract features
@@ -89,32 +96,49 @@ public class TempRelAnnotator {
     public static void main(String[] args) throws Exception{
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
-        String dir = rm.getString("TBDense_Ser");
+        String dir = rm.getString("TimeBank_Ser");
         List<TemporalDocument> allDocs = TempEval3Reader.deserialize(dir);
         HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
-        List<myTemporalDocument> myAllDocs = new ArrayList<>();
-        for(TemporalDocument d:allDocs){
-            myTemporalDocument doc = new myTemporalDocument(d,0);
-            myAllDocs.add(doc);
-        }
-        TempRelAnnotator tra = new TempRelAnnotator(myAllDocs.get(0));
-
         String axisMdlDir = "models", axisMdlName = "eventPerceptronDetector_win2";
         EventAxisLabelerLBJ axisLabelerLBJ = new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
-        tra.setAxisLabeler(axisLabelerLBJ);
-        tra.axisAnnotator();
-
         String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls_win2";
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lex");
         eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lex");
         TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls0,cls1);
-        tra.setTempRelLabeler(tempRelLabelerLBJ);
-        tra.tempRelAnnotator(wnsim);
-        System.out.println();
+
+        List<myTemporalDocument> myAllDocs = new ArrayList<>(), myAllDocs_Gold = new ArrayList<>();
+        int cnt=0;
+        for(TemporalDocument d:allDocs){
+            String docid = d.getDocID();
+            if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
+                continue;
+            myTemporalDocument doc = new myTemporalDocument(d,0);
+
+            myTemporalDocument docGold = new myTemporalDocument(d,1);
+            docGold.keepAnchorableEvents(axisMap.get(doc.getDocid()));
+            docGold.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
+
+            myAllDocs.add(doc);
+            myAllDocs_Gold.add(docGold);
+
+            TempRelAnnotator tra = new TempRelAnnotator(doc);
+            tra.setAxisLabeler(axisLabelerLBJ);
+            tra.axisAnnotator();
+            tra.setTempRelLabeler(tempRelLabelerLBJ);
+            tra.tempRelAnnotator(wnsim);
+            cnt++;
+            if(cnt>=20)
+                break;
+        }
+
+        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
+
+
+
     }
 }

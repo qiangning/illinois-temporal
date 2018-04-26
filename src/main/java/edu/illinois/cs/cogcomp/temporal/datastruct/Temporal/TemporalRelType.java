@@ -132,7 +132,7 @@ public class TemporalRelType extends BinaryRelationType {
         this.reltype = reltype;
     }
 
-    public static TemporalRelType getNull() {
+    public static TemporalRelType getNullTempRel() {
         if(nullRelType==null){
             nullRelType = new TemporalRelType(relTypes.NULL);
         }

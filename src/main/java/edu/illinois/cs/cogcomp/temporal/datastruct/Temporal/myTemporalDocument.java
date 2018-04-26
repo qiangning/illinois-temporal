@@ -4,18 +4,24 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
+import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
 import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
+import jline.internal.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.*;
+import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
+
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
@@ -27,6 +33,7 @@ public class myTemporalDocument {
     private TextAnnotation ta;
     private TemporalGraph graph;
     private String docid;
+    private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
 
     public myTemporalDocument(String bodytext, String docid){
         //to-do
@@ -142,12 +149,147 @@ public class myTemporalDocument {
         timexList.add(t);
         graph.addNodeNoDup(t);
     }
+
     public void dropAllEventsAndTimexes(){
         eventList = new ArrayList<>();
         timexList = new ArrayList<>();
         graph.dropAllNodes();
     }
 
+    @Nullable
+    public EventTemporalNode getEventFromTokenId(int tokenId){
+        if(map_tokenId2event==null||map_tokenId2event.size()==0) {
+            map_tokenId2event = new HashMap<>();
+            for(EventTemporalNode e:eventList){
+                map_tokenId2event.put(e.getTokenId(),e);
+            }
+        }
+        return map_tokenId2event.get(tokenId);
+    }
+
+    public TemporalRelType getEERelFromTokenIds(int tokenId1, int tokenId2){
+        EventTemporalNode e1 = getEventFromTokenId(tokenId1);
+        EventTemporalNode e2 = getEventFromTokenId(tokenId2);
+        if(e1==null||e2==null)
+            return getNullTempRel();
+        TemporalRelation ee_rel = graph.getRelBetweenNodes(e1.getUniqueId(),e2.getUniqueId());
+        if(ee_rel==null)
+            return getNullTempRel();
+        return ee_rel.getRelType();
+    }
+
+    public static void NaiveEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
+        System.out.println(
+                "****************************\n" +
+                "*EVALUATING EVENT DETECTION*\n" +
+                "****************************\n");
+        NaiveEvaluator_EventDetection(doc_gold_list,doc_pred_list,verbose);
+        System.out.println(
+                "*****************************************\n" +
+                "*EVALUATING EVENT TEMPREL CLASSIFICATION*\n" +
+                "*****************************************\n");
+        NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,verbose);
+    }
+
+    public static void NaiveEvaluator_EventDetection(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
+        PrecisionRecallManager eventDetectorEvaluator = new PrecisionRecallManager();
+        PrecisionRecallManager eventDetectorEvaluatorDetail;
+        if(doc_gold_list.size()!=doc_pred_list.size()){
+            System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+            return;
+        }
+        for(int k=0;k<doc_gold_list.size();k++) {
+            eventDetectorEvaluatorDetail = new PrecisionRecallManager();
+            myTemporalDocument doc_gold = doc_gold_list.get(k);
+            myTemporalDocument doc_pred = doc_pred_list.get(k);
+            // check
+            if(!doc_gold.getDocid().equals(doc_pred.getDocid())){
+                System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+                return;
+            }
+
+            int tokenSize = doc_gold.getTextAnnotation().getTokens().length;
+            for (int i = 0; i < tokenSize; i++) {
+                EventTemporalNode e_gold = doc_gold.getEventFromTokenId(i);
+                EventTemporalNode e_pred = doc_pred.getEventFromTokenId(i);
+                String goldLabel = e_gold == null ? LABEL_NOT_ON_ANY_AXIS : "main";
+                String predLabel = e_pred == null ? LABEL_NOT_ON_ANY_AXIS : "main";
+                eventDetectorEvaluator.addPredGoldLabels(predLabel, goldLabel);
+                eventDetectorEvaluatorDetail.addPredGoldLabels(predLabel, goldLabel);
+            }
+            if(verbose>1) {
+                System.out.printf("--------#%d Doc: %s--------\n",k,doc_gold.getDocid());
+                eventDetectorEvaluatorDetail.printPrecisionRecall(EventAxisPerceptronTrainer.LABEL_TO_IGNORE);
+                if (verbose > 2) {
+                    System.out.println("----------CONFUSION MATRIX----------");
+                    eventDetectorEvaluatorDetail.printConfusionMatrix();
+                }
+            }
+        }
+        System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
+        eventDetectorEvaluator.printPrecisionRecall(EventAxisPerceptronTrainer.LABEL_TO_IGNORE);
+        if (verbose > 0) {
+            System.out.println("----------CONFUSION MATRIX----------");
+            eventDetectorEvaluator.printConfusionMatrix();
+        }
+    }
+
+    public static void NaiveEvaluator_TempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
+        PrecisionRecallManager tempRelClsEvaluator = new PrecisionRecallManager();
+        PrecisionRecallManager tempRelClsEvaluatorDetail;
+        if(doc_gold_list.size()!=doc_pred_list.size()){
+            System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+            return;
+        }
+        for(int k=0;k<doc_gold_list.size();k++) {
+            tempRelClsEvaluatorDetail = new PrecisionRecallManager();
+            myTemporalDocument doc_gold = doc_gold_list.get(k);
+            myTemporalDocument doc_pred = doc_pred_list.get(k);
+            // check
+            if(!doc_gold.getDocid().equals(doc_pred.getDocid())){
+                System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+                return;
+            }
+
+            // Get all EE pairs set
+            HashSet<String> allEEPairs_str = new HashSet<>();// format: event_tokenId1 + ":" + event_tokenId2
+            List<TemporalRelation_EE> allEE = doc_gold.getGraph().getAllEERelations(-1);
+            allEE.addAll(doc_pred.getGraph().getAllEERelations(-1));
+            for(TemporalRelation_EE ee:allEE){
+                int tokId1 = ee.getSourceNode().getTokenId();
+                int tokId2 = ee.getTargetNode().getTokenId();
+                if(tokId1>tokId2) continue;
+                allEEPairs_str.add(tokId1+":"+tokId2);
+            }
+
+            // Evaluate all EE pairs
+            for(String ee_str:allEEPairs_str){
+                String[] tmp = ee_str.split(":");
+                int tokId1 = Integer.valueOf(tmp[0]);
+                int tokId2 = Integer.valueOf(tmp[1]);
+                TemporalRelType rel_gold = doc_gold.getEERelFromTokenIds(tokId1,tokId2);
+                TemporalRelType rel_pred = doc_pred.getEERelFromTokenIds(tokId1,tokId2);
+                if(rel_gold.isNull())
+                    continue;
+                tempRelClsEvaluator.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+                tempRelClsEvaluatorDetail.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+            }
+            if(verbose>1) {
+                System.out.printf("--------#%d Doc: %s--------\n",k,doc_gold.getDocid());
+                tempRelClsEvaluatorDetail.printPrecisionRecall(EventTemprelPerceptronTrainer.LABEL_TO_IGNORE);
+                if (verbose > 2) {
+                    System.out.println("----------CONFUSION MATRIX----------");
+                    tempRelClsEvaluatorDetail.printConfusionMatrix();
+                }
+            }
+        }
+        System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
+        tempRelClsEvaluator.printPrecisionRecall(EventTemprelPerceptronTrainer.LABEL_TO_IGNORE);
+        if (verbose > 0) {
+            System.out.println("----------CONFUSION MATRIX----------");
+            tempRelClsEvaluator.printConfusionMatrix();
+        }
+    }
     /*Getters and Setters*/
     public TextAnnotation getTextAnnotation() {
         return ta;

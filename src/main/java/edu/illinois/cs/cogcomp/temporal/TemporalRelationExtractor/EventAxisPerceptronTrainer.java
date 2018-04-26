@@ -1,5 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
+import de.unihd.dbs.uima.reader.tempeval3reader.Tempeval3Reader;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
@@ -28,7 +29,7 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     private static double[] THICKNESS = new double[]{0,1};
     private static double[] NEGVAGSAMRATE= new double[]{0.3,0.5,0.7};
     private static double[] ROUND = new double[]{5,10,20};
-    private static String[] LABEL_TO_IGNORE = new String[]{LABEL_NOT_ON_ANY_AXIS};
+    public static String[] LABEL_TO_IGNORE = new String[]{LABEL_NOT_ON_ANY_AXIS};
 
     private static CommandLine cmd;
 
@@ -47,14 +48,14 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     public void load(){
         try {
             ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-            String dir = rm.getString("TimeBank_Ser");
-            List<TemporalDocument> timebank = TempEval3Reader.deserialize(dir);
+            List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("TimeBank_Ser"));
+            allDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
             HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));// docid-->eventid-->axis_label
             // convert eventid in axisMap to tokenId
-            for(int i=0;i<timebank.size();i++){
-                String docid = timebank.get(i).getDocID();
+            for(int i=0;i<allDocs.size();i++){
+                String docid = allDocs.get(i).getDocID();
                 if(!axisMap.containsKey(docid)) continue;
-                HashMap<Integer,Integer> index2TokId = eventIndex2TokId(timebank.get(i));
+                HashMap<Integer,Integer> index2TokId = eventIndex2TokId(allDocs.get(i));
                 HashMap<Integer,String> tmpMap = axisMap.get(docid);
                 HashMap<Integer,String> tmpMap2 = new HashMap<>();
                 for(int eventid:tmpMap.keySet()){
@@ -75,12 +76,12 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
             testStructs = new ArrayList<>();
             int testDocSize = 20;
             for(int i=0;i<testDocSize;i++){
-                myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
+                myTemporalDocument doc = new myTemporalDocument(allDocs.get(i));
                 if(!axisMap.containsKey(doc.getDocid())) continue;
                 testStructs.addAll(doc.generateAllEventTokenCandidates(window,axisMap.get(doc.getDocid())));
             }
-            for(int i=testDocSize;i<timebank.size();i++){
-                myTemporalDocument doc = new myTemporalDocument(timebank.get(i));
+            for(int i=testDocSize;i<allDocs.size();i++){
+                myTemporalDocument doc = new myTemporalDocument(allDocs.get(i));
                 if(!axisMap.containsKey(doc.getDocid())) continue;
                 trainingStructs.addAll(doc.generateAllEventTokenCandidates(window,axisMap.get(doc.getDocid())));
             }

@@ -14,20 +14,25 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         super(nodeMap, relations);
     }
     /*Functions*/
+    @Override
+    public TemporalRelation getRelBetweenNodes(String uniqueId1, String uniqueId2){
+        return super.getRelBetweenNodes(uniqueId1,uniqueId2);
+    }
 
     // TO-DO: get EE / ET / TT sub-graphs
 
     public List<TemporalRelation_EE> getAllEERelations(int sentDiff){
         // All EE
         // - source should be before target
-        // - only sentDiff can be kept
+        // - only sentDiff can be kept (sentDiff<0 means this option is inactive)
         List<TemporalRelation> allRelations = getRelations();
         List<TemporalRelation_EE> allEERelations = new ArrayList<>();
         for(TemporalRelation rel:allRelations){
             if(rel.getSourceNode() instanceof EventTemporalNode
-                    && rel.getTargetNode() instanceof EventTemporalNode){
+                    && rel.getTargetNode() instanceof EventTemporalNode
+                    || rel instanceof TemporalRelation_EE){
                 TemporalRelation_EE ee_rel = (TemporalRelation_EE) rel;
-                if(ee_rel.getSourceEvent().getTokenId()<ee_rel.getTargetEvent().getTokenId()&&
+                if(ee_rel.getSourceNode().getTokenId()<ee_rel.getTargetNode().getTokenId()&&
                         (sentDiff<0||sentDiff==ee_rel.getSentDiff()))
                     allEERelations.add(ee_rel);
             }

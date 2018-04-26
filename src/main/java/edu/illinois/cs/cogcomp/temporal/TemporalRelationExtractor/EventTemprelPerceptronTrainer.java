@@ -35,7 +35,7 @@ public class EventTemprelPerceptronTrainer  extends CrossValidationWrapper<Tempo
     private static double[] THICKNESS = new double[]{0,1};
     private static double[] SAMRATE = new double[]{1};
     private static double[] ROUND = new double[]{5,10,20};
-    private static String[] LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName()};
+    public static String[] LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName()};
 
     private static CommandLine cmd;
 

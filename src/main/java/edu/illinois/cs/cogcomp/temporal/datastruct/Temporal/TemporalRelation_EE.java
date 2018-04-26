@@ -23,24 +23,26 @@ public class TemporalRelation_EE extends TemporalRelation {
 
     @Override
     public TemporalRelation_EE inverse(){
-        return new TemporalRelation_EE(getTargetEvent(),getSourceEvent(),getRelType().inverse());
+        return new TemporalRelation_EE(getTargetNode(), getSourceNode(),getRelType().inverse());
 
     }
 
-    public EventTemporalNode getSourceEvent(){
-        return (EventTemporalNode) getSourceNode();
+    @Override
+    public EventTemporalNode getSourceNode(){
+        return (EventTemporalNode) super.getSourceNode();
     }
 
-    public EventTemporalNode getTargetEvent(){
-        return (EventTemporalNode) getTargetNode();
+    @Override
+    public EventTemporalNode getTargetNode(){
+        return (EventTemporalNode) super.getTargetNode();
     }
 
     public void extractSignalWords(){
         signals_before = new HashSet<>();
         signals_between = new HashSet<>();
         signals_after = new HashSet<>();
-        EventTemporalNode sourceEvent = getSourceEvent();
-        EventTemporalNode targetEvent = getTargetEvent();
+        EventTemporalNode sourceEvent = getSourceNode();
+        EventTemporalNode targetEvent = getTargetNode();
         TextAnnotation ta = sourceEvent.getTa();// assume targetEvent.getTa() is the same
         int start = startTokInSent(ta,sourceEvent.getSentId());
         int end = endTokInSent(ta,targetEvent.getSentId());
@@ -67,8 +69,8 @@ public class TemporalRelation_EE extends TemporalRelation {
     }
 
     public boolean sameSynset(){
-        List<String> e1Synsets = getSourceEvent().getSynsets();
-        List<String> e2Synsets = getTargetEvent().getSynsets();
+        List<String> e1Synsets = getSourceNode().getSynsets();
+        List<String> e2Synsets = getTargetNode().getSynsets();
         Set<String> e1SetSynsets = new HashSet<String>(e1Synsets);
         Set<String> e2SetSynsets = new HashSet<String>(e2Synsets);
         e1SetSynsets.retainAll(e2SetSynsets);
