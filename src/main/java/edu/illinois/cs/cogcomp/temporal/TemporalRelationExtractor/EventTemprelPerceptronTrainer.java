@@ -10,7 +10,7 @@ import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
-import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper_LbjavaLearner;
+import edu.illinois.cs.cogcomp.temporal.utils.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
@@ -21,13 +21,9 @@ import java.util.*;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
-public class EventTemprelPerceptronTrainer extends CrossValidationWrapper_LbjavaLearner<TemporalRelation_EE> {
+public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<TemporalRelation_EE> {
     private int window;
     private int sentDiff;
-    private static double[] LEARNRATE = new double[]{0.0001,0.0002};
-    private static double[] THICKNESS = new double[]{0,1};
-    private static double[] SAMRATE = new double[]{1};
-    private static double[] ROUND = new double[]{5,10,20};
     public static String[] TEMP_LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName()};
 
     private static CommandLine cmd;
@@ -37,6 +33,10 @@ public class EventTemprelPerceptronTrainer extends CrossValidationWrapper_Lbjava
         this.window = window;
         this.sentDiff = sentDiff;
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
+        LEARNRATE = new double[]{0.0001,0.0002};
+        THICKNESS = new double[]{0,1};
+        SAMRATE = new double[]{1};
+        ROUND = new double[]{5,10,20};
     }
 
     @Override
@@ -86,52 +86,16 @@ public class EventTemprelPerceptronTrainer extends CrossValidationWrapper_Lbjava
     }
 
     @Override
-    public void learn(List<TemporalRelation_EE> slist, double[] param, int seed) {
-        double lr = param[0];
-        double th = param[1];
-        double sr = param[2];
-        int round = (int) Math.round(param[3]);
-        Random rng = new Random(seed++);
-
-        ListSampler<TemporalRelation_EE> listSampler = new ListSampler<>(
-                element -> !element.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
-                &&!element.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName())
-        );
-        List<TemporalRelation_EE> slist_sample = listSampler.ListSampling(slist,sr,rng);
-
+    public List<TemporalRelation_EE> SetLrThSrCls(double lr, double th, double sr, List<TemporalRelation_EE> slist) {
         ParamLBJ.EETempRelClassifierPerceptronParams.learningRate = lr;
         ParamLBJ.EETempRelClassifierPerceptronParams.thickness = th;
+        Random rng = new Random(seed++);
+        ListSampler<TemporalRelation_EE> listSampler = new ListSampler<>(
+                element -> !element.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
+                        &&!element.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName())
+        );
         classifier = new eeTempRelCls(modelPath,lexiconPath);
-        classifier.forget();
-        classifier.beginTraining();
-        for(int iter=0;iter<round;iter++){
-            Collections.shuffle(slist_sample, new Random(seed++));
-            for(TemporalRelation_EE ee:slist_sample){
-                try{
-                    classifier.learn(ee);
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        classifier.doneLearning();
-    }
-
-    @Override
-    public void setParams2tune() {
-        params2tune = new double[LEARNRATE.length*THICKNESS.length* SAMRATE.length*ROUND.length][4];
-        int cnt = 0;
-        for(double lr:LEARNRATE){
-            for(double th:THICKNESS){
-                for(double nvsr: SAMRATE){
-                    for(double r:ROUND){
-                        params2tune[cnt] = new double[]{lr,th,nvsr,r};
-                        cnt++;
-                    }
-                }
-            }
-        }
+        return listSampler.ListSampling(slist,sr,rng);
     }
 
     @Override
@@ -169,6 +133,7 @@ public class EventTemprelPerceptronTrainer extends CrossValidationWrapper_Lbjava
             System.exit(1);
         }
     }
+
     public static void main(String[] args) throws Exception{
         cmdParser(args);
         String modelDir = cmd.getOptionValue("modelDir");

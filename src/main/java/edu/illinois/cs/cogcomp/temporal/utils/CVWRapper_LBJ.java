@@ -1,5 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.utils;
 
+import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
@@ -7,18 +8,19 @@ import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import java.io.File;
 import java.util.List;
 
-public abstract class CrossValidationWrapper_LbjavaLearner<LearningStruct> extends CrossValidationWrapper<LearningStruct> {
+public abstract class CVWRapper_LBJ<LearningStruct> extends CrossValidationWrapper<LearningStruct> {
     protected Learner classifier;
     protected List<LearningStruct> testStructs;
     protected int evalMetric = 2;//0:prec. 1: recall. 2: f1
     protected String modelPath, lexiconPath;
     protected static String[] LABEL_TO_IGNORE = new String[]{};
 
-    public CrossValidationWrapper_LbjavaLearner(int seed, int totalFold, int evalMetric) {
+    public CVWRapper_LBJ(int seed, int totalFold, int evalMetric) {
         super(seed, totalFold);
         this.evalMetric = evalMetric;
     }
     public void setModelPath(String dir, String name) {
+        IOUtils.mkdir(dir);
         modelPath = dir+ File.separator+name+".lc";
         lexiconPath = dir+File.separator+name+".lex";
     }
@@ -63,7 +65,7 @@ public abstract class CrossValidationWrapper_LbjavaLearner<LearningStruct> exten
         classifier.write(modelPath,lexiconPath);
     }
 
-    public static void StandardExperiment(CrossValidationWrapper_LbjavaLearner exp){
+    public static void StandardExperiment(CVWRapper_LBJ exp){
         // remember to setup model names before calling this
         exp.load();
         exp.myParamTuner();

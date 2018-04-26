@@ -9,7 +9,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
-import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper;
+import edu.illinois.cs.cogcomp.temporal.utils.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
@@ -19,29 +19,20 @@ import java.util.*;
 
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
 
-public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventTokenCandidate>{
-    private List<EventTokenCandidate> testStructs;
+public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTokenCandidate> {
     private int window;
-    private String modelPath, lexiconPath;
-    private int evalMetric = 2;//0:prec. 1: recall. 2: f1
-    private Learner classifier;
-    private static double[] LEARNRATE = new double[]{0.0001,0.0002};
-    private static double[] THICKNESS = new double[]{0,1};
-    private static double[] NEGVAGSAMRATE= new double[]{0.3,0.5,0.7};
-    private static double[] ROUND = new double[]{5,10,20};
-    public static String[] LABEL_TO_IGNORE = new String[]{LABEL_NOT_ON_ANY_AXIS};
+    public static String[] AXIS_LABEL_TO_IGNORE = new String[]{LABEL_NOT_ON_ANY_AXIS};
 
     private static CommandLine cmd;
 
     public EventAxisPerceptronTrainer(int seed, int totalFold, int window, int evalMetric) {
-        super(seed, totalFold);
+        super(seed, totalFold,evalMetric);
         this.window = window;
-        this.evalMetric = evalMetric;
-    }
-
-    public void setModelPath(String dir, String name) {
-        modelPath = dir+ File.separator+name+".lc";
-        lexiconPath = dir+File.separator+name+".lex";
+        LABEL_TO_IGNORE = AXIS_LABEL_TO_IGNORE;
+        LEARNRATE = new double[]{0.0001,0.0002};
+        THICKNESS = new double[]{0,1};
+        SAMRATE = new double[]{1};
+        ROUND = new double[]{5,10,20};
     }
 
     @Override
@@ -92,90 +83,22 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
     }
 
     @Override
-    public void learn(List<EventTokenCandidate> slist, double[] param, int seed) {
-        double lr = param[0];
-        double th = param[1];
-        double nvsr = param[2];
-        int round = (int) Math.round(param[3]);
+    public List<EventTokenCandidate> SetLrThSrCls(double lr, double th, double sr, List<EventTokenCandidate> slist) {
+        ParamLBJ.EventDetectorPerceptronParams.learningRate = lr;
+        ParamLBJ.EventDetectorPerceptronParams.thickness = th;
         Random rng = new Random(seed++);
         ListSampler<EventTokenCandidate> listSampler = new ListSampler<>(
                 element -> !element.getLabel().equals(LABEL_NOT_ON_ANY_AXIS)
         );
-        List<EventTokenCandidate> slist_negSam = listSampler.ListSampling(slist,nvsr,rng);
-
-        ParamLBJ.EventDetectorPerceptronParams.learningRate = lr;
-        ParamLBJ.EventDetectorPerceptronParams.thickness = th;
         classifier = new eventDetector(modelPath,lexiconPath);
-        classifier.forget();
-        classifier.beginTraining();
-        for(int iter=0;iter<round;iter++){
-            Collections.shuffle(slist_negSam, new Random(seed++));
-            for(EventTokenCandidate etc:slist_negSam){
-                try{
-                    classifier.learn(etc);
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        classifier.doneLearning();
+        return listSampler.ListSampling(slist,sr,rng);
     }
 
     @Override
-    public double evaluate(List<EventTokenCandidate> slist, int verbose) {
-        ExecutionTimeUtil timer = new ExecutionTimeUtil();
-        PrecisionRecallManager evaluator = new PrecisionRecallManager();
-        timer.start();
-        for(EventTokenCandidate etc:slist){
-            String p = classifier.discreteValue(etc);
-            String l = etc.getLabel();
-            evaluator.addPredGoldLabels(p,l);
-        }
-        timer.end();
-        if(verbose>0) {
-            evaluator.printPrecisionRecall(LABEL_TO_IGNORE);
-        }
-        double res;
-        switch(evalMetric){
-            case 0:
-                res = evaluator.getResultStruct(LABEL_TO_IGNORE).prec;
-                break;
-            case 1:
-                res = evaluator.getResultStruct(LABEL_TO_IGNORE).rec;
-                break;
-            case 2:
-                res = evaluator.getResultStruct(LABEL_TO_IGNORE).f;
-                break;
-            default:
-                res = evaluator.getResultStruct(LABEL_TO_IGNORE).f;
-        }
-        return res;
+    public String getLabel(EventTokenCandidate eventTokenCandidate) {
+        return eventTokenCandidate.getLabel();
     }
 
-    @Override
-    public void setParams2tune() {
-        params2tune = new double[LEARNRATE.length*THICKNESS.length*NEGVAGSAMRATE.length*ROUND.length][4];
-        int cnt = 0;
-        for(double lr:LEARNRATE){
-            for(double th:THICKNESS){
-                for(double nvsr:NEGVAGSAMRATE){
-                    for(double r:ROUND){
-                        params2tune[cnt] = new double[]{lr,th,nvsr,r};
-                        cnt++;
-                    }
-                }
-            }
-        }
-    }
-    public double evaluateTest(){
-        System.out.println("-------------------");
-        System.out.println("Evaluating TestSet...");
-        return evaluate(testStructs,1);
-    }
-    public void saveClassifier(){
-        classifier.write(modelPath,lexiconPath);
-    }
     public static void cmdParser(String[] args) {
         Options options = new Options();
 
@@ -210,10 +133,6 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
         modelName += "_win"+window;
         EventAxisPerceptronTrainer exp = new EventAxisPerceptronTrainer(0,5,window,2);
         exp.setModelPath(modelDir,modelName);
-        exp.load();
-        exp.myParamTuner();
-        exp.retrainUsingBest();
-        exp.evaluateTest();
-        exp.saveClassifier();
+        StandardExperiment(exp);
     }
 }
