@@ -1,6 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
-import de.unihd.dbs.uima.reader.tempeval3reader.Tempeval3Reader;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
@@ -11,6 +10,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper;
+import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
 
@@ -97,25 +97,12 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
         double th = param[1];
         double nvsr = param[2];
         int round = (int) Math.round(param[3]);
-        List<EventTokenCandidate> slist_negSam = new ArrayList<>();
         Random rng = new Random(seed++);
-        for(EventTokenCandidate st:slist){
-            if(!st.getLabel().equals(LABEL_NOT_ON_ANY_AXIS))
-                slist_negSam.add(st);
-            else {
-                if (nvsr <= 1) {
-                    if (rng.nextDouble() <= nvsr)
-                        slist_negSam.add(st);
-                } else {
-                    double tmp = nvsr;
-                    for (; tmp > 1; tmp--) {
-                        slist_negSam.add(st);
-                    }
-                    if (rng.nextDouble() <= tmp)
-                        slist_negSam.add(st);
-                }
-            }
-        }
+        ListSampler<EventTokenCandidate> listSampler = new ListSampler<>(
+                element -> !element.getLabel().equals(LABEL_NOT_ON_ANY_AXIS)
+        );
+        List<EventTokenCandidate> slist_negSam = listSampler.ListSampling(slist,nvsr,rng);
+
         ParamLBJ.EventDetectorPerceptronParams.learningRate = lr;
         ParamLBJ.EventDetectorPerceptronParams.thickness = th;
         classifier = new eventDetector(modelPath,lexiconPath);

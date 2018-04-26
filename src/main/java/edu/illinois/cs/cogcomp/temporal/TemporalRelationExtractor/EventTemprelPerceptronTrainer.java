@@ -14,6 +14,7 @@ import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidationWrapper;
+import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
@@ -103,26 +104,14 @@ public class EventTemprelPerceptronTrainer  extends CrossValidationWrapper<Tempo
         double th = param[1];
         double sr = param[2];
         int round = (int) Math.round(param[3]);
-        List<TemporalRelation_EE> slist_sample = new ArrayList<>();
         Random rng = new Random(seed++);
-        for(TemporalRelation_EE st:slist){
-            if(!st.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
-                    &&!st.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName()))
-                slist_sample.add(st);
-            else {
-                if (sr <= 1) {
-                    if (rng.nextDouble() <= sr)
-                        slist_sample.add(st);
-                } else {
-                    double tmp = sr;
-                    for (; tmp > 1; tmp--) {
-                        slist_sample.add(st);
-                    }
-                    if (rng.nextDouble() <= tmp)
-                        slist_sample.add(st);
-                }
-            }
-        }
+
+        ListSampler<TemporalRelation_EE> listSampler = new ListSampler<>(
+                element -> !element.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
+                &&!element.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName())
+        );
+        List<TemporalRelation_EE> slist_sample = listSampler.ListSampling(slist,sr,rng);
+
         ParamLBJ.EETempRelClassifierPerceptronParams.learningRate = lr;
         ParamLBJ.EETempRelClassifierPerceptronParams.thickness = th;
         classifier = new eeTempRelCls(modelPath,lexiconPath);
