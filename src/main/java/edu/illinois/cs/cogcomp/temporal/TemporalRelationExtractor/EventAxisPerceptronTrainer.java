@@ -209,8 +209,8 @@ public class EventAxisPerceptronTrainer extends CrossValidationWrapper<EventToke
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         modelName += "_win"+window;
         EventAxisPerceptronTrainer exp = new EventAxisPerceptronTrainer(0,5,window,2);
-        exp.load();
         exp.setModelPath(modelDir,modelName);
+        exp.load();
         exp.myParamTuner();
         exp.retrainUsingBest();
         exp.evaluateTest();

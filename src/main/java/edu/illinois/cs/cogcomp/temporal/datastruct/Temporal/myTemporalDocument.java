@@ -276,7 +276,7 @@ public class myTemporalDocument {
             }
             if(verbose>1) {
                 System.out.printf("--------#%d Doc: %s--------\n",k,doc_gold.getDocid());
-                tempRelClsEvaluatorDetail.printPrecisionRecall(EventTemprelPerceptronTrainer.LABEL_TO_IGNORE);
+                tempRelClsEvaluatorDetail.printPrecisionRecall(EventTemprelPerceptronTrainer.TEMP_LABEL_TO_IGNORE);
                 if (verbose > 2) {
                     System.out.println("----------CONFUSION MATRIX----------");
                     tempRelClsEvaluatorDetail.printConfusionMatrix();
@@ -284,7 +284,7 @@ public class myTemporalDocument {
             }
         }
         System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
-        tempRelClsEvaluator.printPrecisionRecall(EventTemprelPerceptronTrainer.LABEL_TO_IGNORE);
+        tempRelClsEvaluator.printPrecisionRecall(EventTemprelPerceptronTrainer.TEMP_LABEL_TO_IGNORE);
         if (verbose > 0) {
             System.out.println("----------CONFUSION MATRIX----------");
             tempRelClsEvaluator.printConfusionMatrix();
