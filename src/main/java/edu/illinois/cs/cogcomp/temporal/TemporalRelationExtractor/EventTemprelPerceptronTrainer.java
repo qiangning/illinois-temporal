@@ -37,42 +37,40 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         ROUND = new double[]{5,10,20};
     }
 
+    private List<TemporalRelation_EE> preprocess(List<TemporalDocument> docList,
+                                                 HashMap<String,HashMap<Integer,String>> axisMap,
+                                                 HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap,
+                                                 WNSim wnsim){
+
+        List<TemporalRelation_EE> ret = new ArrayList<>();
+        for(TemporalDocument d:docList){
+            myTemporalDocument doc = new myTemporalDocument(d,1);
+            String docid = doc.getDocid();
+            if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
+                continue;
+            doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
+            doc.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
+            List<EventTemporalNode> events = doc.getEventList();
+            for(EventTemporalNode e:events){
+                e.extractPosLemmaWin(window);
+                e.extractSynsets(wnsim);
+            }
+            ret.addAll(doc.getGraph().getAllEERelations(sentDiff));
+        }
+        return ret;
+    }
     @Override
     public void load() {
         try {
             ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
             WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
-            String dir = rm.getString("TimeBank_Ser");
-            List<TemporalDocument> allDocs = TempEval3Reader.deserialize(dir);
+            List<TemporalDocument> allTrainingDocs = TempEval3Reader.deserialize(rm.getString("TimeBank_Ser"));
+            allTrainingDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
+            List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
             HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
             HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
-            List<myTemporalDocument> myAllDocs = new ArrayList<>();
-            for(TemporalDocument d:allDocs){
-                myTemporalDocument doc = new myTemporalDocument(d,1);
-                String docid = doc.getDocid();
-                if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
-                    continue;
-                doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
-                doc.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
-                myAllDocs.add(doc);
-                List<EventTemporalNode> events = doc.getEventList();
-                for(EventTemporalNode e:events){
-                    e.extractPosLemmaWin(window);
-                    e.extractSynsets(wnsim);
-                }
-            }
-
-            trainingStructs = new ArrayList<>();
-            testStructs = new ArrayList<>();
-            int testDocSize = 20;
-            for(int i=0;i<testDocSize;i++){
-                myTemporalDocument doc = myAllDocs.get(i);
-                testStructs.addAll(doc.getGraph().getAllEERelations(sentDiff));
-            }
-            for(int i=testDocSize;i<myAllDocs.size();i++){
-                myTemporalDocument doc = myAllDocs.get(i);
-                trainingStructs.addAll(doc.getGraph().getAllEERelations(sentDiff));
-            }
+            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap,wnsim);
+            testStructs = preprocess(allTestingDocs,axisMap,relMap,wnsim);
             for(TemporalRelation_EE tmp:trainingStructs)
                 tmp.extractSignalWords();
             for(TemporalRelation_EE tmp:testStructs)

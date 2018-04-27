@@ -96,15 +96,14 @@ public class TempRelAnnotator {
     public static void main(String[] args) throws Exception{
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
-        String dir = rm.getString("TimeBank_Ser");
-        List<TemporalDocument> allDocs = TempEval3Reader.deserialize(dir);
+        List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
         HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
         String axisMdlDir = "models", axisMdlName = "eventPerceptronDetector_win2";
         EventAxisLabelerLBJ axisLabelerLBJ = new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
-        String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls_win2";
+        String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls_mod0_win2";
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lex");
         eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lc",

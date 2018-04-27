@@ -21,7 +21,9 @@ public class ListSampler<T> {
             if(listElementLabeler.labeler(element))
                 newlist.add(element);
             else{
-                if(samplingRate<=1){
+                if(samplingRate==1)
+                    newlist.add(element);
+                else if(samplingRate<1){
                     if(rng.nextDouble() <= samplingRate)
                         newlist.add(element);
                 }
