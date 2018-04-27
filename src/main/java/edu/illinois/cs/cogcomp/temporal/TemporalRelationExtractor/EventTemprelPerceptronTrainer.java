@@ -7,7 +7,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
-import edu.illinois.cs.cogcomp.temporal.utils.CVWrapper_LBJ_Perceptron;
+import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;

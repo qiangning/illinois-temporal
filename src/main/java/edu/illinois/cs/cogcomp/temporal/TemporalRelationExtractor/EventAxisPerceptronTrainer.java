@@ -6,7 +6,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
-import edu.illinois.cs.cogcomp.temporal.utils.CVWrapper_LBJ_Perceptron;
+import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
