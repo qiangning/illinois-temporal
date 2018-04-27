@@ -43,9 +43,24 @@ public class TemporalRelType extends BinaryRelationType {
                     return NULL;
             }
         }
+        public int getIndex(){
+            relTypes[] values = relTypes.values();
+            for(int i=0;i<values.length;i++){
+                relTypes r = values[i];
+                if(this==r)
+                    return i;
+            }
+            return -1;
+        }
+        public static relTypes getRelTypesFromIndex(int id){
+            if(id<0||id>=relTypes.values().length)
+                return NULL;
+            return relTypes.values()[id];
+        }
     }
 
     private relTypes reltype;
+    private double[] scores;
     private static TemporalRelType nullRelType;
 
     /*Constructors*/
@@ -88,8 +103,8 @@ public class TemporalRelType extends BinaryRelationType {
     }
 
     @Override
-    public List<BinaryRelationType> transitivity(BinaryRelationType rel1, BinaryRelationType rel2) {
-        switch(((TemporalRelType) rel1).getReltype()){
+    public List<BinaryRelationType> transitivity(BinaryRelationType rel2) {
+        switch(reltype){
             case BEFORE:
                 switch (((TemporalRelType)rel2).getReltype()){
                     case BEFORE:
@@ -105,12 +120,12 @@ public class TemporalRelType extends BinaryRelationType {
                 switch (((TemporalRelType)rel2).getReltype()){
                     case AFTER:
                     case EQUAL:
-                        return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.AFTER)});
+                        return Arrays.asList(new TemporalRelType(relTypes.AFTER));
                     default:
-                        return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.BEFORE),
+                        return Arrays.asList(new TemporalRelType(relTypes.BEFORE),
                                 new TemporalRelType(relTypes.AFTER),
                                 new TemporalRelType(relTypes.EQUAL),
-                                new TemporalRelType(relTypes.VAGUE)});
+                                new TemporalRelType(relTypes.VAGUE));
                 }
             case EQUAL:
                 return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(((TemporalRelType)rel2).getReltype())});
@@ -137,6 +152,14 @@ public class TemporalRelType extends BinaryRelationType {
             nullRelType = new TemporalRelType(relTypes.NULL);
         }
         return nullRelType;
+    }
+
+    public void setScores(double[] scores) {
+        this.scores = scores;
+    }
+
+    public double[] getScores() {
+        return scores;
     }
 
     public static void main(String[] args) throws Exception{

@@ -3,11 +3,10 @@ package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
+import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
+import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
@@ -16,6 +15,7 @@ import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,14 +28,56 @@ public class TempRelAnnotator {
     private EventAxisLabeler axisLabeler;
     private TempRelLabeler tempRelLabeler;
     private ResourceManager rm;
+    private WNSim wnsim;
 
-    public TempRelAnnotator(myTemporalDocument doc) {
+    private int n_entitiy;
+    // all first two dimensions are upper triangle
+    private double[][][] local_score;//n_entitiy x n_entitiy x n_relation
+    private boolean[][] ignoreMap;//n_entitiy x n_entitiy
+    private List<int[][][]> constraintMap;// A list of {n_entitiy x n_entitiy x (n_relation+1)} //+1dim is the "1" in x1+x2+x3=1
+    private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
+    public int[][] result;
+
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm,WNSim wnsim) {
         this.doc = doc;
-        try {
-            rm = new temporalConfigurator().getConfig("config/directory.properties");
+        this.axisLabeler = axisLabeler;
+        this.tempRelLabeler = tempRelLabeler;
+        this.rm = rm;
+        this.wnsim = wnsim;
+    }
+
+    private void initAllArrays4ILP(){
+        n_entitiy = doc.getEventList().size();
+        local_score = new double[n_entitiy][n_entitiy][TemporalRelType.relTypes.values().length];
+        ignoreMap = new boolean[n_entitiy][n_entitiy];
+        constraintMap = new ArrayList<>();
+        int[][][] uniqueness = new int[n_entitiy][n_entitiy][TemporalRelType.relTypes.values().length+1];
+        for(int i=0;i<n_entitiy;i++){
+            Arrays.fill(ignoreMap[i],true);
+            for(int j=0;j<n_entitiy;j++) {
+                Arrays.fill(local_score[i][j], 0);
+                Arrays.fill(uniqueness[i][j],1);
+            }
         }
-        catch (Exception e){
-            e.printStackTrace();
+        constraintMap.add(uniqueness);
+
+        if(transitivityMap==null|| transitivityMap.size()==0){
+            transitivityMap = new ArrayList<>();
+            TemporalRelType.relTypes[] reltypes = TemporalRelType.relTypes.values();
+            int n = reltypes.length;
+            for(int i=0;i<n;i++){
+                TemporalRelType.relTypes r1 = reltypes[i];
+                for(int j=0;j<n;j++){
+                    TemporalRelType.relTypes r2 = reltypes[j];
+                    //    public List<BinaryRelationType> transitivity(BinaryRelationType rel1, BinaryRelationType rel2)
+                    List<BinaryRelationType> trans = new TemporalRelType(r1).transitivity(new TemporalRelType(r2));
+                    List<Integer> trans_ids = new ArrayList<>();
+                    for(BinaryRelationType brt:trans){
+                        trans_ids.add(((TemporalRelType) brt).getReltype().getIndex());
+                    }
+                    transitivityMap.add(new Triplet<>(r1.getIndex(),r2.getIndex(),trans_ids));
+                }
+            }
         }
     }
 
@@ -53,9 +95,10 @@ public class TempRelAnnotator {
                 eiid++;
             }
         }
+        initAllArrays4ILP();
     }
 
-    public void tempRelAnnotator(WNSim wnsim){
+    public void tempRelAnnotator(boolean ilp){
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
 
@@ -66,10 +109,10 @@ public class TempRelAnnotator {
         }
 
         for(EventTemporalNode e1:eventList){
+            int i = eventList.indexOf(e1);
             for(EventTemporalNode e2:eventList){
-                if(e1.isEqual(e2))
-                    continue;
-                if(e1.getTokenId()>e2.getTokenId())
+                int j = eventList.indexOf(e2);
+                if(e1.isEqual(e2)||e1.getTokenId()>e2.getTokenId())
                     continue;
                 TemporalRelation_EE ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.VAGUE));
 
@@ -80,7 +123,25 @@ public class TempRelAnnotator {
                 if(reltype.isNull())
                     continue;
                 ee.setRelType(reltype);
+                ignoreMap[i][j] = false;
+                local_score[i][j] = ee.getRelType().getScores();
                 doc.getGraph().addRelNoDup(ee);
+            }
+        }
+        if(ilp) {
+            TempRelInferenceWrapper solver = new TempRelInferenceWrapper(n_entitiy, TemporalRelType.relTypes.values().length,
+                    local_score, ignoreMap, constraintMap, transitivityMap);
+            solver.solve();
+            result = solver.getResult();
+            for (int i = 0; i < n_entitiy; i++) {
+                for (int j = i + 1; j < n_entitiy; j++) {
+                    if (ignoreMap[i][j])
+                        continue;
+                    TemporalRelType reltype = new TemporalRelType(TemporalRelType.relTypes.getRelTypesFromIndex(result[i][j]));
+                    TemporalRelation tlink = doc.getGraph().getRelBetweenNodes(doc.getEventList().get(i).getUniqueId(), doc.getEventList().get(j).getUniqueId());
+                    if (tlink != null)
+                        tlink.setRelType(reltype);
+                }
             }
         }
     }
@@ -94,6 +155,7 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
+        boolean ILP = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
         List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
@@ -132,11 +194,9 @@ public class TempRelAnnotator {
             myAllDocs.add(doc);
             myAllDocs_Gold.add(docGold);
 
-            TempRelAnnotator tra = new TempRelAnnotator(doc);
-            tra.setAxisLabeler(axisLabelerLBJ);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,axisLabelerLBJ,tempRelLabelerLBJ,rm,wnsim);
             tra.axisAnnotator();
-            tra.setTempRelLabeler(tempRelLabelerLBJ);
-            tra.tempRelAnnotator(wnsim);
+            tra.tempRelAnnotator(ILP);
             cnt++;
             if(cnt>=20)
                 break;

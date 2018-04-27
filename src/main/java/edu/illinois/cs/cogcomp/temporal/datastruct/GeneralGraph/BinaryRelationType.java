@@ -1,5 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,7 +9,7 @@ import java.util.List;
 public abstract class BinaryRelationType {
     public abstract BinaryRelationType inverse();
     public abstract void reverse();
-    public abstract List<BinaryRelationType> transitivity(BinaryRelationType rel1, BinaryRelationType rel2);
+    public abstract List<BinaryRelationType> transitivity(BinaryRelationType rel);
     public abstract boolean isNull();
     public abstract String toString();
     public abstract boolean isEqual(BinaryRelationType other);

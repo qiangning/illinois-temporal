@@ -1,6 +1,8 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
+import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
+import edu.illinois.cs.cogcomp.lbjava.learn.Softmax;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
@@ -45,11 +47,34 @@ public class TempRelLabelerLBJ implements TempRelLabeler {
             }
         }
         else {
-            if (ee.getSentDiff() == 0 && classifier_dist0 != null)
+            if (ee.getSentDiff() == 0 && classifier_dist0 != null) {
                 ret = new TemporalRelType(classifier_dist0.discreteValue(ee));
-            else if (ee.getSentDiff() == 1 && classifier_dist1 != null)
+                ret.setScores(temporalScores2doubles(classifier_dist0.scores(ee),true));
+            }
+            else if (ee.getSentDiff() == 1 && classifier_dist1 != null) {
                 ret = new TemporalRelType(classifier_dist1.discreteValue(ee));
+                ret.setScores(temporalScores2doubles(classifier_dist1.scores(ee),true));
+
+            }
         }
         return ret;
+    }
+    private double[] temporalScores2doubles(ScoreSet scores, boolean norm){
+        TemporalRelType.relTypes[] reltypes = TemporalRelType.relTypes.values();
+        if(norm) {
+            Softmax sm = new Softmax();
+            scores = sm.normalize(scores);
+        }
+        int n = reltypes.length;
+        double[] s = new double[n];
+        for(int i=0;i<n;i++){
+            try {
+                s[i] = scores.get(reltypes[i].getName());
+            }
+            catch (Exception e){
+                s[i] = 0;
+            }
+        }
+        return s;
     }
 }
