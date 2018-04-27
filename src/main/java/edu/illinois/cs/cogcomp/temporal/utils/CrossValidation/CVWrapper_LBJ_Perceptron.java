@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public abstract class CVWrapper_LBJ_Perceptron<LearningStruct> extends CVWRapper_LBJ<LearningStruct> {
+public abstract class CVWrapper_LBJ_Perceptron<LearningStruct> extends CVWrapper_LBJ<LearningStruct> {
     protected static double[] LEARNRATE,THICKNESS,SAMRATE,ROUND;
 
     public CVWrapper_LBJ_Perceptron(int seed, int totalFold, int evalMetric) {

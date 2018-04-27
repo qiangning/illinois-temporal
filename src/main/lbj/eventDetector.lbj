@@ -12,11 +12,6 @@ discrete Label(EventTokenCandidate etc) <-
     return etc.getLabel();
 }
 
-// real LabelArray(EventTokenCandidate etc) <-
-// {
-//     return etc.getLabelArray()[0];
-// }
-
 discrete POS(EventTokenCandidate etc) <- 
 {
     return etc.getPos();
@@ -78,6 +73,11 @@ discrete BiasTermDetector(EventTokenCandidate etc) <-
     return "bias";
 }
 
+// discrete BiasTermDetectorSVM(EventTokenCandidate etc) <-
+// {
+//     return "bias";
+// }
+
 discrete eventDetector(EventTokenCandidate etc) <-
 learn Label
 using
@@ -85,14 +85,9 @@ using
     with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EventDetectorPerceptronParams.learningRate,0,ParamLBJ.EventDetectorPerceptronParams.thickness))
 end
 
-// discrete eventDetector_MLP(EventTokenCandidate d) <-
-//   learn Label
-//   using POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN
-//   with NeuralNetLearner {
-//     inputCount = 4000;
-//     hiddenCount=100;
-//     outputCount=1;
-//     learningRate=.3f;
-//     momentum=.7f;
-//   }
+// discrete eventDetector_svm(EventTokenCandidate etc) <-
+// learn Label
+// using
+//     BiasTermDetectorSVM, POS, Lemma, PPHead, POS_IN_WIN, Lemma_IN_WIN, SignalWords
+//     with new SupportVectorMachine(1, 0.1, 1)
 // end

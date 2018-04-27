@@ -30,8 +30,8 @@ real TokenDist(TemporalRelation_EE ee) <-
 
 discrete% POS(TemporalRelation_EE ee) <- 
 {
-    EventTemporalNode e1 = ee.getSourceEvent();
-    EventTemporalNode e2 = ee.getTargetEvent();
+    EventTemporalNode e1 = ee.getSourceNode();
+    EventTemporalNode e2 = ee.getTargetNode();
     sense "E1_POS:"+e1.getPos();
     sense "E2_POS:"+e2.getPos();
     sense "E1_E2_POS:"+e1.getPos() +":"+ e2.getPos();
@@ -57,8 +57,8 @@ discrete SameSynSet(TemporalRelation_EE ee) <-
 
 discrete% PPHead(TemporalRelation_EE ee)<-
 {
-    EventTemporalNode e1 = ee.getSourceEvent();
-    EventTemporalNode e2 = ee.getTargetEvent();
+    EventTemporalNode e1 = ee.getSourceNode();
+    EventTemporalNode e2 = ee.getTargetNode();
     sense "E1_PP_HEAD:"+e1.getPp_head();
     sense "E2_PP_HEAD:"+e2.getPp_head();
     if(!e1.getPp_head().equals("N/A")){

@@ -2,20 +2,21 @@ package edu.illinois.cs.cogcomp.temporal.utils.CrossValidation;
 
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
+import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
 import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 
 import java.io.File;
 import java.util.List;
 
-public abstract class CVWRapper_LBJ<LearningStruct> extends CrossValidationWrapper<LearningStruct> {
+public abstract class CVWrapper_LBJ<LearningStruct> extends CrossValidationWrapper<LearningStruct> {
     protected Learner classifier;
     protected List<LearningStruct> testStructs;
     protected int evalMetric = 2;//0:prec. 1: recall. 2: f1
     protected String modelPath, lexiconPath;
     protected static String[] LABEL_TO_IGNORE = new String[]{};
 
-    public CVWRapper_LBJ(int seed, int totalFold, int evalMetric) {
+    public CVWrapper_LBJ(int seed, int totalFold, int evalMetric) {
         super(seed, totalFold);
         this.evalMetric = evalMetric;
     }
@@ -65,11 +66,13 @@ public abstract class CVWRapper_LBJ<LearningStruct> extends CrossValidationWrapp
         classifier.write(modelPath,lexiconPath);
     }
 
-    public static void StandardExperiment(CVWRapper_LBJ exp){
+    public static void StandardExperiment(CVWrapper_LBJ exp){
         // remember to setup model names before calling this
         exp.load();
         exp.myParamTuner();
         exp.retrainUsingBest();
+        Lexicon lex = exp.classifier.getLexicon();
+        System.out.printf("Lexicon size: %d\n",lex.size());
         exp.evaluateTest();
         exp.saveClassifier();
     }

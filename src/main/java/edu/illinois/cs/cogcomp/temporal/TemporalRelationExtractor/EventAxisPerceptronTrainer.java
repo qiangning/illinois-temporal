@@ -33,7 +33,7 @@ public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTo
         SAMRATE = new double[]{0.5,1};
         ROUND = new double[]{10,20};
     }
-    private List<EventTokenCandidate> preprocess(List<TemporalDocument> docList,HashMap<String,HashMap<Integer,String>> axisMap){
+    public static List<EventTokenCandidate> preprocess(List<TemporalDocument> docList,HashMap<String,HashMap<Integer,String>> axisMap, int window){
         // axisMap: docid-->index in doc-->raw axis name from CF
         HashMap<String,HashMap<Integer,String>> newAxisMap = new HashMap<>();
         // convert eventid in axisMap to tokenId
@@ -66,8 +66,8 @@ public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTo
             allTrainingDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
             List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
             HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));// docid-->eventid-->axis_label
-            trainingStructs = preprocess(allTrainingDocs,axisMap);
-            testStructs = preprocess(allTestingDocs,axisMap);
+            trainingStructs = preprocess(allTrainingDocs,axisMap,window);
+            testStructs = preprocess(allTestingDocs,axisMap,window);
         }
         catch (Exception e){
             e.printStackTrace();
