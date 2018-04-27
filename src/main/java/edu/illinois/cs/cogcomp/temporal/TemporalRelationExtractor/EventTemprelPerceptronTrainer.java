@@ -4,10 +4,7 @@ import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CVWrapper_LBJ_Perceptron;
@@ -28,12 +25,13 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
 
     private static CommandLine cmd;
 
-    public EventTemprelPerceptronTrainer(int seed, int totalFold, int window, int sentDiff, int evalMetric) {
-        super(seed, totalFold,evalMetric);
+    public EventTemprelPerceptronTrainer(int seed, int totalFold, int mode, int window, int sentDiff, int evalMetric) {
+        super(seed, totalFold, evalMetric);
         this.window = window;
         this.sentDiff = sentDiff;
+        TemporalRelation.setLabelMode(mode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
-        LEARNRATE = new double[]{0.0001,0.0002};
+        LEARNRATE = new double[]{0.0001,0.001,0.01};
         THICKNESS = new double[]{0,1};
         SAMRATE = new double[]{1};
         ROUND = new double[]{5,10,20};
@@ -122,6 +120,10 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         sentDiff.setRequired(true);
         options.addOption(sentDiff);
 
+        Option mode = new Option("m", "mode", true, "label mode (0: original labels; 1: Q1; 2: Q2)");
+        mode.setRequired(true);
+        options.addOption(mode);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         try {
@@ -138,11 +140,13 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         cmdParser(args);
         String modelDir = cmd.getOptionValue("modelDir");
         String modelName = cmd.getOptionValue("modelName");
+        int mode = Integer.valueOf(cmd.getOptionValue("mode"));
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
+        modelName += "_mod"+mode;
         modelName += "_win"+window;
         modelName += "_sent"+sentDiff;
-        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,5,window,sentDiff,2);
+        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,5,mode,window,sentDiff,2);
         exp.setModelPath(modelDir,modelName);
         StandardExperiment(exp);
     }

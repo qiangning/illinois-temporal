@@ -1,11 +1,13 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelation;
+import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 
 /**
  * Created by chuchu on 12/20/17.
  */
 public class TemporalRelation extends BinaryRelation<TemporalNode> {
+    private static int LabelMode;
     /*Constructors*/
 
     public TemporalRelation(TemporalNode sourceNode, TemporalNode targetNode, TemporalRelType relType) {
@@ -28,11 +30,26 @@ public class TemporalRelation extends BinaryRelation<TemporalNode> {
     }
 
     public String getLabel(){
-        return getRelType().getReltype().getName();
+        String label = getRelType().getReltype().getName();
+        temprelAnnotationReader.Q1_Q2_temprel tuple = new temprelAnnotationReader.Q1_Q2_temprel(new TemporalRelType(label));
+        switch (LabelMode){
+            case 0:
+                return label;
+            case 1:
+                return tuple.isQ1()?"q1:yes":"q1:no";
+            case 2:
+                return tuple.isQ2()?"q2:yes":"q2:no";
+            default:
+                return label;
+        }
     }
 
     @Override
     public String toString() {
         return String.format("%s-->%s: %s",getSourceNode().getUniqueId(),getTargetNode().getUniqueId(), getRelType().toString());
+    }
+
+    public static void setLabelMode(int labelMode) {
+        TemporalRelation.LabelMode = labelMode;
     }
 }
