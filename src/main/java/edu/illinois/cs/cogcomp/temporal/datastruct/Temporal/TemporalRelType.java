@@ -17,6 +17,7 @@ public class TemporalRelType extends BinaryRelationType {
         NULL("NULL");
         private final String name;
         private relTypes inverse;
+        private static String[] allNames;
         relTypes(String name){
             this.name = name;
         }
@@ -42,6 +43,15 @@ public class TemporalRelType extends BinaryRelationType {
                 default:
                     return NULL;
             }
+        }
+        public static String[] getAllNames(){
+            if(allNames==null||allNames.length == 0) {
+                relTypes[] allRelTypes = values();
+                allNames = new String[allRelTypes.length];
+                for (int i = 0; i < allNames.length; i++)
+                    allNames[i] = allRelTypes[i].getName();
+            }
+            return allNames;
         }
         public int getIndex(){
             relTypes[] values = relTypes.values();
@@ -163,6 +173,7 @@ public class TemporalRelType extends BinaryRelationType {
     }
 
     public static void main(String[] args) throws Exception{
+        String[] test = relTypes.getAllNames();
         TemporalRelType tmp = new TemporalRelType("BEFORE");
         tmp.reverse();
         System.out.println(tmp);

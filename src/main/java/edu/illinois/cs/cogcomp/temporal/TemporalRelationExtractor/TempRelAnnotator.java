@@ -165,19 +165,19 @@ public class TempRelAnnotator {
         EventAxisLabelerLBJ axisLabelerLBJ = new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
-        String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls_mod0_win2";
+        /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls_mod0_win2";
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lex");
         eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lex");
-        TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls0,cls1);
+        TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls0,cls1);*/
 
-        /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";
+        String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";
         eeTempRelCls cls_mod1_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,0));
         eeTempRelCls cls_mod2_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,2,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,2,0));
         eeTempRelCls cls_mod1_dist1 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,1),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,1));
         eeTempRelCls cls_mod2_dist1 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,2,1),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,2,1));
-        TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls_mod1_dist0,cls_mod2_dist0,cls_mod1_dist1,cls_mod2_dist1);*/
+        TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls_mod1_dist0,cls_mod2_dist0,cls_mod1_dist1,cls_mod2_dist1);
 
         List<myTemporalDocument> myAllDocs = new ArrayList<>(), myAllDocs_Gold = new ArrayList<>();
         int cnt=0;
