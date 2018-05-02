@@ -92,6 +92,18 @@ discrete% SignalWords(TemporalRelation_EE ee) <-
     }
 }
 
+real[] CorpusStats(TemporalRelation_EE ee) <-
+{
+    double total = ee.c_before+ee.c_after+ee.c_vague+ee.c_equal+ee.c_includes+ee.c_included;
+    sense 1.0d*ee.c_before/total;
+    sense 1.0d*ee.c_after/total;
+    sense 1.0d*ee.c_includes/total;
+    sense 1.0d*ee.c_included/total;
+    sense 1.0d*ee.c_equal/total;
+    sense 1.0d*ee.c_vague/total;
+    sense Math.log(total);
+}
+
 discrete BiasTermTemprel(TemporalRelation_EE ee) <-
 {
     return "bias";
@@ -101,5 +113,12 @@ discrete eeTempRelCls(TemporalRelation_EE ee) <-
 learn Label
 using
     BiasTermTemprel,SentDist,TokenDist,POS,SameSynSet,PPHead,SignalWords
+    with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EETempRelClassifierPerceptronParams.learningRate,0,ParamLBJ.EETempRelClassifierPerceptronParams.thickness))
+end
+
+discrete eeTempRelCls2(TemporalRelation_EE ee) <-
+learn Label
+using
+    BiasTermTemprel,SentDist,TokenDist,POS,SameSynSet,PPHead,SignalWords,CorpusStats
     with new SparseNetworkLearner(new SparseAveragedPerceptron(ParamLBJ.EETempRelClassifierPerceptronParams.learningRate,0,ParamLBJ.EETempRelClassifierPerceptronParams.thickness))
 end

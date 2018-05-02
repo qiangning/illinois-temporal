@@ -1,11 +1,13 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
+import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
+import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
@@ -13,14 +15,12 @@ import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import jline.internal.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.*;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
 
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
@@ -46,9 +46,6 @@ public class myTemporalDocument {
 
         // create graph
     }
-    public myTemporalDocument(TemporalDocument temporalDocument){
-        this(temporalDocument,2);
-    }
     public myTemporalDocument(TemporalDocument temporalDocument, int mode){
         // mode: 0-->don't load events, timexes, and relations
         // mode: 1-->load events and timexes in the original temporalDocument
@@ -63,12 +60,13 @@ public class myTemporalDocument {
                 EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta);
                 addEvent(tmpNode);
             }
+            sortAllEvents();
+
+            addTimexFromTemporalJointChunk(temporalDocument.getDocumentCreationTime(),0,true);
             List<TemporalJointChunk> allTimexes = temporalDocument.getBodyTimexMentions();
-            allTimexes.add(temporalDocument.getDocumentCreationTime());
-            for (TemporalJointChunk tjc : allTimexes) {
-                TimexTemporalNode tmpNode = new TimexTemporalNode(tjc.getTID(), TimexNodeType, tjc.getOriginalText(), -1);
-                addTimex(tmpNode);
-            }
+            for (TemporalJointChunk tjc:allTimexes)
+                addTimexFromTemporalJointChunk(tjc,allTimexes.indexOf(tjc)+1,false);
+            sortAllTimexes();
         }
         if(mode>=2) {
             for (TLINK tlink : temporalDocument.getBodyTlinks()) {
@@ -135,19 +133,41 @@ public class myTemporalDocument {
         // labelMap: (tokenId, converted axis name)
         String[] tokens = ta.getTokens();
         List<EventTokenCandidate> allCandidates = new ArrayList<>();
+        EventTokenCandidate prev_event = null;
         for(int i=0;i<tokens.length;i++){
             String label = labelMap.getOrDefault(i,LABEL_NOT_ON_ANY_AXIS);
-            allCandidates.add(new EventTokenCandidate(this,i,label,window));
+            EventTokenCandidate etc = new EventTokenCandidate(this,i,label,window,prev_event);
+            if(!label.equals(LABEL_NOT_ON_ANY_AXIS))
+                prev_event = etc;
+            if(etc.getPos().startsWith("V")&&!VerbIgnoreSet.getInstance().verbIgnoreSet.contains(etc.getLemma()))
+                allCandidates.add(etc);
         }
         return allCandidates;
     }
+
     public void addEvent(EventTemporalNode e){
         eventList.add(e);
         graph.addNodeNoDup(e);
     }
+
     public void addTimex(TimexTemporalNode t){
         timexList.add(t);
         graph.addNodeNoDup(t);
+    }
+
+    private void addTimexFromTemporalJointChunk(TemporalJointChunk tjc, int id, boolean isDCT){
+        IntPair tokenSpan;
+        int sentId;
+        if(isDCT){
+            tokenSpan = new IntPair(-1,-1);
+            sentId = -1;
+        }
+        else {
+            tokenSpan = new IntPair(ta.getTokenIdFromCharacterOffset(tjc.getCharStart()), ta.getTokenIdFromCharacterOffset(tjc.getCharEnd() - 1) + 1);
+            sentId = ta.getSentenceId(tokenSpan.getFirst());
+
+        }
+        addTimex(new TimexTemporalNode(tjc.getTID(),TimexNodeType,tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue(),ta));
     }
 
     public void dropAllEventsAndTimexes(){
@@ -156,39 +176,55 @@ public class myTemporalDocument {
         graph.dropAllNodes();
     }
 
-    @Nullable
-    public EventTemporalNode getEventFromTokenId(int tokenId){
-        if(map_tokenId2event==null||map_tokenId2event.size()==0) {
-            map_tokenId2event = new HashMap<>();
-            for(EventTemporalNode e:eventList){
-                map_tokenId2event.put(e.getTokenId(),e);
+    public void sortAllEvents(){
+        eventList.sort(new Comparator<EventTemporalNode>() {
+            @Override
+            public int compare(EventTemporalNode e1, EventTemporalNode e2) {
+                if(e1.getTokenId()<e2.getTokenId())
+                    return -1;
+                else if(e1.getTokenId()>e2.getTokenId())
+                    return 1;
+                return 0;
             }
-        }
-        return map_tokenId2event.get(tokenId);
+        });
     }
 
-    public TemporalRelType getEERelFromTokenIds(int tokenId1, int tokenId2){
-        EventTemporalNode e1 = getEventFromTokenId(tokenId1);
-        EventTemporalNode e2 = getEventFromTokenId(tokenId2);
-        if(e1==null||e2==null)
-            return getNullTempRel();
-        TemporalRelation ee_rel = graph.getRelBetweenNodes(e1.getUniqueId(),e2.getUniqueId());
-        if(ee_rel==null)
-            return getNullTempRel();
-        return ee_rel.getRelType();
+    public void sortAllTimexes(){
+        timexList.sort(new Comparator<TimexTemporalNode>() {
+            @Override
+            public int compare(TimexTemporalNode t1, TimexTemporalNode t2) {
+                if(t1.getTokenSpan().getFirst()<t2.getTokenSpan().getFirst())
+                    return -1;
+                else if(t1.getTokenSpan().getFirst()>t2.getTokenSpan().getFirst())
+                    return 1;
+                return 0;
+            }
+        });
     }
+
+    /*Evaluators*/
 
     public static void NaiveEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
-        System.out.println(
+        System.out.println("\n"+
                 "****************************\n" +
                 "*EVALUATING EVENT DETECTION*\n" +
                 "****************************\n");
         NaiveEvaluator_EventDetection(doc_gold_list,doc_pred_list,verbose);
-        System.out.println(
-                "*****************************************\n" +
-                "*EVALUATING EVENT TEMPREL CLASSIFICATION*\n" +
-                "*****************************************\n");
-        NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,verbose);
+        System.out.println("\n"+
+                "**************************************************\n" +
+                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)*\n" +
+                "**************************************************\n");
+        NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,0,verbose);
+        System.out.println("\n"+
+                "**************************************************\n" +
+                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)*\n" +
+                "**************************************************\n");
+        NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,1,verbose);
+        System.out.println("\n"+
+                "**************************************************\n" +
+                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)*\n" +
+                "**************************************************\n");
+        NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,2,verbose);
     }
 
     public static void NaiveEvaluator_EventDetection(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
@@ -212,8 +248,8 @@ public class myTemporalDocument {
             for (int i = 0; i < tokenSize; i++) {
                 EventTemporalNode e_gold = doc_gold.getEventFromTokenId(i);
                 EventTemporalNode e_pred = doc_pred.getEventFromTokenId(i);
-                String goldLabel = e_gold == null ? LABEL_NOT_ON_ANY_AXIS : "main";
-                String predLabel = e_pred == null ? LABEL_NOT_ON_ANY_AXIS : "main";
+                String goldLabel = e_gold == null ? LABEL_NOT_ON_ANY_AXIS : LABEL_ON_MAIN_AXIS;
+                String predLabel = e_pred == null ? LABEL_NOT_ON_ANY_AXIS : LABEL_ON_MAIN_AXIS;
                 eventDetectorEvaluator.addPredGoldLabels(predLabel, goldLabel);
                 eventDetectorEvaluatorDetail.addPredGoldLabels(predLabel, goldLabel);
             }
@@ -234,7 +270,8 @@ public class myTemporalDocument {
         }
     }
 
-    public static void NaiveEvaluator_TempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
+    public static void NaiveEvaluator_TempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int mode, int verbose){
+        // mode: 0--default, 1--ignore gold is null, 2--1+relax vague
         PrecisionRecallManager tempRelClsEvaluator = new PrecisionRecallManager();
         PrecisionRecallManager tempRelClsEvaluatorDetail;
         if(doc_gold_list.size()!=doc_pred_list.size()){
@@ -269,8 +306,13 @@ public class myTemporalDocument {
                 int tokId2 = Integer.valueOf(tmp[1]);
                 TemporalRelType rel_gold = doc_gold.getEERelFromTokenIds(tokId1,tokId2);
                 TemporalRelType rel_pred = doc_pred.getEERelFromTokenIds(tokId1,tokId2);
-                if(rel_gold.isNull())
+                if(mode>0&&rel_gold.isNull())
                     continue;
+                if(mode==2){
+                    if(rel_gold.getReltype() == TemporalRelType.relTypes.VAGUE
+                            &&rel_pred.getReltype() != TemporalRelType.relTypes.VAGUE)
+                        rel_gold = rel_pred;
+                }
                 tempRelClsEvaluator.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
                 tempRelClsEvaluatorDetail.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
             }
@@ -290,6 +332,7 @@ public class myTemporalDocument {
             tempRelClsEvaluator.printConfusionMatrix();
         }
     }
+
     /*Getters and Setters*/
     public TextAnnotation getTextAnnotation() {
         return ta;
@@ -299,12 +342,38 @@ public class myTemporalDocument {
         return eventList;
     }
 
+    public List<TimexTemporalNode> getTimexList() {
+        return timexList;
+    }
+
     public String getDocid() {
         return docid;
     }
 
     public TemporalGraph getGraph() {
         return graph;
+    }
+
+    @Nullable
+    public EventTemporalNode getEventFromTokenId(int tokenId){
+        if(map_tokenId2event==null||map_tokenId2event.size()==0) {
+            map_tokenId2event = new HashMap<>();
+            for(EventTemporalNode e:eventList){
+                map_tokenId2event.put(e.getTokenId(),e);
+            }
+        }
+        return map_tokenId2event.get(tokenId);
+    }
+
+    public TemporalRelType getEERelFromTokenIds(int tokenId1, int tokenId2){
+        EventTemporalNode e1 = getEventFromTokenId(tokenId1);
+        EventTemporalNode e2 = getEventFromTokenId(tokenId2);
+        if(e1==null||e2==null)
+            return getNullTempRel();
+        TemporalRelation ee_rel = graph.getRelBetweenNodes(e1.getUniqueId(),e2.getUniqueId());
+        if(ee_rel==null)
+            return getNullTempRel();
+        return ee_rel.getRelType();
     }
 
     public static void main(String[] args) throws Exception{

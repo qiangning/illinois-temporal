@@ -1,11 +1,20 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.PredicateArgumentView;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
+import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TimexTemporalNode;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.*;
 
@@ -27,17 +36,27 @@ public class EventTokenCandidate {
 
     private HashSet<String> signals_before;
     private HashSet<String> signals_after;
+    private boolean isReporting,isIntention;
+
+    private TimexTemporalNode closestTimex_left,closestTimex_right;
+
+    private List<Constituent> verb_srl_same_sentence = new ArrayList<>();
+    private Constituent verb_srl;
+    private List<Pair<String, Constituent>> verb_srl_covering = new ArrayList<>();
+
+    private EventTokenCandidate prev_event;
 
     /*private List<String> synsets;
     private List<String> derivations;*/
 
     private myTemporalDocument doc;
 
-    public EventTokenCandidate(myTemporalDocument doc,int tokenId, String label, int window) {
+    public EventTokenCandidate(myTemporalDocument doc,int tokenId, String label, int window, EventTokenCandidate prev_event) {
         this.doc = doc;
         this.tokenId = tokenId;
         this.label = label;
         this.window = window;
+        this.prev_event = prev_event;
         if(window<0){
             System.out.println("[WARNING] Window cannot be negative; reset to 0.");
             window = 0;
@@ -64,18 +83,51 @@ public class EventTokenCandidate {
         String text_after = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokenId+1,end);
         String lemma_before = myUtils4TextAnnotation.getLemmaTextInBetween(ta,start,tokenId-1);
         String lemma_after = myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokenId+1,end);
-        signals_before = myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().temporalConnectiveSet,"TemporalConnective");
-        signals_after = myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().temporalConnectiveSet,"TemporalConnective");
+        signals_before = myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
+        signals_after = myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
         signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
         signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
         signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
         signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
         signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_before, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
         signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_after, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
+        signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_before, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
+        signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_after, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
+        isReporting = SignalWordSet.getInstance().reportingVerbSet.contains(lemma);
+        isIntention = SignalWordSet.getInstance().intentionVerbSet.contains(lemma);
+
+        // closest Timex
+        int i=0;
+        List<TimexTemporalNode> allTimexes = doc.getTimexList();
+        while(i<allTimexes.size() && allTimexes.get(i).getTokenSpan().getSecond()<tokenId){
+            closestTimex_left = allTimexes.get(i);
+            i++;
+        }
+        if(i<allTimexes.size())
+            closestTimex_right = allTimexes.get(i);
+
+        // Verb SRL from the same sentence
+        List<Constituent> allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
+        for(Constituent c:allPredicates){
+            if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
+                verb_srl_same_sentence.add(c);
+                if(c.getStartSpan()==tokenId)
+                    verb_srl = c;
+                List<Relation> tmp = c.getOutgoingRelations();
+                for(Relation r:tmp){
+                    if(r.getTarget().doesConstituentCover(tokenId))
+                        verb_srl_covering.add(new Pair<>(r.getRelationName(),c));
+                }
+            }
+        }
     }
 
     public String getLabel() {
         return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     /*public float[] getLabelArray(){return label_map.get(label);}*/
@@ -120,7 +172,58 @@ public class EventTokenCandidate {
         return signals_after;
     }
 
+    public boolean isReporting() {
+        return isReporting;
+    }
+
+    public boolean isIntention() {
+        return isIntention;
+    }
+
+    public TimexTemporalNode getClosestTimex_left() {
+        return closestTimex_left;
+    }
+
+    public TimexTemporalNode getClosestTimex_right() {
+        return closestTimex_right;
+    }
+
+    public List<Constituent> getVerb_srl_same_sentence() {
+        return verb_srl_same_sentence;
+    }
+
+    public Constituent getVerb_srl() {
+        return verb_srl;
+    }
+
+    public List<Pair<String,Constituent>> getVerb_srl_covering() {
+        return verb_srl_covering;
+    }
+
+    public EventTokenCandidate getPrev_event() {
+        return prev_event;
+    }
+
+    public void setPrev_event(EventTokenCandidate prev_event) {
+        this.prev_event = prev_event;
+    }
+
     public myTemporalDocument getDoc() {
         return doc;
+    }
+
+    @Override
+    public String toString() {
+        return "EventTokenCandidate{" +
+                "label='" + label + '\'' +
+                ", lemma='" + lemma + '\'' +
+                ", sentId=" + sentId +
+                ", tokenId=" + tokenId +
+                ", pos='" + pos + '\'' +
+                ", pp_head='" + pp_head + '\'' +
+                ", prev_event='" + (prev_event!=null?"Exists":"None") + '\'' +
+                ", closestTimex_left=" + closestTimex_left +
+                ", closestTimex_right=" + closestTimex_right +
+                '}';
     }
 }

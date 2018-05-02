@@ -6,12 +6,14 @@ import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
+import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls2;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
+import util.TempLangMdl;
 
 import java.util.*;
 
@@ -21,20 +23,23 @@ import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.r
 public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<TemporalRelation_EE> {
     private int window;
     private int sentDiff;
-    public static String[] TEMP_LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName()};
+    private int clsMode;
+    private double sr_standard;
+    public static String[] TEMP_LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName(),TemporalRelType.relTypes.NULL.getName()};
 
     private static CommandLine cmd;
 
-    public EventTemprelPerceptronTrainer(int seed, int totalFold, int mode, int window, int sentDiff, int evalMetric) {
+    public EventTemprelPerceptronTrainer(int seed, int totalFold, int labelMode, int clsMode, int window, int sentDiff, int evalMetric) {
         super(seed, totalFold, evalMetric);
         this.window = window;
         this.sentDiff = sentDiff;
-        TemporalRelation.setLabelMode(mode);
+        this.clsMode = clsMode;
+        TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
-        LEARNRATE = new double[]{0.0001,0.001,0.01};
+        LEARNRATE = new double[]{0.001};
         THICKNESS = new double[]{0,1};
-        SAMRATE = new double[]{1};
-        ROUND = new double[]{5,10,20};
+        SAMRATE = new double[]{0.1,0.2,0.3};
+        ROUND = new double[]{20,50,100};
     }
 
     private List<TemporalRelation_EE> preprocess(List<TemporalDocument> docList,
@@ -69,12 +74,20 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
             List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
             HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
             HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
+
+            String lm_path = rm.getString("TemProb_Dir");
+            TempLangMdl tempLangMdl = TempLangMdl.getInstance(lm_path);
+
             trainingStructs = preprocess(allTrainingDocs,axisMap,relMap,wnsim);
             testStructs = preprocess(allTestingDocs,axisMap,relMap,wnsim);
-            for(TemporalRelation_EE tmp:trainingStructs)
+            for(TemporalRelation_EE tmp:trainingStructs) {
                 tmp.extractSignalWords();
-            for(TemporalRelation_EE tmp:testStructs)
+                tmp.readCorpusStats(tempLangMdl.tempLangMdl);
+            }
+            for(TemporalRelation_EE tmp:testStructs) {
                 tmp.extractSignalWords();
+                tmp.readCorpusStats(tempLangMdl.tempLangMdl);
+            }
         }
         catch (Exception e){
             e.printStackTrace();
@@ -90,8 +103,22 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
                 element -> !element.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
                         &&!element.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName())
         );
-        classifier = new eeTempRelCls(modelPath,lexiconPath);
-        return listSampler.ListSampling(slist,sr,rng);
+        if(sr_standard==0d) {
+            sr_standard = listSampler.autoSelectSamplingRate(slist);
+            System.out.printf("Auto Selection of Sampling Rate: %.4f\n",sr_standard);
+        }
+        switch (clsMode) {
+            case 0:
+                classifier = new eeTempRelCls(modelPath, lexiconPath);
+                break;
+            case 2:
+                classifier = new eeTempRelCls2(modelPath, lexiconPath);
+                break;
+            default:
+                System.out.println("Choosing default classifier 0");
+                classifier = new eeTempRelCls(modelPath, lexiconPath);
+        }
+        return listSampler.ListSampling(slist,sr*sr_standard,rng);
     }
 
     @Override
@@ -118,9 +145,13 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         sentDiff.setRequired(true);
         options.addOption(sentDiff);
 
-        Option mode = new Option("m", "mode", true, "label mode (0: original labels; 1: Q1; 2: Q2)");
-        mode.setRequired(true);
-        options.addOption(mode);
+        Option labelMode = new Option("lm", "labelMode", true, "label mode (0: original labels; 1: Q1; 2: Q2)");
+        labelMode.setRequired(true);
+        options.addOption(labelMode);
+
+        Option clsMode = new Option("cm", "clsMode", true, "classifier mode");
+        clsMode.setRequired(false);
+        options.addOption(clsMode);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -138,13 +169,12 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         cmdParser(args);
         String modelDir = cmd.getOptionValue("modelDir");
         String modelName = cmd.getOptionValue("modelName");
-        int mode = Integer.valueOf(cmd.getOptionValue("mode"));
+        int labelMode = Integer.valueOf(cmd.getOptionValue("labelMode"));
+        int clsMode = Integer.valueOf(cmd.getOptionValue("clsMode","0"));
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
-        modelName += "_mod"+mode;
-        modelName += "_win"+window;
-        modelName += "_sent"+sentDiff;
-        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,5,mode,window,sentDiff,2);
+        modelName += String.format("_sent%d_labelMode%d_clsMode%d_win%d",sentDiff,labelMode,clsMode,window);
+        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,4,labelMode,clsMode,window,sentDiff,2);
         exp.setModelPath(modelDir,modelName);
         StandardExperiment(exp);
     }

@@ -21,7 +21,6 @@ public class EventTemporalNode extends TemporalNode{
     private List<String> synsets;
     private List<String> derivations;// to-do
     private String pp_head;//prepositional phrase head
-    private TextAnnotation ta;
 
     private int window;
     private String[] pos_window;
@@ -41,6 +40,9 @@ public class EventTemporalNode extends TemporalNode{
         pos = retrievePOSAtTokenId(ta,tokenId);
         lemma = retrieveLemmaAtTokenId(ta,tokenId);
         pp_head = retrievePPHeadOfTokenId(ta,tokenId);
+
+        // TO-DO: cluster
+        cluster = lemma + ".01";
     }
 
     public void extractSynsets(WNSim wnsim){
@@ -69,10 +71,6 @@ public class EventTemporalNode extends TemporalNode{
         return pp_head;
     }
 
-    public TextAnnotation getTa() {
-        return ta;
-    }
-
     public String getPos() {
         return pos;
     }
@@ -99,6 +97,10 @@ public class EventTemporalNode extends TemporalNode{
 
     public String[] getLemma_window() {
         return lemma_window;
+    }
+
+    public String getCluster() {
+        return cluster;
     }
 
     @Override

@@ -10,19 +10,25 @@ import java.util.List;
 
 public class axisAnnotationReader {
     public static String LABEL_NOT_ON_ANY_AXIS = "null";
+    public static String LABEL_ON_MAIN_AXIS = "main";
+    public static String LABEL_ON_ORTHOGONAL_AXIS = "orthogonal";
+    public static String LABEL_ON_NEGATION_AXIS = "negation";
+    public static String LABEL_ON_HYPO_AXIS = "hypothesis";
+    public static String LABEL_ON_OTHER_AXIS = "others";
     public static String axis_label_conversion(String label){
         switch (label){
             case "yes_its_anchorable":
-                return "main";
+                return LABEL_ON_MAIN_AXIS;
             case "no_its_intentionwishopinion":
-                //return "orthogonal";
+                //return LABEL_ON_ORTHOGONAL_AXIS;
             case "no_its_negation":
-                //return "negation";
+                //return LABEL_ON_NEGATION_AXIS;
             case "no_its_hypotheticalcondition":
+                //return LABEL_ON_HYPO_AXIS;
             case "no_its_recurrent":
             case "no_its_static":
             case "no_its_abstractnonspecific":
-                return "others";
+                return LABEL_ON_OTHER_AXIS;
             default:
                 return LABEL_NOT_ON_ANY_AXIS;
         }

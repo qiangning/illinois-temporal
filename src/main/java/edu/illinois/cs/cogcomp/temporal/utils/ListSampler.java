@@ -15,6 +15,20 @@ public class ListSampler<T> {
         this.listElementLabeler = listElementLabeler;
     }
 
+    public double autoSelectSamplingRate(List<T> list){
+        int cnt1 = 0, cnt2 = 0;
+        for(T element:list){
+            if(listElementLabeler.labeler(element))
+                cnt1++;
+            else
+                cnt2++;
+        }
+        return 1.0*cnt1/cnt2;
+    }
+    public List<T> ListSampling(List<T> list, Random rng){
+        double samplingRate = autoSelectSamplingRate(list);
+        return ListSampling(list,samplingRate,rng);
+    }
     public List<T> ListSampling(List<T> list, double samplingRate, Random rng){
         List<T> newlist = new ArrayList<>();
         for(T element:list){
