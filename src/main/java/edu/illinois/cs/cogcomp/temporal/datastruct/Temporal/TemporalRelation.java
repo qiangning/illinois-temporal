@@ -8,10 +8,13 @@ import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
  */
 public class TemporalRelation extends BinaryRelation<TemporalNode> {
     private static int LabelMode;
+    private myTemporalDocument doc;
+
     /*Constructors*/
 
-    public TemporalRelation(TemporalNode sourceNode, TemporalNode targetNode, TemporalRelType relType) {
+    public TemporalRelation(TemporalNode sourceNode, TemporalNode targetNode, TemporalRelType relType, myTemporalDocument doc) {
         super(sourceNode, targetNode, relType);
+        this.doc = doc;
     }
 
     /*Functions*/
@@ -26,7 +29,11 @@ public class TemporalRelation extends BinaryRelation<TemporalNode> {
 
     @Override
     public TemporalRelation inverse() {
-        return new TemporalRelation(getTargetNode(),getSourceNode(),(TemporalRelType) getRelType().inverse());
+        return new TemporalRelation(getTargetNode(),getSourceNode(),(TemporalRelType) getRelType().inverse(),doc);
+    }
+
+    public myTemporalDocument getDoc() {
+        return doc;
     }
 
     public String getLabel(){

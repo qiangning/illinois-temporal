@@ -57,7 +57,7 @@ public class myTemporalDocument {
             List<EventChunk> allEvents = temporalDocument.getBodyEventMentions();
             for (EventChunk ec : allEvents) {
                 int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
-                EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta);
+                EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta,this);
                 addEvent(tmpNode);
             }
             sortAllEvents();
@@ -90,7 +90,7 @@ public class myTemporalDocument {
                 }
                 if (sourceNode == null || targetNode == null)
                     System.out.println();
-                TemporalRelation tmpRel = new TemporalRelation(sourceNode, targetNode, reltype);
+                TemporalRelation tmpRel = new TemporalRelation(sourceNode, targetNode, reltype,this);
                 graph.addRelNoDup(tmpRel);
             }
         }
@@ -124,7 +124,7 @@ public class myTemporalDocument {
                     System.out.printf("[WARNING] null node in graph %s: %s\n", docid,entry.toString());
                 continue;
             }
-            TemporalRelation_EE tmpRel = new TemporalRelation_EE(sourceNode, targetNode, rel);
+            TemporalRelation_EE tmpRel = new TemporalRelation_EE(sourceNode, targetNode, rel, this);
             graph.addRelNoDup(tmpRel);
         }
     }

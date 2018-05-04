@@ -9,8 +9,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
-import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
-import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls2;
+import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.*;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
@@ -101,7 +100,7 @@ public class TempRelAnnotator {
                 prev_event = etc;
             }
             if(label.toLowerCase().equals(LABEL_ON_MAIN_AXIS)){
-                EventTemporalNode tmpNode = new EventTemporalNode(eiid, EventNodeType,ta.getToken(etc.getTokenId()), eiid,eiid,eiid, etc.getTokenId(),ta);
+                EventTemporalNode tmpNode = new EventTemporalNode(eiid, EventNodeType,ta.getToken(etc.getTokenId()), eiid,eiid,eiid, etc.getTokenId(),ta,doc);
                 doc.addEvent(tmpNode);
                 eiid++;
             }
@@ -125,11 +124,10 @@ public class TempRelAnnotator {
                 int j = eventList.indexOf(e2);
                 if(e1.isEqual(e2)||e1.getTokenId()>e2.getTokenId())
                     continue;
-                TemporalRelation_EE ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.VAGUE));
+                TemporalRelation_EE ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.VAGUE),doc);
 
                 // extract features
-                ee.extractSignalWords();
-                ee.readCorpusStats(tempLangMdl);
+                ee.extractAllFeats(tempLangMdl);
 
                 TemporalRelType reltype = tempRelLabeler.tempRelLabel(ee);
                 if(reltype.isNull())
@@ -181,11 +179,11 @@ public class TempRelAnnotator {
         EventAxisLabelerLBJ axisLabelerLBJ = new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
-        String temprelMdlDir = "models/tempRel/old", temprelMldNamePrefix = "eeTempRelCls_temprob_mod0_win2";
-        eeTempRelCls2 cls0 = new eeTempRelCls2(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+".lex");
-        eeTempRelCls2 cls1 = new eeTempRelCls2(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+".lex");
+        String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+        eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
+                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
+        eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
+                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
         TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls0,cls1);
 
         /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";

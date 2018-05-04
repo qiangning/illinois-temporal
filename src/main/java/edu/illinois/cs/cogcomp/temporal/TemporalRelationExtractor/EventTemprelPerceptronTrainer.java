@@ -1,12 +1,12 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
-import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
-import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls2;
+import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.*;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
@@ -34,18 +34,22 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         this.window = window;
         this.sentDiff = sentDiff;
         this.clsMode = clsMode;
+        System.out.println("Classifier Takes Mode "+clsMode);
+        System.out.println("Label Takes Mode "+labelMode);
+
         TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
         LEARNRATE = new double[]{0.001};
         THICKNESS = new double[]{0,1};
         SAMRATE = new double[]{0.1,0.2,0.3};
-        ROUND = new double[]{20,50,100};
+        ROUND = new double[]{50,100,200};
     }
 
     private List<TemporalRelation_EE> preprocess(List<TemporalDocument> docList,
                                                  HashMap<String,HashMap<Integer,String>> axisMap,
                                                  HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap,
-                                                 WNSim wnsim){
+                                                 WNSim wnsim,
+                                                 HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> tempLangMdl){
 
         List<TemporalRelation_EE> ret = new ArrayList<>();
         for(TemporalDocument d:docList){
@@ -61,6 +65,9 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
                 e.extractSynsets(wnsim);
             }
             ret.addAll(doc.getGraph().getAllEERelations(sentDiff));
+        }
+        for(TemporalRelation_EE tmp:ret) {
+            tmp.extractAllFeats(tempLangMdl);
         }
         return ret;
     }
@@ -78,16 +85,8 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
             String lm_path = rm.getString("TemProb_Dir");
             TempLangMdl tempLangMdl = TempLangMdl.getInstance(lm_path);
 
-            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap,wnsim);
-            testStructs = preprocess(allTestingDocs,axisMap,relMap,wnsim);
-            for(TemporalRelation_EE tmp:trainingStructs) {
-                tmp.extractSignalWords();
-                tmp.readCorpusStats(tempLangMdl.tempLangMdl);
-            }
-            for(TemporalRelation_EE tmp:testStructs) {
-                tmp.extractSignalWords();
-                tmp.readCorpusStats(tempLangMdl.tempLangMdl);
-            }
+            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap,wnsim,tempLangMdl.tempLangMdl);
+            testStructs = preprocess(allTestingDocs,axisMap,relMap,wnsim,tempLangMdl.tempLangMdl);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -113,6 +112,15 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
                 break;
             case 2:
                 classifier = new eeTempRelCls2(modelPath, lexiconPath);
+                break;
+            case 3:
+                classifier = new eeTempRelCls3(modelPath, lexiconPath);
+                break;
+            case 4:
+                classifier = new eeTempRelCls4(modelPath, lexiconPath);
+                break;
+            case 5:
+                classifier = new eeTempRelCls5(modelPath, lexiconPath);
                 break;
             default:
                 System.out.println("Choosing default classifier 0");
@@ -146,7 +154,7 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         options.addOption(sentDiff);
 
         Option labelMode = new Option("lm", "labelMode", true, "label mode (0: original labels; 1: Q1; 2: Q2)");
-        labelMode.setRequired(true);
+        labelMode.setRequired(false);
         options.addOption(labelMode);
 
         Option clsMode = new Option("cm", "clsMode", true, "classifier mode");
@@ -169,7 +177,7 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         cmdParser(args);
         String modelDir = cmd.getOptionValue("modelDir");
         String modelName = cmd.getOptionValue("modelName");
-        int labelMode = Integer.valueOf(cmd.getOptionValue("labelMode"));
+        int labelMode = Integer.valueOf(cmd.getOptionValue("labelMode","0"));
         int clsMode = Integer.valueOf(cmd.getOptionValue("clsMode","0"));
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));

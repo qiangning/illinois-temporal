@@ -40,8 +40,8 @@ public class EventTokenCandidate {
 
     private TimexTemporalNode closestTimex_left,closestTimex_right;
 
-    private List<Constituent> verb_srl_same_sentence = new ArrayList<>();
     private Constituent verb_srl;
+    private List<Constituent> verb_srl_same_sentence = new ArrayList<>();
     private List<Pair<String, Constituent>> verb_srl_covering = new ArrayList<>();
 
     private EventTokenCandidate prev_event;

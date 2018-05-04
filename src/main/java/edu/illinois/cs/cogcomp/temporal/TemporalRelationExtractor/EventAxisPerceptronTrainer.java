@@ -90,18 +90,6 @@ public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTo
             case 0:
                 classifier = new eventDetector(modelPath, lexiconPath);
                 break;
-            case 2:
-                classifier = new eventDetector2(modelPath, lexiconPath);
-                break;
-            case 3:
-                classifier = new eventDetector3(modelPath, lexiconPath);
-                break;
-            case 4:
-                classifier = new eventDetector4(modelPath, lexiconPath);
-                break;
-            case 5:
-                classifier = new eventDetector5(modelPath, lexiconPath);
-                break;
             default:
                 System.out.println("Choosing default classifier 0");
                 classifier = new eventDetector(modelPath, lexiconPath);
