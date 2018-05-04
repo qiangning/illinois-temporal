@@ -1,7 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
@@ -10,12 +9,13 @@ import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.*;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
-import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
-import util.TempLangMdl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
@@ -47,9 +47,7 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
 
     private List<TemporalRelation_EE> preprocess(List<TemporalDocument> docList,
                                                  HashMap<String,HashMap<Integer,String>> axisMap,
-                                                 HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap,
-                                                 WNSim wnsim,
-                                                 HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> tempLangMdl){
+                                                 HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap){
 
         List<TemporalRelation_EE> ret = new ArrayList<>();
         for(TemporalDocument d:docList){
@@ -62,12 +60,12 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
             List<EventTemporalNode> events = doc.getEventList();
             for(EventTemporalNode e:events){
                 e.extractPosLemmaWin(window);
-                e.extractSynsets(wnsim);
+                e.extractSynsets();
             }
             ret.addAll(doc.getGraph().getAllEERelations(sentDiff));
         }
         for(TemporalRelation_EE tmp:ret) {
-            tmp.extractAllFeats(tempLangMdl);
+            tmp.extractAllFeats();
         }
         return ret;
     }
@@ -75,18 +73,14 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
     public void load() {
         try {
             ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-            WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
             List<TemporalDocument> allTrainingDocs = TempEval3Reader.deserialize(rm.getString("TimeBank_Ser"));
             allTrainingDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
             List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
             HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
             HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
 
-            String lm_path = rm.getString("TemProb_Dir");
-            TempLangMdl tempLangMdl = TempLangMdl.getInstance(lm_path);
-
-            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap,wnsim,tempLangMdl.tempLangMdl);
-            testStructs = preprocess(allTestingDocs,axisMap,relMap,wnsim,tempLangMdl.tempLangMdl);
+            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap);
+            testStructs = preprocess(allTestingDocs,axisMap,relMap);
         }
         catch (Exception e){
             e.printStackTrace();

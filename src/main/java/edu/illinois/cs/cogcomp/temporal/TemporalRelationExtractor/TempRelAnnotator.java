@@ -32,8 +32,8 @@ public class TempRelAnnotator {
     private EventAxisLabeler axisLabeler;
     private TempRelLabeler tempRelLabeler;
     private ResourceManager rm;
-    private WNSim wnsim;
 
+    private boolean ilp;
     private int n_entitiy;
     // all first two dimensions are upper triangle
     private double[][][] local_score;//n_entitiy x n_entitiy x n_relation
@@ -42,12 +42,16 @@ public class TempRelAnnotator {
     private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
     public int[][] result;
 
-    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm,WNSim wnsim) {
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm) {
+        this(doc,axisLabeler,tempRelLabeler,rm,true);
+    }
+
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm, boolean ilp) {
         this.doc = doc;
         this.axisLabeler = axisLabeler;
         this.tempRelLabeler = tempRelLabeler;
         this.rm = rm;
-        this.wnsim = wnsim;
+        this.ilp = ilp;
     }
 
     private void initAllArrays4ILP(){
@@ -108,14 +112,14 @@ public class TempRelAnnotator {
         initAllArrays4ILP();
     }
 
-    public void tempRelAnnotator(boolean ilp,HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> tempLangMdl){
+    public void tempRelAnnotator(){
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
 
         // extract features
         for(EventTemporalNode e:eventList){
             e.extractPosLemmaWin(window);
-            e.extractSynsets(wnsim);
+            e.extractSynsets();
         }
 
         for(EventTemporalNode e1:eventList){
@@ -127,7 +131,7 @@ public class TempRelAnnotator {
                 TemporalRelation_EE ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.VAGUE),doc);
 
                 // extract features
-                ee.extractAllFeats(tempLangMdl);
+                ee.extractAllFeats();
 
                 TemporalRelType reltype = tempRelLabeler.tempRelLabel(ee);
                 if(reltype.isNull())
@@ -165,15 +169,14 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        boolean ILP = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-        WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
         List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
         HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
 
         String lm_path = rm.getString("TemProb_Dir");
         TempLangMdl tempLangMdl = TempLangMdl.getInstance(lm_path);
+        TemporalRelation_EE.setTempLangMdl(tempLangMdl);
 
         String axisMdlDir = "models/eventDetector", axisMdlName = "eventPerceptronDetector_win2_cls0";
         EventAxisLabelerLBJ axisLabelerLBJ = new EventAxisLabelerLBJ(
@@ -208,9 +211,9 @@ public class TempRelAnnotator {
             myAllDocs.add(doc);
             myAllDocs_Gold.add(docGold);
 
-            TempRelAnnotator tra = new TempRelAnnotator(doc,axisLabelerLBJ,tempRelLabelerLBJ,rm,wnsim);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,axisLabelerLBJ,tempRelLabelerLBJ,rm);
             tra.axisAnnotator();
-            tra.tempRelAnnotator(ILP,tempLangMdl.tempLangMdl);
+            tra.tempRelAnnotator();
             cnt++;
             if(cnt>=20)
                 break;

@@ -6,9 +6,11 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.PredicateArgumentView;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
+import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +40,7 @@ public class EventTemporalNode extends TemporalNode{
     private myTemporalDocument doc;
 
     /*Features that may not be initialized*/
+    private static WNSim wnsim;
     private List<String> synsets;
     private int window;
     private String[] pos_window;
@@ -111,8 +114,8 @@ public class EventTemporalNode extends TemporalNode{
     }
 
     /*Feature extraction*/
-    public void extractSynsets(WNSim wnsim){
-        synsets = retrieveSynsetUsingLemmaAndPos(wnsim,lemma,pos);
+    public void extractSynsets(){
+        synsets = retrieveSynsetUsingLemmaAndPos(getWNsim(),lemma,pos);
     }
 
     public void extractPosLemmaWin(int win){
@@ -200,6 +203,25 @@ public class EventTemporalNode extends TemporalNode{
 
     public myTemporalDocument getDoc() {
         return doc;
+    }
+
+    public static WNSim getWNsim() {
+        if(wnsim==null){
+            try {
+                ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+                WNSim wnsim = WNSim.getInstance(rm.getString("WordNet_Dir"));
+                setWNsim(wnsim);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                System.out.println("WNSim loading error. Exiting now.");
+                System.exit(-1);}
+        }
+        return wnsim;
+    }
+
+    public static void setWNsim(WNSim wnsim) {
+        EventTemporalNode.wnsim = wnsim;
     }
 
     @Override

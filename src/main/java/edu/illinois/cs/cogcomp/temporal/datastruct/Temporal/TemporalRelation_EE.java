@@ -3,9 +3,12 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
+import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
+import util.TempLangMdl;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +22,9 @@ public class TemporalRelation_EE extends TemporalRelation {
     private int sentDiff, tokDiff;// non-negative
     public boolean e1_covering_e2, e2_covering_e1;
     public String e1_covering_e2_type,e2_covering_e1_type;
+
     /*Features that may not be initialized*/
+    private static TempLangMdl tempLangMdl;
     private HashSet<String> signals_before,signals_between,signals_after;
     private HashSet<String> closestTimexFeats;
     private boolean sameSynset;
@@ -81,9 +86,9 @@ public class TemporalRelation_EE extends TemporalRelation {
     }
 
     /*Feature extraction*/
-    public void extractAllFeats(HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> temporalLM){
+    public void extractAllFeats(){
         extractSignalWords();
-        readCorpusStats(temporalLM);
+        readCorpusStats();
         extractIfSameSynset();
         extractClosestTimexFeats();
     }
@@ -115,7 +120,8 @@ public class TemporalRelation_EE extends TemporalRelation {
         signals_after.addAll(getSignalsFromLemma(lemma_after,SignalWordSet.getInstance()));
     }
 
-    public void readCorpusStats(HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> temporalLM){
+    public void readCorpusStats(){
+        HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> temporalLM = getTempLangMdl().tempLangMdl;
         if(temporalLM.containsKey(getSourceNode().getCluster())&&temporalLM.get(getSourceNode().getCluster()).containsKey(getTargetNode().getCluster())){
             String cluster1 = getSourceNode().getCluster();
             String cluster2 = getTargetNode().getCluster();
@@ -243,6 +249,26 @@ public class TemporalRelation_EE extends TemporalRelation {
 
     public HashSet<String> getClosestTimexFeats() {
         return closestTimexFeats;
+    }
+
+    public static TempLangMdl getTempLangMdl() {
+        if(tempLangMdl==null){
+            try {
+                ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+                String lm_path = rm.getString("TemProb_Dir");
+                setTempLangMdl(TempLangMdl.getInstance(lm_path));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                System.out.println("Temporal Language Model (TemProb) loading error. Exiting now.");
+                System.exit(-1);
+            }
+        }
+        return tempLangMdl;
+    }
+
+    public static void setTempLangMdl(TempLangMdl tempLangMdl) {
+        TemporalRelation_EE.tempLangMdl = tempLangMdl;
     }
 
     @Override
