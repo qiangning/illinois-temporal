@@ -112,13 +112,22 @@ public class TempRelAnnotator {
     }
 
     public void annotator(){
-        doc.dropAllEventsAndTimexes();
-        axisAnnotator();
-        try{
-            timexAnnotator();
+        annotator(false,false);
+    }
+
+    public void annotator(boolean goldEvent, boolean goldTimex){
+        if(!goldEvent){
+            doc.dropAllEventNodes();
+            axisAnnotator();
         }
-        catch (Exception e){
-            e.printStackTrace();
+        initAllArrays4ILP();
+        if(!goldTimex) {
+            doc.dropAllTimexNodes();
+            try {
+                timexAnnotator();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         tempRelAnnotator();
     }
@@ -142,7 +151,6 @@ public class TempRelAnnotator {
                 eiid++;
             }
         }
-        initAllArrays4ILP();
     }
 
     public void timexAnnotator() throws Exception{
@@ -246,6 +254,7 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
+        boolean goldEvent = true, goldTimex = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
         HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
@@ -259,7 +268,8 @@ public class TempRelAnnotator {
             String docid = d.getDocID();
             if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
                 continue;
-            myTemporalDocument doc = new myTemporalDocument(d,0);
+            myTemporalDocument doc = new myTemporalDocument(d,1);
+            doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
 
             myTemporalDocument docGold = new myTemporalDocument(d,1);
             docGold.keepAnchorableEvents(axisMap.get(doc.getDocid()));
@@ -269,7 +279,7 @@ public class TempRelAnnotator {
             myAllDocs_Gold.add(docGold);
 
             TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,tempRelLabeler,rm);
-            tra.annotator();
+            tra.annotator(goldEvent,goldTimex);
             cnt++;
             if(cnt>=20)
                 break;
