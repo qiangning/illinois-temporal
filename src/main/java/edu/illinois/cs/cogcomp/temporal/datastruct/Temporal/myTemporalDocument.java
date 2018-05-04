@@ -6,7 +6,10 @@ import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTemprelPerceptronTrainer;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
@@ -15,14 +18,12 @@ import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import jline.internal.Nullable;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
-import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.*;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
-
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
 public class myTemporalDocument {
@@ -30,22 +31,34 @@ public class myTemporalDocument {
     public final static String TimexNodeType = "TIMEX";
     private List<EventTemporalNode> eventList = new ArrayList<>();
     private List<TimexTemporalNode> timexList = new ArrayList<>();
+    private TimexTemporalNode dct;// a shallow copy of one of those in timexList
     private TextAnnotation ta;
     private TemporalGraph graph;
     private String docid;
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
 
-    public myTemporalDocument(String bodytext, String docid){
-        //to-do
-
-        // create TA
-
-        // create timexList
-
-        // create eventList
-
-        // create graph
+    public myTemporalDocument(String bodytext, String docid) throws Exception{
+        this.docid = docid;
+        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
+        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        graph = new TemporalGraph();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
     }
+
+    public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
+        this.docid = docid;
+        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
+        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        graph = new TemporalGraph();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = dateFormat.parse(dct_yyyy_mm_dd);
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+    }
+
     public myTemporalDocument(TemporalDocument temporalDocument, int mode){
         // mode: 0-->don't load events, timexes, and relations
         // mode: 1-->load events and timexes in the original temporalDocument
@@ -167,13 +180,28 @@ public class myTemporalDocument {
             sentId = ta.getSentenceId(tokenSpan.getFirst());
 
         }
-        addTimex(new TimexTemporalNode(tjc.getTID(),TimexNodeType,tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue(),ta));
+        TimexTemporalNode t = new TimexTemporalNode(tjc.getTID(),TimexNodeType,tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue(),ta);
+        addTimex(t);
+        if(isDCT)
+            dct = t;
     }
 
     public void dropAllEventsAndTimexes(){
+        dropAllEventNodes();
+        dropAllTimexNodes();
+    }
+
+    public void dropAllEventNodes(){
+        for(EventTemporalNode e:eventList){
+            graph.dropNode(e.getUniqueId());
+        }
         eventList = new ArrayList<>();
+    }
+
+    public void dropAllTimexNodes(){
+        for(TimexTemporalNode t:timexList)
+            graph.dropNode(t.getUniqueId());
         timexList = new ArrayList<>();
-        graph.dropAllNodes();
     }
 
     public void sortAllEvents(){
@@ -352,6 +380,14 @@ public class myTemporalDocument {
 
     public TemporalGraph getGraph() {
         return graph;
+    }
+
+    public void setDct(TimexTemporalNode dct) {
+        this.dct = dct;
+    }
+
+    public TimexTemporalNode getDct() {
+        return dct;
     }
 
     @Nullable

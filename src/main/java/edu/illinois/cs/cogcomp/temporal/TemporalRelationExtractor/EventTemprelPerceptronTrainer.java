@@ -5,7 +5,7 @@ import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
-import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.*;
+import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
@@ -103,18 +103,6 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         switch (clsMode) {
             case 0:
                 classifier = new eeTempRelCls(modelPath, lexiconPath);
-                break;
-            case 2:
-                classifier = new eeTempRelCls2(modelPath, lexiconPath);
-                break;
-            case 3:
-                classifier = new eeTempRelCls3(modelPath, lexiconPath);
-                break;
-            case 4:
-                classifier = new eeTempRelCls4(modelPath, lexiconPath);
-                break;
-            case 5:
-                classifier = new eeTempRelCls5(modelPath, lexiconPath);
                 break;
             default:
                 System.out.println("Choosing default classifier 0");

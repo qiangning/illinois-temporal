@@ -1,6 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

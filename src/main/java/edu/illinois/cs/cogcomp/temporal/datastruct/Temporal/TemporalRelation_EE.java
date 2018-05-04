@@ -273,6 +273,6 @@ public class TemporalRelation_EE extends TemporalRelation {
 
     @Override
     public String toString() {
-        return String.format("%s-->%s: %s. sameSynset:%s. e1_covering_e2:%s, e2_covering_e1:%s",getSourceNode().getUniqueId(),getTargetNode().getUniqueId(), getRelType().toString(),sameSynset,e1_covering_e2,e2_covering_e1);
+        return String.format("%s (%s)-->%s (%s): %s. sameSynset:%s. e1_covering_e2:%s, e2_covering_e1:%s",getSourceNode().getUniqueId(),getSourceNode().getLemma(),getTargetNode().getUniqueId(),getTargetNode().getLemma(), getRelType().toString(),sameSynset,e1_covering_e2,e2_covering_e1);
     }
 }

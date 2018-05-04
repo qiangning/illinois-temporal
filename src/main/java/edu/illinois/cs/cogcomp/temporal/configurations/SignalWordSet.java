@@ -2,7 +2,6 @@ package edu.illinois.cs.cogcomp.temporal.configurations;
 
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 
 import java.util.Arrays;
 import java.util.HashSet;
