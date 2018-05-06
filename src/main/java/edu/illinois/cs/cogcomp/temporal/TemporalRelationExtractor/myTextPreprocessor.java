@@ -6,7 +6,6 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotationUtilities;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.myTextAnnotationUtilities;
 import edu.illinois.cs.cogcomp.curator.CuratorFactory;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 
 public class myTextPreprocessor {
     private AnnotatorService annotator;
@@ -45,13 +44,5 @@ public class myTextPreprocessor {
             myTextAnnotationUtilities.copyViewsFromTo(sentTa[sentenceId],ta, start, end, start);
         }
         return ta;
-    }
-
-    public static void main(String[] args) throws Exception{
-        String text = "I fell in love with her after I first met her 9 years ago. Now we are expecting our first baby this June.";
-        myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
-        TempRelAnnotator tra = new TempRelAnnotator(doc);
-        tra.annotator();
-        System.out.println();
     }
 }

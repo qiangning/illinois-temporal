@@ -1,39 +1,35 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
-import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
-import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
+import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
-import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
-import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
-import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
 public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<TemporalRelation_EE> {
     private int window;
     private int sentDiff;
     private int clsMode;
     private double sr_standard;
+    private String[] trainSet, testSet;
     public static String[] TEMP_LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName(),TemporalRelType.relTypes.NULL.getName()};
 
     private static CommandLine cmd;
 
-    public EventTemprelPerceptronTrainer(int seed, int totalFold, int labelMode, int clsMode, int window, int sentDiff, int evalMetric) {
+    public EventTemprelPerceptronTrainer(int seed, int totalFold, int labelMode, int clsMode, int window, int sentDiff, int evalMetric,
+                                         String[] trainSet, String[] testSet) {
         super(seed, totalFold, evalMetric);
         this.window = window;
         this.sentDiff = sentDiff;
         this.clsMode = clsMode;
+        this.trainSet = trainSet;
+        this.testSet = testSet;
         System.out.println("Classifier Takes Mode "+clsMode);
         System.out.println("Label Takes Mode "+labelMode);
 
@@ -45,24 +41,15 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         ROUND = new double[]{50,100,200};
     }
 
-    private List<TemporalRelation_EE> preprocess(List<TemporalDocument> docList,
-                                                 HashMap<String,HashMap<Integer,String>> axisMap,
-                                                 HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap){
-
+    private List<TemporalRelation_EE> preprocess(List<myTemporalDocument> docList){
         List<TemporalRelation_EE> ret = new ArrayList<>();
-        for(TemporalDocument d:docList){
-            myTemporalDocument doc = new myTemporalDocument(d,1);
-            String docid = doc.getDocid();
-            if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
-                continue;
-            doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
-            doc.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
-            List<EventTemporalNode> events = doc.getEventList();
+        for(myTemporalDocument d:docList){
+            List<EventTemporalNode> events = d.getEventList();
             for(EventTemporalNode e:events){
                 e.extractPosLemmaWin(window);
                 e.extractSynsets();
             }
-            ret.addAll(doc.getGraph().getAllEERelations(sentDiff));
+            ret.addAll(d.getGraph().getAllEERelations(sentDiff));
         }
         for(TemporalRelation_EE tmp:ret) {
             tmp.extractAllFeats();
@@ -72,15 +59,19 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
     @Override
     public void load() {
         try {
-            ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-            List<TemporalDocument> allTrainingDocs = TempEval3Reader.deserialize(rm.getString("TimeBank_Ser"));
-            allTrainingDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
-            List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
-            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
-            HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
-
-            trainingStructs = preprocess(allTrainingDocs,axisMap,relMap);
-            testStructs = preprocess(allTestingDocs,axisMap,relMap);
+            myDatasetLoader myLoader = new myDatasetLoader();
+            List<myTemporalDocument> allTrainingDocs = new ArrayList<>();//myLoader.getTimeBank();
+            for(String str:trainSet){
+                System.out.printf("Loading %s as training data...\n",str);
+                allTrainingDocs.addAll(myLoader.getDataset(str));
+            }
+            List<myTemporalDocument> allTestingDocs = new ArrayList<>();//myLoader.getPlatinum();
+            for(String str:testSet){
+                System.out.printf("Loading %s as test data...\n",str);
+                allTestingDocs.addAll(myLoader.getDataset(str));
+            }
+            trainingStructs = preprocess(allTrainingDocs);
+            testStructs = preprocess(allTestingDocs);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -143,6 +134,18 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         clsMode.setRequired(false);
         options.addOption(clsMode);
 
+        Option trainFiles = new Option("train", "trainFiles", true, "acronym for the training dataset");
+        trainFiles.setRequired(false);
+        options.addOption(trainFiles);
+
+        Option testFiles = new Option("test", "testFiles", true, "acronym for the test dataset");
+        testFiles.setRequired(false);
+        options.addOption(testFiles);
+
+        Option fold = new Option("f", "fold", true, "fold for cross-validation");
+        fold.setRequired(false);
+        options.addOption(fold);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         try {
@@ -163,8 +166,12 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         int clsMode = Integer.valueOf(cmd.getOptionValue("clsMode","0"));
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
+        int fold = Integer.valueOf(cmd.getOptionValue("fold","4"));
+        String[] trainSet = cmd.getOptionValue("train","TimeBank_Ser,AQUAINT_Ser").split(",");
+        String[] testSet = cmd.getOptionValue("test","PLATINUM_Ser").split(",");
         modelName += String.format("_sent%d_labelMode%d_clsMode%d_win%d",sentDiff,labelMode,clsMode,window);
-        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,4,labelMode,clsMode,window,sentDiff,2);
+        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,fold,labelMode,clsMode,window,sentDiff,2,
+                trainSet,testSet);
         exp.setModelPath(modelDir,modelName);
         StandardExperiment(exp);
     }

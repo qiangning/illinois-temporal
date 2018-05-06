@@ -253,6 +253,14 @@ public class TempRelAnnotator {
         TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls_mod1_dist0,cls_mod2_dist0,cls_mod1_dist1,cls_mod2_dist1);*/
     }
 
+    public static void rawtext2graph() throws Exception{
+        String text = "He fell in love with her after they first met 9 years ago. Now they are expecting their first baby this June.";
+        myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
+        TempRelAnnotator tra = new TempRelAnnotator(doc);
+        tra.annotator();
+        System.out.println();
+    }
+
     public static void main(String[] args) throws Exception{
         boolean goldEvent = true, goldTimex = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
