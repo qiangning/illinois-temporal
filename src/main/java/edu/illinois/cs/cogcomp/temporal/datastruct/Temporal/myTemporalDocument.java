@@ -18,6 +18,7 @@ import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import jline.internal.Nullable;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -26,7 +27,8 @@ import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelTy
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
-public class myTemporalDocument {
+public class myTemporalDocument implements Serializable {
+    private static final long serialVersionUID = -1304837964767492246L;
     public final static String EventNodeType = "EVENT";
     public final static String TimexNodeType = "TIMEX";
     private List<EventTemporalNode> eventList = new ArrayList<>();
@@ -37,11 +39,14 @@ public class myTemporalDocument {
     private String docid;
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
 
+    public myTemporalDocument() {
+    }
+
     public myTemporalDocument(String bodytext, String docid) throws Exception{
         this.docid = docid;
         myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
         ta = myTextPreprocessor.extractTextAnnotation(bodytext);
-        graph = new TemporalGraph();
+        graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
@@ -52,7 +57,7 @@ public class myTemporalDocument {
         this.docid = docid;
         myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
         ta = myTextPreprocessor.extractTextAnnotation(bodytext);
-        graph = new TemporalGraph();
+        graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormat.parse(dct_yyyy_mm_dd);
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
@@ -65,7 +70,7 @@ public class myTemporalDocument {
         // mode: 2-->load relations in the original temporalDocument (this should be rare)
         docid = temporalDocument.getDocID();
         ta = temporalDocument.getTextAnnotation();
-        graph = new TemporalGraph();
+        graph = new TemporalGraph(this);
         if(mode>=1) {
             List<EventChunk> allEvents = temporalDocument.getBodyEventMentions();
             for (EventChunk ec : allEvents) {
@@ -105,6 +110,35 @@ public class myTemporalDocument {
                     System.out.println();
                 TemporalRelation tmpRel = new TemporalRelation(sourceNode, targetNode, reltype,this);
                 graph.addRelNoDup(tmpRel);
+            }
+        }
+    }
+
+    public myTemporalDocument(myTemporalDocument other){
+        graph = new TemporalGraph(this);
+        for(EventTemporalNode e:other.eventList) {
+            EventTemporalNode newevent = new EventTemporalNode(e, this);
+            addEvent(newevent);
+        }
+        for(TimexTemporalNode t:other.timexList) {
+            TimexTemporalNode newtimex = new TimexTemporalNode(t);
+            if(newtimex.isDCT())
+                dct = newtimex;
+            addTimex(newtimex);
+        }
+        ta = other.ta;
+        docid = other.docid;
+        for(TemporalRelation rel:other.graph.getRelations()){
+            if(rel instanceof TemporalRelation_EE)
+                graph.addRelNoDup(new TemporalRelation_EE((TemporalRelation_EE)rel,this));
+            else if(rel instanceof TemporalRelation_ET){
+                graph.addRelNoDup(new TemporalRelation_ET((TemporalRelation_ET)rel,this));
+            }
+            else if(rel instanceof TemporalRelation_TT){
+                graph.addRelNoDup(new TemporalRelation_TT((TemporalRelation_TT)rel,this));
+            }
+            else{
+                System.out.println("[WARNING] unexpected type of temporal relations (EE/ET/TT).");
             }
         }
     }
@@ -204,6 +238,10 @@ public class myTemporalDocument {
         timexList = new ArrayList<>();
     }
 
+    public void dropAllRelations(){
+        graph.dropAllRelations();
+    }
+
     public void sortAllEvents(){
         eventList.sort(new Comparator<EventTemporalNode>() {
             @Override
@@ -228,6 +266,14 @@ public class myTemporalDocument {
                 return 0;
             }
         });
+    }
+
+    public void extractAllFeats(int win){
+        for(EventTemporalNode e:eventList){
+            e.extractAllFeats(win);
+        }
+        for(TemporalRelation_EE tmp:graph.getAllEERelations(-1))
+            tmp.extractAllFeats();
     }
 
     /*Evaluators*/

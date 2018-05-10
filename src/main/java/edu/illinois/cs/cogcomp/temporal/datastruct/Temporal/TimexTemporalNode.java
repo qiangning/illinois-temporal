@@ -3,6 +3,8 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 
+import java.io.Serializable;
+
 public class TimexTemporalNode extends TemporalNode{
     private IntPair tokenSpan;
     private boolean isDCT;
@@ -10,6 +12,10 @@ public class TimexTemporalNode extends TemporalNode{
     private String mod;
     private String normVal;
     private int index_in_doc;
+
+    public TimexTemporalNode(TimexTemporalNode other){
+        this(other.nodeId,other.nodeType,other.text,other.index_in_doc,other.tokenSpan,other.sentId,other.isDCT,other.type,other.mod,other.normVal,other.ta);
+    }
     public TimexTemporalNode(int nodeId, String nodeType, String text, int index_in_doc, IntPair tokenSpan, int sentId, boolean isDCT, String type, String mod, String normVal, TextAnnotation ta) {
         super(nodeId, nodeType, text, sentId);
         this.index_in_doc = index_in_doc;

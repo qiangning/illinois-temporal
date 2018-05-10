@@ -2,15 +2,21 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
+
 /**
  * Created by chuchu on 12/19/17.
  */
-public abstract class BinaryRelation<Node extends AugmentedNode> {
+public abstract class BinaryRelation<Node extends AugmentedNode> implements Serializable{
+    private static final long serialVersionUID = 1238168453574063459L;
     private Node sourceNode, targetNode;
     private BinaryRelationType relType;
     private BinaryRelation<Node> relation_inverse;//assume all binary relations are two-way, i.e., if A has relation to B, there must be an inverse relation such that B has "inverse relation" to A.
 
     /*Constructors*/
+
+    public BinaryRelation() {
+    }
 
     public BinaryRelation(Node sourceNode, Node targetNode, BinaryRelationType relType) {
         this.sourceNode = sourceNode;

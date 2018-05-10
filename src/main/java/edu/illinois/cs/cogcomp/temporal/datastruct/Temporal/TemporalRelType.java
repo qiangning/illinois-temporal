@@ -2,13 +2,14 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Created by chuchu on 12/19/17.
  */
-public class TemporalRelType extends BinaryRelationType {
+public class TemporalRelType extends BinaryRelationType{
     public enum relTypes{
         BEFORE("BEFORE"),
         AFTER("AFTER"),
@@ -72,21 +73,35 @@ public class TemporalRelType extends BinaryRelationType {
     private relTypes reltype;
     private double[] scores;
     private static TemporalRelType nullRelType;
+    private static double confidence = 1d;
 
     /*Constructors*/
-
+    public TemporalRelType(TemporalRelType other){
+        reltype = other.reltype;
+        scores = new double[relTypes.values().length];
+        System.arraycopy(other.scores,0,scores,0,scores.length);
+    }
     public TemporalRelType(relTypes reltype) {
         this.reltype = reltype;
+        scores = new double[relTypes.values().length];
+        Arrays.fill(scores,0);
+        scores[this.reltype.getIndex()] = confidence;
     }
 
     public TemporalRelType(String reltype) {
         for(relTypes rel:relTypes.values()){
             if(rel.getName().equals(reltype)||rel.getName().toLowerCase().equals(reltype)) {
                 this.reltype = rel;
+                scores = new double[relTypes.values().length];
+                Arrays.fill(scores,0);
+                scores[this.reltype.getIndex()] = confidence;
                 return;
             }
         }
         this.reltype = relTypes.VAGUE;
+        scores = new double[relTypes.values().length];
+        Arrays.fill(scores,0);
+        scores[this.reltype.getIndex()] = confidence;
         System.out.printf("Error using TemporalRelType (%s): %s cannot be found.\n",reltype,reltype);
     }
 

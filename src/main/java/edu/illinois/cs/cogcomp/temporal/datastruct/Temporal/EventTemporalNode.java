@@ -14,6 +14,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,6 @@ public class EventTemporalNode extends TemporalNode{
     private int tokenId;
     private String pp_head;//prepositional phrase head
     private boolean isReporting,isIntention;
-    private TimexTemporalNode closestTimex_left,closestTimex_right;
     private Constituent verb_srl;
     private List<Constituent> verb_srl_same_sentence = new ArrayList<>();
     private List<Pair<String, Constituent>> verb_srl_covering = new ArrayList<>();
@@ -45,8 +45,38 @@ public class EventTemporalNode extends TemporalNode{
     private int window;
     private String[] pos_window;
     private String[] lemma_window;
+    private TimexTemporalNode closestTimex_left,closestTimex_right;
 
-    public EventTemporalNode(int nodeId, String nodeType, String text, int eid, int eiid, int index_in_doc,int tokenId, TextAnnotation ta, myTemporalDocument doc) {
+    public EventTemporalNode(EventTemporalNode other,myTemporalDocument doc){
+        super(other);
+        pos = other.pos;
+        lemma = other.lemma;
+        sense = other.sense;
+        cluster = other.cluster;
+        eid = other.eid;
+        eiid = other.eiid;
+        index_in_doc = other.index_in_doc;
+        tokenId = other.tokenId;
+        pp_head = other.pp_head;
+        isReporting = other.isReporting;
+        isIntention = other.isIntention;
+        if(other.closestTimex_left!=null)
+            closestTimex_left = new TimexTemporalNode(other.closestTimex_left);
+        if(other.closestTimex_right!=null)
+            closestTimex_right = new TimexTemporalNode(other.closestTimex_right);
+        this.doc = doc;
+        synsets = other.synsets;
+        window = other.window;
+        pos_window = other.pos_window;
+        lemma_window = other.lemma_window;
+
+        // textannotation related members are shallow copied
+        verb_srl = other.verb_srl;
+        verb_srl_same_sentence = other.verb_srl_same_sentence;
+        verb_srl_covering = other.verb_srl_covering;
+    }
+
+    public EventTemporalNode(int nodeId, String nodeType, String text, int eid, int eiid, int index_in_doc, int tokenId, TextAnnotation ta, myTemporalDocument doc) {
         super(nodeId, nodeType, text, ta.getSentenceId(tokenId));
         this.eid = eid;
         this.eiid = eiid;
@@ -61,16 +91,6 @@ public class EventTemporalNode extends TemporalNode{
 
         isReporting = SignalWordSet.getInstance().reportingVerbSet.contains(lemma);
         isIntention = SignalWordSet.getInstance().intentionVerbSet.contains(lemma);
-
-        // closest Timex
-        int i=0;
-        List<TimexTemporalNode> allTimexes = doc.getTimexList();
-        while(i<allTimexes.size() && allTimexes.get(i).getTokenSpan().getSecond()<tokenId){
-            closestTimex_left = allTimexes.get(i);
-            i++;
-        }
-        if(i<allTimexes.size())
-            closestTimex_right = allTimexes.get(i);
 
         // Verb SRL from the same sentence
         List<Constituent> allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
@@ -114,14 +134,38 @@ public class EventTemporalNode extends TemporalNode{
     }
 
     /*Feature extraction*/
+    public void extractAllFeats(int win){
+        extractSynsets();
+        extractPosLemmaWin(win);
+        extractClosestTimex();
+    }
+
     public void extractSynsets(){
+        if(synsets!=null)
+            return;
         synsets = retrieveSynsetUsingLemmaAndPos(getWNsim(),lemma,pos);
     }
 
     public void extractPosLemmaWin(int win){
         this.window = win;
-        pos_window = retrievePOSWindow(ta,tokenId,win);
-        lemma_window = retrieveLemmaWindow(ta,tokenId,win);
+        if(pos_window==null||pos_window.length!=win*2+1)
+            pos_window = retrievePOSWindow(ta,tokenId,win);
+        if(lemma_window==null||lemma_window.length!=win*2+1)
+            lemma_window = retrieveLemmaWindow(ta,tokenId,win);
+    }
+
+    public void extractClosestTimex(){
+        if(closestTimex_left!=null&&closestTimex_right!=null)
+            return;
+        // closest Timex
+        int i=0;
+        List<TimexTemporalNode> allTimexes = doc.getTimexList();
+        while(i<allTimexes.size() && allTimexes.get(i).getTokenSpan().getSecond()<tokenId){
+            closestTimex_left = allTimexes.get(i);
+            i++;
+        }
+        if(i<allTimexes.size())
+            closestTimex_right = allTimexes.get(i);
     }
 
     /*Getters and setters*/
@@ -203,6 +247,10 @@ public class EventTemporalNode extends TemporalNode{
 
     public myTemporalDocument getDoc() {
         return doc;
+    }
+
+    public void setDoc(myTemporalDocument doc) {
+        this.doc = doc;
     }
 
     public static WNSim getWNsim() {

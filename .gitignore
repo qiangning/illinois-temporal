@@ -10,3 +10,4 @@ src/main/java/edu/illinois/cs/cogcomp/temporal/lbjava/
 models/
 logs/
 scripts/
+serialization/

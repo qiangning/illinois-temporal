@@ -164,4 +164,8 @@ public class TempRelInferenceWrapper {
     public int[][] getResult() {
         return result;
     }
+
+    public GurobiHook getSolver() {
+        return solver;
+    }
 }

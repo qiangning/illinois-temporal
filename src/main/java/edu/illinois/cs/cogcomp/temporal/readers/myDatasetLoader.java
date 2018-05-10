@@ -1,10 +1,10 @@
 package edu.illinois.cs.cogcomp.temporal.readers;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import edu.illinois.cs.cogcomp.nlp.CompareCAVEO.TBDense_split;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
-import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.util.ArrayList;
@@ -58,6 +58,15 @@ public class myDatasetLoader {
     public List<myTemporalDocument> getTimeBank() throws Exception{
         return getDataset("TimeBank_Ser");
     }
+    public List<myTemporalDocument> getTimeBank_Minus_TBDense() throws Exception{
+        List<myTemporalDocument> files = getDataset("TimeBank_Ser");
+        List<myTemporalDocument> filtered = new ArrayList<>();
+        for(myTemporalDocument doc:files){
+            if(TBDense_split.findDoc(doc.getDocid())==0)
+                filtered.add(doc);
+        }
+        return filtered;
+    }
     public List<myTemporalDocument> getAQUAINT() throws Exception{
         return getDataset("AQUAINT_Ser");
     }
@@ -75,5 +84,10 @@ public class myDatasetLoader {
     }
     public List<myTemporalDocument> getDataset(String propertyName) throws Exception{
         return getDocs(rm.getString(propertyName));
+    }
+
+    public void extractAllFeats(List<myTemporalDocument> docs,int win){
+        for(myTemporalDocument d:docs)
+            d.extractAllFeats(win);
     }
 }

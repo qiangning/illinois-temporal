@@ -44,15 +44,8 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
     private List<TemporalRelation_EE> preprocess(List<myTemporalDocument> docList){
         List<TemporalRelation_EE> ret = new ArrayList<>();
         for(myTemporalDocument d:docList){
-            List<EventTemporalNode> events = d.getEventList();
-            for(EventTemporalNode e:events){
-                e.extractPosLemmaWin(window);
-                e.extractSynsets();
-            }
+            d.extractAllFeats(window);
             ret.addAll(d.getGraph().getAllEERelations(sentDiff));
-        }
-        for(TemporalRelation_EE tmp:ret) {
-            tmp.extractAllFeats();
         }
         return ret;
     }

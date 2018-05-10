@@ -2,6 +2,7 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,10 +10,11 @@ import java.util.List;
 /**
  * Created by chuchu on 12/20/17.
  */
-public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryRelation<Node>>  {
-    private HashMap<String,Node> nodeMap;
-    private List<Relation> relations;
-    private HashMap<String,List<Relation>> nodeInRelationMap, nodeOutRelationMap;
+public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryRelation<Node>> implements Serializable {
+    private static final long serialVersionUID = 5805879840460083874L;
+    protected HashMap<String,Node> nodeMap;
+    protected List<Relation> relations;
+    protected HashMap<String,List<Relation>> nodeInRelationMap, nodeOutRelationMap;
 
     // TO-DO: graph closure using transitivity triplets defined in BinaryRelation
 
@@ -58,6 +60,7 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         nodeMap.put(newnode.getUniqueId(),newnode); //success
         return 1;
     }
+
     public int addRelNoDup(Relation newrel){
         if(newrel==null||newrel.isNull()){//invalid newrel
             return -1;
@@ -101,6 +104,39 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         dropAllRelations();
     }
 
+    public boolean dropRelation(String uniqueId1, String uniqueId2){
+        Relation rel2drop = getRelBetweenNodes(uniqueId1,uniqueId2);
+        try {
+            relations.remove(rel2drop);
+            nodeOutRelationMap.get(uniqueId1).remove(rel2drop);
+            nodeOutRelationMap.get(uniqueId2).remove(rel2drop.getInverse());
+            nodeInRelationMap.get(uniqueId1).remove(rel2drop.getInverse());
+            nodeInRelationMap.get(uniqueId2).remove(rel2drop);
+            return true;
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+
+    public void dropAllRelations(){
+        relations = new ArrayList<>();
+        nodeInRelationMap = new HashMap<>();
+        nodeOutRelationMap = new HashMap<>();
+    }
+
+    public void dropAllEERelations(){
+        // todo
+    }
+
+    public void dropAllETRelations(){
+        // todo
+    }
+
+    public void dropAllTTRelations(){
+        // todo
+    }
+
     private void addNewRelation(Relation rel){
         relations.add(rel);
         relations.add((Relation)rel.getInverse());
@@ -118,10 +154,10 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         map.get(uniqueId).add(rel);
     }
 
-    public void dropAllRelations(){
-        relations = new ArrayList<>();
-        nodeInRelationMap = new HashMap<>();
-        nodeOutRelationMap = new HashMap<>();
+
+    //todo down sampling. simply drop relations or set them to vague?
+    public void downSamplingRelations(double sr, int seed){
+        // to do
     }
 
     /*Getters and Setters*/

@@ -1,12 +1,15 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelation;
+import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
+
+import java.io.Serializable;
 
 /**
  * Created by chuchu on 12/20/17.
  */
-public class TemporalRelation extends BinaryRelation<TemporalNode> {
+public class TemporalRelation extends BinaryRelation<TemporalNode>{
     private static int LabelMode;
     private myTemporalDocument doc;
 

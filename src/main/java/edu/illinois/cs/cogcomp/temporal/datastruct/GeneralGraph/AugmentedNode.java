@@ -1,14 +1,26 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
-public abstract class AugmentedNode {
-    private int id;
-    private String nodeType;
-    private String text;
+import java.io.Serializable;
+
+public abstract class AugmentedNode implements Serializable {
+    private static final long serialVersionUID = 5662840974130314900L;
+    protected int nodeId;
+    protected String nodeType;
+    protected String text;
 
     /*Constructors*/
 
+    public AugmentedNode() {
+    }
+
+    public AugmentedNode(AugmentedNode other){
+        nodeId = other.nodeId;
+        nodeType = other.nodeType;
+        text = other.text;
+    }
+
     public AugmentedNode(int nodeId, String nodeType, String text) {
-        this.id = nodeId;
+        this.nodeId = nodeId;
         this.nodeType = nodeType;
         this.text = text;
     }
@@ -21,12 +33,12 @@ public abstract class AugmentedNode {
 
     /*Getters and Setters*/
 
-    public int getId() {
-        return id;
+    public int getNodeId() {
+        return nodeId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setNodeId(int nodeId) {
+        this.nodeId = nodeId;
     }
 
     public String getNodeType() {
@@ -45,5 +57,5 @@ public abstract class AugmentedNode {
         this.text = text;
     }
 
-    public String getUniqueId(){return nodeType+":"+id;}
+    public String getUniqueId(){return nodeType+":"+ nodeId;}
 }

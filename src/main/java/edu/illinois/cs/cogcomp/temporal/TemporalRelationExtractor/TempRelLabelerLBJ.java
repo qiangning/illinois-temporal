@@ -9,7 +9,7 @@ import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
 
-public class TempRelLabelerLBJ implements TempRelLabeler {
+public class TempRelLabelerLBJ extends TempRelLabeler {
     private boolean split_q1_q2;
     private Learner classifier_dist0,classifier_dist1;
     private Learner classifier_mod1_dist0,classifier_mod1_dist1;
@@ -30,8 +30,15 @@ public class TempRelLabelerLBJ implements TempRelLabeler {
     }
 
     @Override
+    public boolean isIgnore(TemporalRelation_EE ee) {
+        return Math.abs(ee.getSentDiff()) > 1;
+    }
+
+    @Override
     public TemporalRelType tempRelLabel(TemporalRelation_EE ee) {
         TemporalRelType ret = getNullTempRel();
+        if(isIgnore(ee))
+            return ret;
         if(split_q1_q2){
             if (ee.getSentDiff() == 0 && classifier_mod1_dist0 != null && classifier_mod2_dist0 != null){
                 String q1 = classifier_mod1_dist0.discreteValue(ee);
@@ -60,26 +67,8 @@ public class TempRelLabelerLBJ implements TempRelLabeler {
             else if (ee.getSentDiff() == 1 && classifier_dist1 != null) {
                 ret = new TemporalRelType(classifier_dist1.discreteValue(ee));
                 ret.setScores(temporalScores2doubles(classifier_dist1.scores(ee),TemporalRelType.relTypes.getAllNames(),true));
-
             }
         }
         return ret;
-    }
-    private double[] temporalScores2doubles(ScoreSet scores, String[] allLabels, boolean norm){
-        if(norm) {
-            Softmax sm = new Softmax();
-            scores = sm.normalize(scores);
-        }
-        int n = allLabels.length;
-        double[] s = new double[n];
-        for(int i=0;i<n;i++){
-            try {
-                s[i] = scores.get(allLabels[i]);
-            }
-            catch (Exception e){
-                s[i] = 0;
-            }
-        }
-        return s;
     }
 }

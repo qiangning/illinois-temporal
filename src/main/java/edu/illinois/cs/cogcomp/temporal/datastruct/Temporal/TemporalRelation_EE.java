@@ -10,6 +10,7 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 import util.TempLangMdl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.Set;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.endTokInSent;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.startTokInSent;
 
-public class TemporalRelation_EE extends TemporalRelation {
+public class TemporalRelation_EE extends TemporalRelation{
     private int sentDiff, tokDiff;// non-negative
     public boolean e1_covering_e2, e2_covering_e1;
     public String e1_covering_e2_type,e2_covering_e1_type;
@@ -30,6 +31,26 @@ public class TemporalRelation_EE extends TemporalRelation {
     private boolean sameSynset;
     public double c_before, c_after, c_vague, c_equal, c_includes, c_included;
 
+    public TemporalRelation_EE(TemporalRelation_EE other, myTemporalDocument doc){
+        super(new EventTemporalNode(other.getSourceNode(),doc), new EventTemporalNode(other.getTargetNode(),doc), new TemporalRelType(other.getRelType()), doc);
+        sentDiff = other.sentDiff;
+        tokDiff = other.tokDiff;
+        e1_covering_e2 = other.e1_covering_e2;
+        e2_covering_e1 = other.e2_covering_e1;
+        e1_covering_e2_type  = other.e1_covering_e2_type;
+        e2_covering_e1_type  = other.e2_covering_e1_type;
+        signals_before = other.signals_before;
+        signals_between = other.signals_between;
+        signals_after = other.signals_after;
+        closestTimexFeats = other.closestTimexFeats;
+        sameSynset = other.sameSynset;
+        c_before = other.c_before;
+        c_after = other.c_after;
+        c_vague = other.c_vague;
+        c_equal = other.c_equal;
+        c_includes = other.c_includes;
+        c_included = other.c_included;
+    }
     public TemporalRelation_EE(EventTemporalNode sourceNode, EventTemporalNode targetNode, TemporalRelType relType, myTemporalDocument doc) {
         super(sourceNode, targetNode, relType, doc);
         sentDiff = Math.abs(targetNode.getSentId()-sourceNode.getSentId());
@@ -56,8 +77,8 @@ public class TemporalRelation_EE extends TemporalRelation {
 
     private HashSet<String> getSignalsHelper(String text, Set<String> keywords, String keywordsTag){
         HashSet<String> ret = myUtils4TextAnnotation.findKeywordsInText(text, keywords,keywordsTag);
-        if(ret.size()>0)
-            ret.add(keywordsTag+":Yes");
+        if(!ret.contains(keywordsTag+":"+"N/A"))
+            ret.add(keywordsTag+":EXISTS");
         return ret;
     }
 
@@ -94,6 +115,8 @@ public class TemporalRelation_EE extends TemporalRelation {
     }
 
     public void extractSignalWords(){
+        if(signals_before!=null&&signals_between!=null&&signals_after!=null)
+            return;
         signals_before = new HashSet<>();
         signals_between = new HashSet<>();
         signals_after = new HashSet<>();
@@ -153,6 +176,8 @@ public class TemporalRelation_EE extends TemporalRelation {
     }
 
     public void extractClosestTimexFeats(){
+        if(closestTimexFeats!=null)
+            return;
         EventTemporalNode e1 = getSourceNode();
         EventTemporalNode e2 = getTargetNode();
         closestTimexFeats = new HashSet<>();
