@@ -34,14 +34,23 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 nodeMap.put(str, new TemporalNode(node));
             }
         }
-        for(TemporalRelation rel:other.relations){
+        for(TemporalRelation rel:other.getRelations()){
             if(rel instanceof TemporalRelation_EE)
-                addRelNoDup(new TemporalRelation_EE((TemporalRelation_EE)rel,doc));
+                addRelNoDup(new TemporalRelation_EE((EventTemporalNode)getNode(rel.getSourceNode().getUniqueId()),
+                        (EventTemporalNode)getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        doc));
             else if(rel instanceof TemporalRelation_ET){
-                addRelNoDup(new TemporalRelation_ET((TemporalRelation_ET)rel,doc));
+                addRelNoDup(new TemporalRelation_ET((EventTemporalNode)getNode(rel.getSourceNode().getUniqueId()),
+                        (TimexTemporalNode)getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        doc));
             }
             else if(rel instanceof TemporalRelation_TT){
-                addRelNoDup(new TemporalRelation_TT((TemporalRelation_TT)rel,doc));
+                addRelNoDup(new TemporalRelation_TT((TimexTemporalNode)getNode(rel.getSourceNode().getUniqueId()),
+                        (TimexTemporalNode)getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        doc));
             }
             else{
                 System.out.println("[WARNING] unexpected type of temporal relations (EE/ET/TT).");

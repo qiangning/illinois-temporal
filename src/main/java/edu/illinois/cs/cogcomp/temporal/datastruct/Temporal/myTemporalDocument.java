@@ -130,12 +130,21 @@ public class myTemporalDocument implements Serializable {
         docid = other.docid;
         for(TemporalRelation rel:other.graph.getRelations()){
             if(rel instanceof TemporalRelation_EE)
-                graph.addRelNoDup(new TemporalRelation_EE((TemporalRelation_EE)rel,this));
+                graph.addRelNoDup(new TemporalRelation_EE((EventTemporalNode)graph.getNode(rel.getSourceNode().getUniqueId()),
+                        (EventTemporalNode)graph.getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        this));
             else if(rel instanceof TemporalRelation_ET){
-                graph.addRelNoDup(new TemporalRelation_ET((TemporalRelation_ET)rel,this));
+                graph.addRelNoDup(new TemporalRelation_ET((EventTemporalNode)graph.getNode(rel.getSourceNode().getUniqueId()),
+                        (TimexTemporalNode)graph.getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        this));
             }
             else if(rel instanceof TemporalRelation_TT){
-                graph.addRelNoDup(new TemporalRelation_TT((TemporalRelation_TT)rel,this));
+                graph.addRelNoDup(new TemporalRelation_TT((TimexTemporalNode)graph.getNode(rel.getSourceNode().getUniqueId()),
+                        (TimexTemporalNode)graph.getNode(rel.getTargetNode().getUniqueId()),
+                        new TemporalRelType(rel.getRelType()),
+                        this));
             }
             else{
                 System.out.println("[WARNING] unexpected type of temporal relations (EE/ET/TT).");

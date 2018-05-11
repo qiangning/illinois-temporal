@@ -11,3 +11,5 @@ models/
 logs/
 scripts/
 serialization/
+gurobi.ilp
+gurobi.lp

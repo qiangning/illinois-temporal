@@ -22,12 +22,12 @@ import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDoc
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
 
 public class TempRelAnnotator {
-    private myTemporalDocument doc, doc_bk;//doc_bk: used when respectExistingTempRels=true
+    private myTemporalDocument doc;
     private EventAxisLabeler axisLabeler;
     private TempRelLabeler tempRelLabeler;
     private TemporalChunkerAnnotator tca;
     private ResourceManager rm;
-    private boolean goldTimex=false, goldEvent=false, respectExistingTempRels=false;
+    private boolean goldTimex=false, goldEvent=false, respectExistingTempRels=false, respectAsHardConstraints=false;
 
     private TempRelInferenceWrapper solver;
     private boolean ilp;
@@ -116,12 +116,12 @@ public class TempRelAnnotator {
         tca.addDocumentCreationTime(dct);
     }
 
-    public void setup(boolean goldTimex, boolean goldEvent, boolean respectExistingTempRels){
+    public void setup(boolean goldTimex, boolean goldEvent, boolean respectExistingTempRels, boolean respectAsHardConstraints){
+        //System.out.printf("[TempRelAnnotator] Setup: goldTimex=%s, goldEvent=%s, respectExistingTempRels=%s, respectAsHardConstraints=%s\n",goldTimex,goldEvent,respectExistingTempRels,respectAsHardConstraints);
         this.goldEvent = goldEvent;
         this.goldTimex = goldTimex;
         this.respectExistingTempRels = respectExistingTempRels;
-        if(respectExistingTempRels)
-            doc_bk = new myTemporalDocument(doc);
+        this.respectAsHardConstraints = respectAsHardConstraints;
     }
 
     public void annotator(){
@@ -138,8 +138,10 @@ public class TempRelAnnotator {
                 e.printStackTrace();
             }
         }
-        /*if(!respectExistingTempRels)
-            doc.dropAllRelations();*/
+        if(!respectExistingTempRels) {
+            System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
+            doc.dropAllRelations();
+        }
         tempRelAnnotator();
     }
 
@@ -179,7 +181,7 @@ public class TempRelAnnotator {
         }
     }
 
-    public void tempRelAnnotator(){
+    public void tempRelAnnotator(){// always respect existing relations in doc, so if you don't want to respect them, drop them beforehand or set respectExistingTempRels=false
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
 
@@ -195,20 +197,16 @@ public class TempRelAnnotator {
                 if(e1.isEqual(e2)||e1.getTokenId()>e2.getTokenId())
                     continue;
                 TemporalRelation_EE ee = doc.getGraph().getEERelBetweenEvents(e1.getUniqueId(),e2.getUniqueId());
-                if(!ilp){
-                    if(ee!=null&&!ee.isNull()) {
-                        ee.extractAllFeats();
-                        continue;
-                    }
-                    // local+respect+ee is null
-                    ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.NULL),doc);
-                    if(tempRelLabeler.isIgnore(ee))
-                        continue;
-
-                    // extract features
-                    ee.extractAllFeats();
-
-                    TemporalRelType reltype = tempRelLabeler.tempRelLabel(ee);
+                if(ee==null){
+                    ee = new TemporalRelation_EE(e1, e2, new TemporalRelType(TemporalRelType.relTypes.NULL), doc);
+                }
+                ignoreMap[i][j] = tempRelLabeler.isIgnore(ee);
+                if(ignoreMap[i][j])
+                    continue;
+                ee.extractAllFeats();
+                TemporalRelType reltype = ee.getRelType();
+                if(reltype.isNull()){
+                    reltype = tempRelLabeler.tempRelLabel(ee);
                     if(reltype.isNull()) {// even if tempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
                         System.out.println("[WARNING] reltype by TempRelLabeler is unexpectedly null.");
                         continue;
@@ -216,64 +214,43 @@ public class TempRelAnnotator {
                     ee.setRelType(reltype);
                     doc.getGraph().addRelNoDup(ee);
                 }
-                else{
-                    if(ee!=null&&!ee.isNull()){//global+respect+ee exists
-                        if(tempRelLabeler.isIgnore(ee))
-                            continue;
-                        ee.extractAllFeats();
-                        ignoreMap[i][j] = false;
-                        local_score[i][j] = ee.getRelType().getScores();
-                    }
-                    else{//global+respect+ee is null
-                        ee = new TemporalRelation_EE(e1,e2,new TemporalRelType(TemporalRelType.relTypes.NULL),doc);
-                        if(tempRelLabeler.isIgnore(ee))
-                            continue;
-
-                        // extract features
-                        ee.extractAllFeats();
-
-                        TemporalRelType reltype = tempRelLabeler.tempRelLabel(ee);
-                        if(reltype.isNull()) {// even if tempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
-                            System.out.println("[WARNING] reltype by TempRelLabeler is unexpectedly null.");
-                            continue;
-                        }
-                        //ee.setRelType(reltype);
-                        ignoreMap[i][j] = false;
-                        local_score[i][j] = reltype.getScores();
-                        doc.getGraph().addRelNoDup(ee);
-                    }
-                }
+                local_score[i][j] = reltype.getScores();
             }
         }
         if(ilp) {
-            int[][][] originalTempRelConstraintsMap = new int[n_entity][n_entity][TemporalRelType.relTypes.values().length+1];
-            boolean update = false;
-            for(int i = 0; i< n_entity; i++){
-                for(int j = i+1; j< n_entity; j++){
-                    Arrays.fill(originalTempRelConstraintsMap[i][j],1);
-                    myTemporalDocument tmpDoc = respectExistingTempRels?doc_bk:doc;
-                    TemporalRelation_EE tlink = tmpDoc.getGraph().getEERelBetweenEvents(doc.getEventList().get(i).getUniqueId(), doc.getEventList().get(j).getUniqueId());
-                    if(tlink!=null&&!tlink.isNull()){
-                        for(int k=0;k<TemporalRelType.relTypes.values().length;k++){
-                            if(tlink.getRelType().getReltype()==TemporalRelType.relTypes.getRelTypesFromIndex(k))
-                                continue;
-                            originalTempRelConstraintsMap[i][j][k] = 0;
+            if(respectAsHardConstraints) {
+                int[][][] originalTempRelConstraintsMap = new int[n_entity][n_entity][TemporalRelType.relTypes.values().length + 1];
+                boolean updated = false;
+                for (int i = 0; i < n_entity; i++) {
+                    for (int j = i + 1; j < n_entity; j++) {
+                        Arrays.fill(originalTempRelConstraintsMap[i][j], 1);
+                        TemporalRelation_EE tlink = doc.getGraph().getEERelBetweenEvents(doc.getEventList().get(i).getUniqueId(), doc.getEventList().get(j).getUniqueId());
+                        if (tlink != null && !tlink.isNull()) {
+                            for (int k = 0; k < TemporalRelType.relTypes.values().length; k++) {
+                                if (tlink.getRelType().getReltype() == TemporalRelType.relTypes.getRelTypesFromIndex(k))
+                                    continue;
+                                originalTempRelConstraintsMap[i][j][k] = 0;
+                            }
+                            updated = true;
                         }
-                        update = true;
                     }
                 }
+                if (updated)
+                    constraintMap.add(originalTempRelConstraintsMap);
             }
-            if(update)
-                constraintMap.add(originalTempRelConstraintsMap);
             solver = new TempRelInferenceWrapper(n_entity, TemporalRelType.relTypes.values().length,
                     local_score, ignoreMap, constraintMap, transitivityMap);
             solver.solve();
-            if(update&&solver.getSolver().unsat()){
+            if(respectAsHardConstraints&&solver.getSolver().unsat()){
                 System.out.printf("Solving Doc %s with constraints failed. Switching to soft constraints...\n",doc.getDocid());
                 constraintMap.remove(constraintMap.size()-1);
                 solver = new TempRelInferenceWrapper(n_entity, TemporalRelType.relTypes.values().length,
                         local_score, ignoreMap, constraintMap, transitivityMap);
                 solver.solve();
+            }
+            if(!solver.getSolver().isSolved()) {
+                System.out.println("[TempRelAnnotator] ILP failed. Returning.");
+                return;
             }
             result = solver.getResult();
             for (int i = 0; i < n_entity; i++) {
@@ -284,8 +261,8 @@ public class TempRelAnnotator {
                     doc.getGraph().setRelBetweenNodes(doc.getEventList().get(i).getUniqueId(), doc.getEventList().get(j).getUniqueId(),reltype);
                 }
             }
-            doc.extractAllFeats(window);
         }
+        //doc.extractAllFeats(window);
     }
 
     public void setAxisLabeler(EventAxisLabeler axisLabeler) {
