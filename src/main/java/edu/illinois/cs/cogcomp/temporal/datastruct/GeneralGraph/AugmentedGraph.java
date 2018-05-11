@@ -1,11 +1,13 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph;
 
+import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by chuchu on 12/20/17.
@@ -13,7 +15,7 @@ import java.util.List;
 public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryRelation<Node>> implements Serializable {
     private static final long serialVersionUID = 5805879840460083874L;
     protected HashMap<String,Node> nodeMap;
-    protected List<Relation> relations;
+    protected List<Relation> relations, relations_directed;
     protected HashMap<String,List<Relation>> nodeInRelationMap, nodeOutRelationMap;
 
     // TO-DO: graph closure using transitivity triplets defined in BinaryRelation
@@ -23,6 +25,7 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     public AugmentedGraph() {
         this.nodeMap = new HashMap<>();
         this.relations = new ArrayList<>();
+        this.relations_directed = new ArrayList<>();
         nodeInRelationMap = new HashMap<>();
         nodeOutRelationMap = new HashMap<>();
     }
@@ -39,6 +42,7 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         }
 
         this.relations = new ArrayList<>();
+        this.relations_directed = new ArrayList<>();
         for(Relation rel : relations){
             int ret = addRelNoDup(rel);
             if(ret!=1){
@@ -79,6 +83,10 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         return 1;
     }
 
+    public boolean isDirectedRelation(Relation rel){
+        return rel.getSourceNode().getUniqueId().compareTo(rel.getTargetNode().getUniqueId())<0;
+    }
+
     public boolean dropNode(String nodeUniqueId){
         // nodeMap
         if(!nodeMap.containsKey(nodeUniqueId))
@@ -86,13 +94,17 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         nodeMap.remove(nodeUniqueId);
         // relations
         List<Relation> newRelations = new ArrayList<>();
+        List<Relation> newRelations_directed = new ArrayList<>();
         for(Relation rel:relations){
             if(rel.getSourceNode().getUniqueId().equals(nodeUniqueId)
                     ||rel.getTargetNode().getUniqueId().equals(nodeUniqueId))
                 continue;
             newRelations.add(rel);
+            if(isDirectedRelation(rel))
+                newRelations_directed.add(rel);
         }
         relations = newRelations;
+        relations_directed = newRelations_directed;
         // nodeOutRelationMap and nodeInRelationMap
         nodeInRelationMap.remove(nodeUniqueId);
         nodeOutRelationMap.remove(nodeUniqueId);
@@ -107,10 +119,16 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     public boolean dropRelation(String uniqueId1, String uniqueId2){
         Relation rel2drop = getRelBetweenNodes(uniqueId1,uniqueId2);
         try {
+            Relation rel2drop_inverse = (Relation) rel2drop.getInverse();
             relations.remove(rel2drop);
+            relations.remove(rel2drop_inverse);
+            if(isDirectedRelation(rel2drop))
+                relations_directed.remove(rel2drop);
+            else
+                relations_directed.remove(rel2drop_inverse);
             nodeOutRelationMap.get(uniqueId1).remove(rel2drop);
-            nodeOutRelationMap.get(uniqueId2).remove(rel2drop.getInverse());
-            nodeInRelationMap.get(uniqueId1).remove(rel2drop.getInverse());
+            nodeOutRelationMap.get(uniqueId2).remove(rel2drop_inverse);
+            nodeInRelationMap.get(uniqueId1).remove(rel2drop_inverse);
             nodeInRelationMap.get(uniqueId2).remove(rel2drop);
             return true;
         }
@@ -121,6 +139,7 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
 
     public void dropAllRelations(){
         relations = new ArrayList<>();
+        relations_directed = new ArrayList<>();
         nodeInRelationMap = new HashMap<>();
         nodeOutRelationMap = new HashMap<>();
     }
@@ -138,14 +157,19 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     }
 
     private void addNewRelation(Relation rel){
+        Relation rel_inverse = (Relation) rel.getInverse();
         relations.add(rel);
-        relations.add((Relation)rel.getInverse());
+        relations.add(rel_inverse);
+        if(isDirectedRelation(rel))
+            relations_directed.add(rel);
+        else
+            relations_directed.add(rel_inverse);
         String uniqueId1 = rel.getSourceNode().getUniqueId();
         String uniqueId2 = rel.getTargetNode().getUniqueId();
         addRelationToMap(uniqueId1,rel,nodeOutRelationMap);
         addRelationToMap(uniqueId2,rel,nodeInRelationMap);
-        addRelationToMap(uniqueId1,(Relation)rel.getInverse(),nodeInRelationMap);
-        addRelationToMap(uniqueId2,(Relation)rel.getInverse(),nodeOutRelationMap);
+        addRelationToMap(uniqueId1,rel_inverse,nodeInRelationMap);
+        addRelationToMap(uniqueId2,rel_inverse,nodeOutRelationMap);
     }
 
     private void addRelationToMap(String uniqueId, Relation rel, HashMap<String,List<Relation>> map){
@@ -154,10 +178,12 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         map.get(uniqueId).add(rel);
     }
 
-
-    //todo down sampling. simply drop relations or set them to vague?
     public void downSamplingRelations(double sr, int seed){
-        // to do
+        ListSampler<Relation> listSampler = new ListSampler<>(element -> false);
+        List<Relation> relations2remove = listSampler.ListSampling(relations_directed,1-sr,new Random(seed));
+        for(Relation rel:relations2remove){
+            dropRelation(rel.getSourceNode().getUniqueId(),rel.getTargetNode().getUniqueId());
+        }
     }
 
     /*Getters and Setters*/

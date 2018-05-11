@@ -1,5 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TemporalRelation_ET extends TemporalRelation {
     public TemporalRelation_ET(EventTemporalNode sourceNode, TimexTemporalNode targetNode, TemporalRelType relType, myTemporalDocument doc) {
         super(sourceNode, targetNode, relType, doc);
@@ -14,5 +16,11 @@ public class TemporalRelation_ET extends TemporalRelation {
     @Override
     public TimexTemporalNode getTargetNode(){
         return (TimexTemporalNode) super.getTargetNode();
+    }
+
+    @Override
+    @NotNull
+    public TemporalRelation_ET getInverse(){
+        return (TemporalRelation_ET)super.getInverse();
     }
 }

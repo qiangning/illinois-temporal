@@ -3,6 +3,7 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelation;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -33,6 +34,12 @@ public class TemporalRelation extends BinaryRelation<TemporalNode>{
     @Override
     public TemporalRelation inverse() {
         return new TemporalRelation(getTargetNode(),getSourceNode(),(TemporalRelType) getRelType().inverse(),doc);
+    }
+
+    @Override
+    @NotNull
+    public TemporalRelation getInverse(){
+        return (TemporalRelation)super.getInverse();
     }
 
     public myTemporalDocument getDoc() {

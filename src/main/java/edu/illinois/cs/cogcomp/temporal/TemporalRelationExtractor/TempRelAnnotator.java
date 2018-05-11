@@ -139,7 +139,7 @@ public class TempRelAnnotator {
             }
         }
         if(!respectExistingTempRels) {
-            System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
+            //System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
             doc.dropAllRelations();
         }
         tempRelAnnotator();

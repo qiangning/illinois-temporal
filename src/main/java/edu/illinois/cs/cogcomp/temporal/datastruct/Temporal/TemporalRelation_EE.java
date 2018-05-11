@@ -8,6 +8,7 @@ import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
+import org.jetbrains.annotations.NotNull;
 import util.TempLangMdl;
 
 import java.io.Serializable;
@@ -236,6 +237,12 @@ public class TemporalRelation_EE extends TemporalRelation{
     public TemporalRelation_EE inverse(){
         return new TemporalRelation_EE(getTargetNode(), getSourceNode(),getRelType().inverse(), getDoc());
 
+    }
+
+    @Override
+    @NotNull
+    public TemporalRelation_EE getInverse(){
+        return (TemporalRelation_EE)super.getInverse();
     }
 
     @Override

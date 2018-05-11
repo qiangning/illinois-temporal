@@ -1,8 +1,10 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
+import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +109,32 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         return true;
     }
 
+    public void visualize(String htmlDir){
+        String fname = htmlDir+ File.separator+doc.getDocid()+".html";
+        GraphJavaScript graphJavaScript = new GraphJavaScript(fname);
+        for(String nodeid:nodeMap.keySet()){
+            TemporalNode node = nodeMap.get(nodeid);
+            graphJavaScript.addVertex(nodeid,node.getText());
+        }
+        for(TemporalRelation rel:relations_directed){
+            String id1 = rel.getSourceNode().getUniqueId();
+            String id2 = rel.getTargetNode().getUniqueId();
+            TemporalRelType.relTypes reltype = rel.getRelType().getReltype();
+            switch (reltype.getName().toLowerCase()){
+                case "before":
+                    graphJavaScript.addEdge(id1,id2,"");
+                    break;
+                case "after":
+                    graphJavaScript.addEdge(id2,id1,"");
+                    break;
+                case "equal":
+                    graphJavaScript.addEdge(id1,id2,"");
+                    graphJavaScript.addEdge(id2,id1,"");
+                    break;
+            }
+        }
+        graphJavaScript.createJS();
+    }
     // TO-DO: get ET / TT sub-graphs
 
     public List<TemporalRelation_EE> getAllEERelations(int sentDiff){
