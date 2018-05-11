@@ -1,5 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
+import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
 import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
 import org.jetbrains.annotations.Nullable;
@@ -110,12 +111,14 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
     }
 
     public void visualize(String htmlDir){
+        IOUtils.mkdir(htmlDir);
         String fname = htmlDir+ File.separator+doc.getDocid()+".html";
         GraphJavaScript graphJavaScript = new GraphJavaScript(fname);
         for(String nodeid:nodeMap.keySet()){
             TemporalNode node = nodeMap.get(nodeid);
             graphJavaScript.addVertex(nodeid,node.getText());
         }
+        graphJavaScript.sortVertexes();
         for(TemporalRelation rel:relations_directed){
             String id1 = rel.getSourceNode().getUniqueId();
             String id2 = rel.getTargetNode().getUniqueId();
