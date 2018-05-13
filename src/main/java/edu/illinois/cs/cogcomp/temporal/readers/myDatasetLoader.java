@@ -3,7 +3,11 @@ package edu.illinois.cs.cogcomp.temporal.readers;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.CompareCAVEO.TBDense_split;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelLabeler;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
@@ -89,5 +93,32 @@ public class myDatasetLoader {
     public void extractAllFeats(List<myTemporalDocument> docs,int win){
         for(myTemporalDocument d:docs)
             d.extractAllFeats(win);
+    }
+
+    private class TempRelLabeler_Gold extends TempRelLabeler{
+        @Override
+        public TemporalRelType tempRelLabel(TemporalRelation_EE ee) {
+            return ee.getRelType();
+        }
+
+        @Override
+        public boolean isIgnore(TemporalRelation_EE ee) {
+            return ee.isNull();
+        }
+    }
+    public void autoTempRelCorrectionViaILP(List<myTemporalDocument> docs){
+        for(myTemporalDocument doc:docs) {
+            TempRelAnnotator tra = new TempRelAnnotator(doc, null, new TempRelLabeler_Gold(), rm, true);
+            tra.setup(true, true, true, false);
+            tra.annotator();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        myDatasetLoader loader = new myDatasetLoader();
+        List<myTemporalDocument> docs = loader.getTBDense_Test();
+        loader.autoTempRelCorrectionViaILP(docs);
+        for(myTemporalDocument doc:docs)
+            doc.getGraph().visualize("data/html/TBDense_Test_autoCorrected");
     }
 }

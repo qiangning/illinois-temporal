@@ -12,18 +12,33 @@ import java.util.List;
 public class temprelAnnotationReader {
     public static class Q1_Q2_temprel{
         private boolean q1, q2;
+        private double q1_yes_conf, q2_yes_conf;
         private TemporalRelType relType;
-        public Q1_Q2_temprel(boolean q1, boolean q2){
+
+        public Q1_Q2_temprel(boolean q1, boolean q2) {
+            this(q1,q2,1,1);
+        }
+
+        public Q1_Q2_temprel(boolean q1, boolean q2, double q1_conf, double q2_conf){
             this.q1 = q1;
             this.q2 = q2;
-            if(q1&&q2)
+            q1_yes_conf = q1?q1_conf:(1-q1_conf);
+            q2_yes_conf = q2?q2_conf:(1-q2_conf);
+            if(this.q1&&this.q2)
                 relType = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-            else if(q1&&!q2)
+            else if(this.q1&&!this.q2)
                 relType = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
-            else if(!q1&&q2)
+            else if(!this.q1&&this.q2)
                 relType = new TemporalRelType(TemporalRelType.relTypes.AFTER);
             else
                 relType = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
+            double[] relType_conf = relType.getScores();
+            relType_conf[TemporalRelType.relTypes.BEFORE.getIndex()] = q1_yes_conf*(1-q2_yes_conf);
+            relType_conf[TemporalRelType.relTypes.AFTER.getIndex()] = q2_yes_conf*(1-q1_yes_conf);
+            relType_conf[TemporalRelType.relTypes.EQUAL.getIndex()] = (1-q1_yes_conf)*(1-q2_yes_conf);
+            relType_conf[TemporalRelType.relTypes.VAGUE.getIndex()] = q1_yes_conf*q2_yes_conf;
+            relType_conf[TemporalRelType.relTypes.NULL.getIndex()] = 0;
+            relType.setScores(relType_conf);
         }
 
         public boolean isQ1() {
@@ -40,11 +55,19 @@ public class temprelAnnotationReader {
 
         @Override
         public String toString() {
-            return relType.toString();
+            return "Q1_Q2_temprel{" +
+                    "q1=" + q1 +
+                    ", q2=" + q2 +
+                    ", q1_yes_conf=" + q1_yes_conf +
+                    ", q2_yes_conf=" + q2_yes_conf +
+                    ", relType=" + relType +
+                    '}';
         }
 
         public Q1_Q2_temprel(TemporalRelType relType) {
             this.relType = relType;
+            q1_yes_conf = -1d;// todo: should re-calculate from relType.scores
+            q2_yes_conf = -1d;
             switch (relType.toString().toLowerCase()){
                 case "vague":
                     q1 = true;
@@ -106,6 +129,7 @@ public class temprelAnnotationReader {
         // docid-->CrowdFlowerEntry
         HashMap<String,List<CrowdFlowerEntry>> relMap = new HashMap<>();
         String[] files = fileList.split(",");
+        int cnt = 0;
         for(String file:files){
             String tmpDir = myIOUtils.getParentDir(file);
             String tmpFile = myIOUtils.getFileOrDirName(file);
@@ -117,23 +141,26 @@ public class temprelAnnotationReader {
                     int eventid2 = Integer.valueOf(cf_reader.getLineTag(i, "eventid2"));
                     boolean q1 = cf_reader.getLineTag(i,"q1").equals("yes");
                     boolean q2 = cf_reader.getLineTag(i,"q2").equals("yes");
-                    Q1_Q2_temprel temprel = new Q1_Q2_temprel(q1,q2);
+                    double q1_conf = Double.valueOf(cf_reader.getLineTag(i,"q1_conf"));
+                    double q2_conf = Double.valueOf(cf_reader.getLineTag(i,"q2_conf"));
+                    Q1_Q2_temprel temprel = new Q1_Q2_temprel(q1,q2,q1_conf,q2_conf);
                     CrowdFlowerEntry entry = new CrowdFlowerEntry(eventid1,eventid2,temprel);
                     if(!relMap.containsKey(docid))
                         relMap.put(docid,new ArrayList<>());
                     relMap.get(docid).add(entry);
                 }
                 catch (Exception e){
-                    e.printStackTrace();
+                    cnt++;
                 }
             }
         }
+        System.out.printf("[WARNING:temprelAnnotationReader] Exception happened for %d rows (usually it's caused by test questions from crowdflower and can be safely neglected.\n",cnt);
         return relMap;
     }
 
     public static void main(String[] args) throws Exception{
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-        HashMap<String,List<CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TimeBank_TempRel"));
+        HashMap<String,List<CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
         System.out.println();
     }
 }

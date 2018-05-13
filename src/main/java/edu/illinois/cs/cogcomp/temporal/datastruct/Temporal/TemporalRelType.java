@@ -2,7 +2,6 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,7 +72,7 @@ public class TemporalRelType extends BinaryRelationType{
     private relTypes reltype;
     private double[] scores;
     private static TemporalRelType nullRelType;
-    private static double confidence = 1d;
+    private static double defaultConf = 1d;
 
     /*Constructors*/
     public TemporalRelType(TemporalRelType other){
@@ -85,7 +84,7 @@ public class TemporalRelType extends BinaryRelationType{
         this.reltype = reltype;
         scores = new double[relTypes.values().length];
         Arrays.fill(scores,0);
-        scores[this.reltype.getIndex()] = confidence;
+        scores[this.reltype.getIndex()] = defaultConf;
     }
 
     public TemporalRelType(String reltype) {
@@ -94,14 +93,14 @@ public class TemporalRelType extends BinaryRelationType{
                 this.reltype = rel;
                 scores = new double[relTypes.values().length];
                 Arrays.fill(scores,0);
-                scores[this.reltype.getIndex()] = confidence;
+                scores[this.reltype.getIndex()] = defaultConf;
                 return;
             }
         }
         this.reltype = relTypes.VAGUE;
         scores = new double[relTypes.values().length];
         Arrays.fill(scores,0);
-        scores[this.reltype.getIndex()] = confidence;
+        scores[this.reltype.getIndex()] = defaultConf;
         System.out.printf("Error using TemporalRelType (%s): %s cannot be found.\n",reltype,reltype);
     }
 
