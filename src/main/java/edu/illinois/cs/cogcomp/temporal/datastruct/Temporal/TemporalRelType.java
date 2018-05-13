@@ -135,10 +135,13 @@ public class TemporalRelType extends BinaryRelationType{
                     case BEFORE:
                     case EQUAL:
                         return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.BEFORE)});
-                    default:
+                    case AFTER:
                         return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.BEFORE),
                                 new TemporalRelType(relTypes.AFTER),
                                 new TemporalRelType(relTypes.EQUAL),
+                                new TemporalRelType(relTypes.VAGUE)});
+                    default:
+                        return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.BEFORE),
                                 new TemporalRelType(relTypes.VAGUE)});
                 }
             case AFTER:
@@ -146,19 +149,30 @@ public class TemporalRelType extends BinaryRelationType{
                     case AFTER:
                     case EQUAL:
                         return Arrays.asList(new TemporalRelType(relTypes.AFTER));
-                    default:
+                    case BEFORE:
                         return Arrays.asList(new TemporalRelType(relTypes.BEFORE),
                                 new TemporalRelType(relTypes.AFTER),
                                 new TemporalRelType(relTypes.EQUAL),
+                                new TemporalRelType(relTypes.VAGUE));
+                    default:
+                        return Arrays.asList(new TemporalRelType(relTypes.AFTER),
                                 new TemporalRelType(relTypes.VAGUE));
                 }
             case EQUAL:
                 return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(((TemporalRelType)rel2).getReltype())});
             default:
-                return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.BEFORE),
-                        new TemporalRelType(relTypes.AFTER),
-                        new TemporalRelType(relTypes.EQUAL),
-                        new TemporalRelType(relTypes.VAGUE)});
+                switch (((TemporalRelType)rel2).getReltype()){
+                    case BEFORE:
+                        return Arrays.asList(new TemporalRelType(relTypes.BEFORE),
+                                new TemporalRelType(relTypes.VAGUE));
+                    case EQUAL:
+                        return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.VAGUE)});
+                    case AFTER:
+                        return Arrays.asList(new BinaryRelationType[]{new TemporalRelType(relTypes.AFTER),
+                                new TemporalRelType(relTypes.VAGUE)});
+                    default:
+                        return Arrays.asList(new TemporalRelType(relTypes.VAGUE));
+                }
         }
     }
 
