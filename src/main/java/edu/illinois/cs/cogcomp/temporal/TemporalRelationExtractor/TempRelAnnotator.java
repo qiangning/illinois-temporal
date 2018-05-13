@@ -212,7 +212,8 @@ public class TempRelAnnotator {
                         continue;
                     }
                     ee.setRelType(reltype);
-                    doc.getGraph().addRelNoDup(ee);
+                    if(!ilp||!respectAsHardConstraints)
+                        doc.getGraph().addRelNoDup(ee);
                 }
                 local_score[i][j] = reltype.getScores();
             }
