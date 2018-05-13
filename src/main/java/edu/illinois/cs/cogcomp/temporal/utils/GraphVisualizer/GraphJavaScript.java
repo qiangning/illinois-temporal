@@ -44,7 +44,6 @@ public class GraphJavaScript {
     public void sortVertexes(){
         V.sort(Comparator.comparing(vertex::getUniqueid));
     }
-
     public void createJS(){
         if(V.size()==0){
             System.out.println(fname+": Graph has not been initialized.");
