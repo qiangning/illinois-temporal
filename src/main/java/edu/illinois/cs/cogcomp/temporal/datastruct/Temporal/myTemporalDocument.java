@@ -13,6 +13,7 @@ import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreproce
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
 import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
@@ -288,26 +289,18 @@ public class myTemporalDocument implements Serializable {
     /*Evaluators*/
 
     public static void NaiveEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
-        System.out.println("\n"+
-                "****************************\n" +
-                "*EVALUATING EVENT DETECTION*\n" +
-                "****************************\n");
+        System.out.println(myLogFormatter.startBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
+
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT DETECTION"));
         NaiveEvaluator_EventDetection(doc_gold_list,doc_pred_list,verbose);
-        System.out.println("\n"+
-                "**************************************************\n" +
-                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)*\n" +
-                "**************************************************\n");
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)"));
         NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,0,verbose);
-        System.out.println("\n"+
-                "**************************************************\n" +
-                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)*\n" +
-                "**************************************************\n");
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)"));
         NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,1,verbose);
-        System.out.println("\n"+
-                "**************************************************\n" +
-                "*EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)*\n" +
-                "**************************************************\n");
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)"));
         NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,2,verbose);
+
+        System.out.println(myLogFormatter.endBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
     }
 
     public static void NaiveEvaluator_EventDetection(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){

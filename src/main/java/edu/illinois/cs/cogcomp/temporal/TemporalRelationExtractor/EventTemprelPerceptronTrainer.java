@@ -6,6 +6,7 @@ import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import org.apache.commons.cli.*;
 
 import java.util.ArrayList;
@@ -18,13 +19,15 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
     private int clsMode;
     private double sr_standard;
     private String[] trainSet, testSet;
+    private boolean autoAdjustSamplingRate;
     public static String[] TEMP_LABEL_TO_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName(),TemporalRelType.relTypes.NULL.getName()};
 
     private static CommandLine cmd;
 
-    public EventTemprelPerceptronTrainer(int seed, int totalFold, int labelMode, int clsMode, int window, int sentDiff, int evalMetric,
+    public EventTemprelPerceptronTrainer(int seed, int totalFold, int labelMode, boolean autoAdjustSamplingRate, int clsMode, int window, int sentDiff, int evalMetric,
                                          String[] trainSet, String[] testSet) {
         super(seed, totalFold, evalMetric);
+        this.autoAdjustSamplingRate = autoAdjustSamplingRate;
         this.window = window;
         this.sentDiff = sentDiff;
         this.clsMode = clsMode;
@@ -36,9 +39,14 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
         LEARNRATE = new double[]{0.001};
-        THICKNESS = new double[]{0,1};
-        SAMRATE = new double[]{0.1,0.2,0.3};
-        ROUND = new double[]{50,100,200};
+        //THICKNESS = new double[]{0,1};
+        //SAMRATE = new double[]{0.1,0.2,0.3};
+        //ROUND = new double[]{50,100,200};
+        THICKNESS = new double[]{1};
+        SAMRATE = new double[]{2};
+        ROUND = new double[]{200};
+
+        System.out.println(myLogFormatter.fullBlockLog("autoSelectSamplingRate:"+this.autoAdjustSamplingRate));
     }
 
     private List<TemporalRelation_EE> preprocess(List<myTemporalDocument> docList){
@@ -80,9 +88,14 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
                 element -> !element.getLabel().equals(TemporalRelType.relTypes.VAGUE.getName())
                         &&!element.getLabel().equals(TemporalRelType.relTypes.EQUAL.getName())
         );
-        if(sr_standard==0d) {
-            sr_standard = listSampler.autoSelectSamplingRate(slist);
-            System.out.printf("Auto Selection of Sampling Rate: %.4f\n",sr_standard);
+        if(autoAdjustSamplingRate) {
+            if (sr_standard == 0d) {
+                sr_standard = listSampler.autoSelectSamplingRate(slist);
+                System.out.printf("Auto Selection of Sampling Rate: %.4f\n", sr_standard);
+            }
+        }
+        else{
+            sr_standard = 1d;
         }
         switch (clsMode) {
             case 0:
@@ -92,6 +105,7 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
                 System.out.println("Choosing default classifier 0");
                 classifier = new eeTempRelCls(modelPath, lexiconPath);
         }
+        System.out.println(myLogFormatter.fullBlockLog("Sampling Rate: "+sr*sr_standard));
         return listSampler.ListSampling(slist,sr*sr_standard,rng);
     }
 
@@ -127,6 +141,10 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         clsMode.setRequired(false);
         options.addOption(clsMode);
 
+        Option autoSelectSamplingRate = new Option("as", "autoSelectSamplingRate", false, "auto selection of sampling rate");
+        autoSelectSamplingRate.setRequired(false);
+        options.addOption(autoSelectSamplingRate);
+
         Option trainFiles = new Option("train", "trainFiles", true, "acronym for the training dataset");
         trainFiles.setRequired(false);
         options.addOption(trainFiles);
@@ -160,10 +178,11 @@ public class EventTemprelPerceptronTrainer extends CVWrapper_LBJ_Perceptron<Temp
         int window = Integer.valueOf(cmd.getOptionValue("window"));
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
         int fold = Integer.valueOf(cmd.getOptionValue("fold","4"));
+        boolean autoSelectSamplingRate = cmd.hasOption("autoSelectSamplingRate");
         String[] trainSet = cmd.getOptionValue("train","TimeBank_Ser,AQUAINT_Ser").split(",");
         String[] testSet = cmd.getOptionValue("test","PLATINUM_Ser").split(",");
         modelName += String.format("_sent%d_labelMode%d_clsMode%d_win%d",sentDiff,labelMode,clsMode,window);
-        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,fold,labelMode,clsMode,window,sentDiff,2,
+        EventTemprelPerceptronTrainer exp = new EventTemprelPerceptronTrainer(0,fold,labelMode,autoSelectSamplingRate,clsMode,window,sentDiff,2,
                 trainSet,testSet);
         exp.setModelPath(modelDir,modelName);
         StandardExperiment(exp);

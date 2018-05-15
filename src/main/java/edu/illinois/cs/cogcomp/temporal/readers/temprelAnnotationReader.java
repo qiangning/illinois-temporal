@@ -154,7 +154,7 @@ public class temprelAnnotationReader {
                 }
             }
         }
-        System.out.printf("[WARNING:temprelAnnotationReader] Exception happened for %d rows (usually it's caused by test questions from crowdflower and can be safely neglected.\n",cnt);
+        System.out.printf("[WARNING:temprelAnnotationReader] Exception happened for %d rows (usually it's caused by test questions from crowdflower and can be safely neglected).\n",cnt);
         return relMap;
     }
 
