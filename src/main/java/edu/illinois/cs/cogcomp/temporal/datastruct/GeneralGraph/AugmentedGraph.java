@@ -144,18 +144,6 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
         nodeOutRelationMap = new HashMap<>();
     }
 
-    public void dropAllEERelations(){
-        // todo
-    }
-
-    public void dropAllETRelations(){
-        // todo
-    }
-
-    public void dropAllTTRelations(){
-        // todo
-    }
-
     private void addNewRelation(Relation rel){
         Relation rel_inverse = (Relation) rel.getInverse();
         relations.add(rel);

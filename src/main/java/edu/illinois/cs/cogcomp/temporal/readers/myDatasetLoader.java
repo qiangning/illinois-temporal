@@ -51,7 +51,7 @@ public class myDatasetLoader {
             System.out.println("[Warning] No files were loaded from "+path);
         }
         for(TemporalDocument d:allDocs){
-            myTemporalDocument doc = new myTemporalDocument(d,1);
+            myTemporalDocument doc = new myTemporalDocument(d,2);
             String docid = doc.getDocid();
             if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
                 continue;

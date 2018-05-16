@@ -17,24 +17,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode.extractClosestTimexFeats_joint;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.endTokInSent;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.startTokInSent;
 
 public class TemporalRelation_EE extends TemporalRelation{
-    private int sentDiff, tokDiff;// non-negative
+    private int tokDiff;// non-negative
     public boolean e1_covering_e2, e2_covering_e1;
     public String e1_covering_e2_type,e2_covering_e1_type;
 
     /*Features that may not be initialized*/
     private static TempLangMdl tempLangMdl;
-    private HashSet<String> signals_before,signals_between,signals_after;
     private HashSet<String> closestTimexFeats;
     private boolean sameSynset;
     public double c_before, c_after, c_vague, c_equal, c_includes, c_included;
 
     public TemporalRelation_EE(TemporalRelation_EE other, myTemporalDocument doc){
         super(new EventTemporalNode(other.getSourceNode(),doc), new EventTemporalNode(other.getTargetNode(),doc), new TemporalRelType(other.getRelType()), doc);
-        sentDiff = other.sentDiff;
         tokDiff = other.tokDiff;
         e1_covering_e2 = other.e1_covering_e2;
         e2_covering_e1 = other.e2_covering_e1;
@@ -54,33 +53,8 @@ public class TemporalRelation_EE extends TemporalRelation{
     }
     public TemporalRelation_EE(EventTemporalNode sourceNode, EventTemporalNode targetNode, TemporalRelType relType, myTemporalDocument doc) {
         super(sourceNode, targetNode, relType, doc);
-        sentDiff = Math.abs(targetNode.getSentId()-sourceNode.getSentId());
         tokDiff = Math.abs(targetNode.getTokenId()-sourceNode.getTokenId());
         checkSRLCovering();
-    }
-
-    private HashSet<String> getSignalsFromText(String text, SignalWordSet signalWordSet){
-        HashSet<String> ret = getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_before,"temporalConnectiveSet_before");
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_after,"temporalConnectiveSet_after"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_during,"temporalConnectiveSet_during"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_contrast,"temporalConnectiveSet_contrast"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_adverb,"temporalConnectiveSet_adverb"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.modalVerbSet,"modalVerbSet"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.axisSignalWordSet,"axisSignalWordSet"));
-        return ret;
-    }
-
-    private HashSet<String> getSignalsFromLemma(String Lemma, SignalWordSet signalWordSet){
-        HashSet<String> ret = getSignalsHelper(Lemma,signalWordSet.reportingVerbSet,"reportingVerbSet");
-        ret.addAll(getSignalsHelper(Lemma,signalWordSet.intentionVerbSet,"intentionVerbSet"));
-        return ret;
-    }
-
-    private HashSet<String> getSignalsHelper(String text, Set<String> keywords, String keywordsTag){
-        HashSet<String> ret = myUtils4TextAnnotation.findKeywordsInText(text, keywords,keywordsTag);
-        if(!ret.contains(keywordsTag+":"+"N/A"))
-            ret.add(keywordsTag+":EXISTS");
-        return ret;
     }
 
     private void checkSRLCovering(){
@@ -124,8 +98,8 @@ public class TemporalRelation_EE extends TemporalRelation{
         EventTemporalNode sourceEvent = getSourceNode();
         EventTemporalNode targetEvent = getTargetNode();
         TextAnnotation ta = sourceEvent.getTa();// assume targetEvent.getTa() is the same
-        int start = startTokInSent(ta,sourceEvent.getSentId());
-        int end = endTokInSent(ta,targetEvent.getSentId());
+        int start = startTokInSent(ta,Math.min(sourceEvent.getSentId(),targetEvent.getSentId()));
+        int end = endTokInSent(ta,Math.max(sourceEvent.getSentId(),targetEvent.getSentId()));
         int tokId_min = Math.min(sourceEvent.getTokenId(),targetEvent.getTokenId());
         int tokId_max = Math.max(sourceEvent.getTokenId(),targetEvent.getTokenId());
 
@@ -182,61 +156,15 @@ public class TemporalRelation_EE extends TemporalRelation{
         EventTemporalNode e1 = getSourceNode();
         EventTemporalNode e2 = getTargetNode();
         closestTimexFeats = new HashSet<>();
-        closestTimexFeats.addAll(extractClosestTimexFeats_individual(e1,"E1"));
-        closestTimexFeats.addAll(extractClosestTimexFeats_individual(e2,"E2"));
+        closestTimexFeats.addAll(e1.extractClosestTimexFeats_individual("E1"));
+        closestTimexFeats.addAll(e2.extractClosestTimexFeats_individual("E2"));
         closestTimexFeats.addAll(extractClosestTimexFeats_joint(e1,e2));
-
-    }
-    private HashSet<String> extractClosestTimexFeats_individual(EventTemporalNode e,String tag){
-        HashSet<String> ret = new HashSet<>();
-        TimexTemporalNode t1 = e.getClosestTimex_left();
-        TimexTemporalNode t2 = e.getClosestTimex_right();
-        if(t1!=null&&!t1.isDCT()){
-            ret.add(tag+":"+"ClosestTimex Left:Exist");
-            ret.add(tag+":"+"ClosestTimex Left:"+t1.getType());
-            if(t1.getSentId()==e.getSentId()){
-                ret.add(tag+":"+"ClosestTimex Left:Same Sentence");
-                if(e.getTokenId()-t1.getTokenSpan().getSecond()<3)
-                    ret.add(tag+":"+"ClosestTimex Left:TokenDiff<3");
-                else if(e.getTokenId()-t1.getTokenSpan().getSecond()<5)
-                    ret.add(tag+":"+"ClosestTimex Left:TokenDiff<5");
-            }
-        }
-        if(t2!=null&&!t2.isDCT()){
-            ret.add(tag+":"+"ClosestTimex Right:Exist");
-            ret.add(tag+":"+"ClosestTimex Right:"+t2.getType());
-            if(t2.getSentId()==e.getSentId()){
-                ret.add(tag+":"+"ClosestTimex Right:Same Sentence");
-                if(t2.getTokenSpan().getSecond()-e.getTokenId()<3)
-                    ret.add(tag+":"+"ClosestTimex Right:TokenDiff<3");
-                else if(t2.getTokenSpan().getSecond()-e.getTokenId()<5)
-                    ret.add(tag+":"+"ClosestTimex Right:TokenDiff<5");
-            }
-        }
-        return ret;
-    }
-    private HashSet<String> extractClosestTimexFeats_joint(EventTemporalNode e1,EventTemporalNode e2){
-        HashSet<String> ret = new HashSet<>();
-        TimexTemporalNode e1_t1 = e1.getClosestTimex_left();
-        TimexTemporalNode e1_t2 = e1.getClosestTimex_right();
-        TimexTemporalNode e2_t1 = e2.getClosestTimex_left();
-        TimexTemporalNode e2_t2 = e2.getClosestTimex_right();
-        if(e1_t1==e2_t1)
-            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 LEFT EQUAL E2 LEFT");
-        if(e1_t1==e2_t2)
-            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 LEFT EQUAL E2 RIGHT");
-        if(e1_t2==e2_t1)
-            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 RIGHT EQUAL E2 LEFT");
-        if(e1_t2==e2_t2)
-            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 RIGHT EQUAL E2 RIGHT");
-        return ret;
     }
 
     /*Getters and setters*/
     @Override
     public TemporalRelation_EE inverse(){
         return new TemporalRelation_EE(getTargetNode(), getSourceNode(),getRelType().inverse(), getDoc());
-
     }
 
     @Override
@@ -259,24 +187,8 @@ public class TemporalRelation_EE extends TemporalRelation{
         return sameSynset;
     }
 
-    public int getSentDiff() {
-        return sentDiff;
-    }
-
     public int getTokDiff() {
         return tokDiff;
-    }
-
-    public HashSet<String> getSignals_before() {
-        return signals_before;
-    }
-
-    public HashSet<String> getSignals_between() {
-        return signals_between;
-    }
-
-    public HashSet<String> getSignals_after() {
-        return signals_after;
     }
 
     public HashSet<String> getClosestTimexFeats() {

@@ -1,9 +1,20 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.PredicateArgumentView;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrieveLemmaWindow_Span;
+import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrievePOSWindow_Span;
+import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrievePPHeadOfTokenId;
 
 public class TimexTemporalNode extends TemporalNode{
     private IntPair tokenSpan;
@@ -12,6 +23,13 @@ public class TimexTemporalNode extends TemporalNode{
     private String mod;
     private String normVal;
     private int index_in_doc;
+    private String pp_head;
+    private List<Pair<String, Constituent>> verb_srl_covering = new ArrayList<>();
+
+    /*Features that may not be initialized*/
+    private int window;
+    private String[] pos_window;
+    private String[] lemma_window;
 
     public TimexTemporalNode(TimexTemporalNode other){
         this(other.nodeId,other.nodeType,other.text,other.index_in_doc,other.tokenSpan,other.sentId,other.isDCT,other.type,other.mod,other.normVal,other.ta);
@@ -25,7 +43,33 @@ public class TimexTemporalNode extends TemporalNode{
         this.mod = mod;
         this.normVal = normVal;
         this.ta = ta;
+        pp_head = retrievePPHeadOfTokenId(ta,this.tokenSpan.getFirst());
+        // Verb SRL from the same sentence
+        List<Constituent> allPredicates = ((PredicateArgumentView)ta.getView(ViewNames.SRL_VERB)).getPredicates();
+        for(Constituent c:allPredicates){
+            if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
+                List<Relation> tmp = c.getOutgoingRelations();
+                for(Relation r:tmp){
+                    if(r.getTarget().doesConstituentCover(tokenSpan.getFirst()))
+                        verb_srl_covering.add(new Pair<>(r.getRelationName(),c));
+                }
+            }
+        }
     }
+
+    /*Functions*/
+    public void extractAllFeats(int win){
+        extractPosLemmaWin(win);
+    }
+    public void extractPosLemmaWin(int win){
+        this.window = win;
+        if(pos_window==null||pos_window.length!=win*2+1)
+            pos_window = retrievePOSWindow_Span(ta,tokenSpan,win);
+        if(lemma_window==null||lemma_window.length!=win*2+1)
+            lemma_window = retrieveLemmaWindow_Span(ta,tokenSpan,win);
+    }
+
+    /*Getters and Setters*/
 
     public IntPair getTokenSpan() {
         return tokenSpan;
@@ -51,6 +95,30 @@ public class TimexTemporalNode extends TemporalNode{
         return mod==null?"null":mod;
     }
 
+    public int getWindow() {
+        return window;
+    }
+
+    public String[] getPos_window() {
+        return pos_window;
+    }
+
+    public String[] getLemma_window() {
+        return lemma_window;
+    }
+
+    public int getLength(){
+        return tokenSpan.getSecond()-tokenSpan.getFirst();
+    }
+
+    public String getPp_head() {
+        return pp_head;
+    }
+
+    public List<Pair<String, Constituent>> getVerb_srl_covering() {
+        return verb_srl_covering;
+    }
+
     @Override
     public String toString() {
         return "TimexTemporalNode{" +
@@ -64,4 +132,6 @@ public class TimexTemporalNode extends TemporalNode{
                 ", index_in_doc=" + index_in_doc +
                 '}';
     }
+
+
 }

@@ -142,7 +142,7 @@ public class TempRelAnnotator {
             //System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
             doc.dropAllRelations();
         }
-        tempRelAnnotator();
+        eeTempRelAnnotator();
     }
 
     public void axisAnnotator(){
@@ -181,7 +181,7 @@ public class TempRelAnnotator {
         }
     }
 
-    public void tempRelAnnotator(){// always respect existing relations in doc, so if you don't want to respect them, drop them beforehand or set respectExistingTempRels=false
+    public void eeTempRelAnnotator(){// always respect existing relations in doc, so if you don't want to respect them, drop them beforehand or set respectExistingTempRels=false
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
 

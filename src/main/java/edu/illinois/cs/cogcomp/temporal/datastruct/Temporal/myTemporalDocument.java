@@ -7,7 +7,7 @@ import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
-import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTemprelPerceptronTrainer;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TemprelPerceptronTrainer_EE;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
@@ -68,7 +68,7 @@ public class myTemporalDocument implements Serializable {
     public myTemporalDocument(TemporalDocument temporalDocument, int mode){
         // mode: 0-->don't load events, timexes, and relations
         // mode: 1-->load events and timexes in the original temporalDocument
-        // mode: 2-->load relations in the original temporalDocument (this should be rare)
+        // mode: 2-->load all ET relations in the original temporalDocument
         docid = temporalDocument.getDocID();
         ta = temporalDocument.getTextAnnotation();
         graph = new TemporalGraph(this);
@@ -91,26 +91,47 @@ public class myTemporalDocument implements Serializable {
             for (TLINK tlink : temporalDocument.getBodyTlinks()) {
                 TemporalNode sourceNode = graph.getNode((tlink.getSourceType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType) + ":" + tlink.getSourceId());
                 TemporalNode targetNode = graph.getNode((tlink.getTargetType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType) + ":" + tlink.getTargetId());
+                if (sourceNode == null || targetNode == null) continue;
+                if(sourceNode.getClass().equals(targetNode.getClass())) continue;//ignore EE or TT links
+                TemporalRelation_ET tmpRel = new TemporalRelation_ET(sourceNode, targetNode, null,this);
                 TemporalRelType reltype;
                 switch (tlink.getReducedRelType().toStringfull()) {
                     case "before":
-                    case "includes":
                         reltype = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
                         break;
                     case "after":
-                    case "included":
                         reltype = new TemporalRelType(TemporalRelType.relTypes.AFTER);
                         break;
                     case "equal":
                         reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
                         break;
+                    case "includes":
+                        if(tmpRel.isEventFirstInPair())
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        else
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
+                        break;
+                    case "included":
+                        if(tmpRel.isEventFirstInPair())
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
+                        else
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        break;
                     default:
                         reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
                 }
-                if (sourceNode == null || targetNode == null)
-                    System.out.println();
-                TemporalRelation tmpRel = new TemporalRelation(sourceNode, targetNode, reltype,this);
+                tmpRel.setRelType(reltype);
                 graph.addRelNoDup(tmpRel);
+            }
+            for(EventTemporalNode e:eventList){
+                for(TimexTemporalNode t:timexList){
+                    if(t.isDCT()||Math.abs(e.getSentId() - t.getSentId()) <= 1){
+                        if(graph.getRelBetweenNodes(e.getUniqueId(), t.getUniqueId()) == null){
+                            TemporalRelation_ET tmpRel = new TemporalRelation_ET(e, t, new TemporalRelType(TemporalRelType.relTypes.VAGUE), this);
+                            graph.addRelNoDup(tmpRel);
+                        }
+                    }
+                }
             }
         }
     }
@@ -279,10 +300,13 @@ public class myTemporalDocument implements Serializable {
     }
 
     public void extractAllFeats(int win){
-        for(EventTemporalNode e:eventList){
+        for(EventTemporalNode e:eventList)
             e.extractAllFeats(win);
-        }
+        for(TimexTemporalNode t:timexList)
+            t.extractAllFeats(win);
         for(TemporalRelation_EE tmp:graph.getAllEERelations(-1))
+            tmp.extractAllFeats();
+        for(TemporalRelation_ET tmp:graph.getAllETRelations(-2))
             tmp.extractAllFeats();
     }
 
@@ -394,7 +418,7 @@ public class myTemporalDocument implements Serializable {
             }
             if(verbose>1) {
                 System.out.printf("--------#%d Doc: %s--------\n",k,doc_gold.getDocid());
-                tempRelClsEvaluatorDetail.printPrecisionRecall(EventTemprelPerceptronTrainer.TEMP_LABEL_TO_IGNORE);
+                tempRelClsEvaluatorDetail.printPrecisionRecall(TemprelPerceptronTrainer_EE.TEMP_LABEL_TO_IGNORE);
                 if (verbose > 2) {
                     System.out.println("----------CONFUSION MATRIX----------");
                     tempRelClsEvaluatorDetail.printConfusionMatrix();
@@ -402,7 +426,7 @@ public class myTemporalDocument implements Serializable {
             }
         }
         System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
-        tempRelClsEvaluator.printPrecisionRecall(EventTemprelPerceptronTrainer.TEMP_LABEL_TO_IGNORE);
+        tempRelClsEvaluator.printPrecisionRecall(TemprelPerceptronTrainer_EE.TEMP_LABEL_TO_IGNORE);
         if (verbose > 0) {
             System.out.println("----------CONFUSION MATRIX----------");
             tempRelClsEvaluator.printConfusionMatrix();

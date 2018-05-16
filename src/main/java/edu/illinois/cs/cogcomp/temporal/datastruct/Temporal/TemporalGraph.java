@@ -63,6 +63,18 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     /*Functions*/
 
+    //todo
+    public void dropAllEERelations(){
+        // todo
+    }
+
+    public void dropAllETRelations(){
+        // todo
+    }
+
+    public void dropAllTTRelations(){
+        // todo
+    }
 
     /*Getters and Setters*/
     @Override
@@ -138,7 +150,8 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         }
         graphJavaScript.createJS();
     }
-    // TO-DO: get ET / TT sub-graphs
+
+    // todo: get ET / TT sub-graphs
 
     public List<TemporalRelation_EE> getAllEERelations(int sentDiff){
         // All EE
@@ -148,8 +161,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         List<TemporalRelation_EE> allEERelations = new ArrayList<>();
         for(TemporalRelation rel:allRelations){
             if(rel.getSourceNode() instanceof EventTemporalNode
-                    && rel.getTargetNode() instanceof EventTemporalNode
-                    || rel instanceof TemporalRelation_EE){
+                    && rel.getTargetNode() instanceof EventTemporalNode){
                 TemporalRelation_EE ee_rel = (TemporalRelation_EE) rel;
                 if(ee_rel.getSourceNode().getTokenId()<ee_rel.getTargetNode().getTokenId()&&
                         (sentDiff<0||sentDiff==ee_rel.getSentDiff()))
@@ -157,5 +169,25 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             }
         }
         return allEERelations;
+    }
+
+    public List<TemporalRelation_ET> getAllETRelations(int sentDiff){
+        // All ET
+        // - E should be T in pair
+        // - only sentDiff can be kept (sentDiff=-1 means E-DCT;sentDiff=-2 means everything)
+        List<TemporalRelation> allRelations = getRelations();
+        List<TemporalRelation_ET> allETRelations = new ArrayList<>();
+        for(TemporalRelation rel:allRelations){
+            if(rel.getSourceNode() instanceof EventTemporalNode
+                    && rel.getTargetNode() instanceof TimexTemporalNode){
+                TemporalRelation_ET et_rel = (TemporalRelation_ET) rel;
+                if(sentDiff==-2
+                        ||sentDiff==-1&&et_rel.getTimexNode().isDCT()
+                        ||sentDiff==et_rel.getSentDiff()){
+                    allETRelations.add(et_rel);
+                }
+            }
+        }
+        return allETRelations;
     }
 }

@@ -9,4 +9,8 @@ public class ParamLBJ {
         public static double learningRate = 0.001;
         public static double thickness = 1;
     }
+    public static class ETTempRelClassifierPerceptronParams{
+        public static double learningRate = 0.001;
+        public static double thickness = 1;
+    }
 }

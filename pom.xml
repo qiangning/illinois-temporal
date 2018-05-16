@@ -97,6 +97,7 @@
                     <lbjavaInputFileList>
                         <param>${project.basedir}/src/main/lbj/eventDetector.lbj</param>
                         <param>${project.basedir}/src/main/lbj/eeTempRelCls.lbj</param>
+                        <param>${project.basedir}/src/main/lbj/etTempRelCls.lbj</param>
                     </lbjavaInputFileList>
                 </configuration>
             </plugin>

@@ -51,7 +51,7 @@ public abstract class CrossValidationWrapper<LearningStruct> {
         }
         public void printAll(){
             System.out.println("------------------");
-            System.out.println("---folds--->");
+            System.out.println("---parameters\t|\t---folds--->");
             for(int i=0;i<n_param;i++){
                 if(paramsAll!=null&&paramsAll.get(i)!=null){
                     for(double p:paramsAll.get(i)){

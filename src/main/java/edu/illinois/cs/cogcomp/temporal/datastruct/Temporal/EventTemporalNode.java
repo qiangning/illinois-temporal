@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
@@ -169,6 +170,52 @@ public class EventTemporalNode extends TemporalNode{
     }
 
     /*Getters and setters*/
+    public HashSet<String> extractClosestTimexFeats_individual(String tag){
+        HashSet<String> ret = new HashSet<>();
+        TimexTemporalNode t1 = getClosestTimex_left();
+        TimexTemporalNode t2 = getClosestTimex_right();
+        if(t1!=null&&!t1.isDCT()){
+            ret.add(tag+":"+"ClosestTimex Left:Exist");
+            ret.add(tag+":"+"ClosestTimex Left:"+t1.getType());
+            if(t1.getSentId()==getSentId()){
+                ret.add(tag+":"+"ClosestTimex Left:Same Sentence");
+                if(getTokenId()-t1.getTokenSpan().getSecond()<3)
+                    ret.add(tag+":"+"ClosestTimex Left:TokenDiff<3");
+                else if(getTokenId()-t1.getTokenSpan().getSecond()<5)
+                    ret.add(tag+":"+"ClosestTimex Left:TokenDiff<5");
+            }
+        }
+        if(t2!=null&&!t2.isDCT()){
+            ret.add(tag+":"+"ClosestTimex Right:Exist");
+            ret.add(tag+":"+"ClosestTimex Right:"+t2.getType());
+            if(t2.getSentId()==getSentId()){
+                ret.add(tag+":"+"ClosestTimex Right:Same Sentence");
+                if(t2.getTokenSpan().getSecond()-getTokenId()<3)
+                    ret.add(tag+":"+"ClosestTimex Right:TokenDiff<3");
+                else if(t2.getTokenSpan().getSecond()-getTokenId()<5)
+                    ret.add(tag+":"+"ClosestTimex Right:TokenDiff<5");
+            }
+        }
+        return ret;
+    }
+
+    public static HashSet<String> extractClosestTimexFeats_joint(EventTemporalNode e1,EventTemporalNode e2){
+        HashSet<String> ret = new HashSet<>();
+        TimexTemporalNode e1_t1 = e1.getClosestTimex_left();
+        TimexTemporalNode e1_t2 = e1.getClosestTimex_right();
+        TimexTemporalNode e2_t1 = e2.getClosestTimex_left();
+        TimexTemporalNode e2_t2 = e2.getClosestTimex_right();
+        if(e1_t1==e2_t1)
+            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 LEFT EQUAL E2 LEFT");
+        if(e1_t1==e2_t2)
+            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 LEFT EQUAL E2 RIGHT");
+        if(e1_t2==e2_t1)
+            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 RIGHT EQUAL E2 LEFT");
+        if(e1_t2==e2_t2)
+            ret.add("E1_E2_JOINT_TIMEX_FEAT:E1 RIGHT EQUAL E2 RIGHT");
+        return ret;
+    }
+
     public int getTokenId() {
         return tokenId;
     }

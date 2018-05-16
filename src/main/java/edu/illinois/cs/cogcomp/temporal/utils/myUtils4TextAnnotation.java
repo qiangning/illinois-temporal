@@ -1,6 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.utils;
 
 import edu.illinois.cs.cogcomp.core.datastructures.IQueryable;
+import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.transformers.Predicate;
@@ -35,6 +36,15 @@ public class myUtils4TextAnnotation {
         return pos_window;
     }
 
+    public static String[] retrievePOSWindow_Span(TextAnnotation ta, IntPair tokenSpan, int window){
+        String[] pos_window = new String[window*2];
+        for(int i=-window;i<0;i++){// i = -win, -win+1, ..., -2, -1
+            pos_window[i+window] = retrievePOSAtTokenId(ta,tokenSpan.getFirst()+i);
+            pos_window[window-i-1] = retrievePOSAtTokenId(ta,tokenSpan.getSecond()-i-1);
+        }
+        return pos_window;
+    }
+
     public static String retrieveLemmaAtTokenId(TextAnnotation ta, int tokenId){
         String lemma = "N/A";
         if(!isTokenIdValid(ta,tokenId)) return lemma;
@@ -51,6 +61,15 @@ public class myUtils4TextAnnotation {
         String[] lemma_window = new String[window*2+1];
         for(int i=-window;i<=window;i++){
             lemma_window[i+window] = retrieveLemmaAtTokenId(ta,tokenId+i);
+        }
+        return lemma_window;
+    }
+
+    public static String[] retrieveLemmaWindow_Span(TextAnnotation ta, IntPair tokenSpan, int window){
+        String[] lemma_window = new String[window*2+1];
+        for(int i=-window;i<0;i++){
+            lemma_window[i+window] = retrieveLemmaAtTokenId(ta,tokenSpan.getFirst()+i);
+            lemma_window[window-i-1] = retrieveLemmaAtTokenId(ta,tokenSpan.getSecond()-i-1);
         }
         return lemma_window;
     }
@@ -126,6 +145,8 @@ public class myUtils4TextAnnotation {
 
     public static String getSurfaceTextInBetween(TextAnnotation ta, int startTokId, int endTokId){
         // boundary inclusive
+        if(startTokId>endTokId)
+            return "";
         String[] tokens = ta.getTokensInSpan(startTokId,endTokId+1);
         StringBuilder sb = new StringBuilder();
         for(String t:tokens){
@@ -137,6 +158,8 @@ public class myUtils4TextAnnotation {
 
     public static String getLemmaTextInBetween(TextAnnotation ta, int startTokId, int endTokId){
         // boundary inclusive
+        if(startTokId>endTokId)
+            return "";
         StringBuilder sb = new StringBuilder();
         for(int i=startTokId;i<=endTokId;i++){
             String t = retrieveLemmaAtTokenId(ta,i);
