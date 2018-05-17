@@ -4,24 +4,25 @@ import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.lbjava.learn.Softmax;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
 
-public class TempRelLabelerLBJ extends TempRelLabeler {
+public class TempRelLabelerLBJ_EE extends TempRelLabeler {
     private boolean split_q1_q2;
     private Learner classifier_dist0,classifier_dist1;
     private Learner classifier_mod1_dist0,classifier_mod1_dist1;
     private Learner classifier_mod2_dist0,classifier_mod2_dist1;
 
-    public TempRelLabelerLBJ(Learner classifier_dist0, Learner classifier_dist1) {
+    public TempRelLabelerLBJ_EE(Learner classifier_dist0, Learner classifier_dist1) {
         split_q1_q2 = false;
         this.classifier_dist0 = classifier_dist0;
         this.classifier_dist1 = classifier_dist1;
     }
 
-    public TempRelLabelerLBJ(Learner classifier_mod1_dist0, Learner classifier_mod2_dist0,Learner classifier_mod1_dist1, Learner classifier_mod2_dist1){
+    public TempRelLabelerLBJ_EE(Learner classifier_mod1_dist0, Learner classifier_mod2_dist0, Learner classifier_mod1_dist1, Learner classifier_mod2_dist1){
         split_q1_q2 = true;
         this.classifier_mod1_dist0 = classifier_mod1_dist0;
         this.classifier_mod1_dist1 = classifier_mod1_dist1;
@@ -30,12 +31,13 @@ public class TempRelLabelerLBJ extends TempRelLabeler {
     }
 
     @Override
-    public boolean isIgnore(TemporalRelation_EE ee) {
-        return Math.abs(ee.getSentDiff()) > 1;
+    public boolean isIgnore(TemporalRelation ee) {
+        return ! (ee instanceof TemporalRelation_EE)
+                || Math.abs(ee.getSentDiff()) > 1;
     }
 
     @Override
-    public TemporalRelType tempRelLabel(TemporalRelation_EE ee) {
+    public TemporalRelType tempRelLabel(TemporalRelation ee) {
         TemporalRelType ret = getNullTempRel();
         if(isIgnore(ee))
             return ret;

@@ -9,6 +9,10 @@ public class TemporalRelation_TT extends TemporalRelation{
     public TemporalRelation_TT(TemporalRelation_TT other, myTemporalDocument doc){
         this(other.getSourceNode(),other.getTargetNode(),other.getRelType(),doc);
     }
+
+    public boolean isSourceFirstInText(){
+        return getSourceNode().getTokenSpan().getFirst()<getTargetNode().getTokenSpan().getFirst();
+    }
     @Override
     public TimexTemporalNode getSourceNode(){
         return (TimexTemporalNode) super.getSourceNode();

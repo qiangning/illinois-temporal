@@ -7,6 +7,7 @@ import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotat
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelLabeler;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
@@ -33,7 +34,7 @@ public class myDatasetLoader {
     public myDatasetLoader(String configPath) {
         try{
             rm = new temporalConfigurator().getConfig(configPath);
-            axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
+            axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis_oldtbdense"));
             relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
         }
         catch (Exception e){
@@ -156,18 +157,19 @@ public class myDatasetLoader {
 
     private class TempRelLabeler_Gold extends TempRelLabeler{
         @Override
-        public TemporalRelType tempRelLabel(TemporalRelation_EE ee) {
+        public TemporalRelType tempRelLabel(TemporalRelation ee) {
             return ee.getRelType();
         }
 
         @Override
-        public boolean isIgnore(TemporalRelation_EE ee) {
-            return ee.isNull();
+        public boolean isIgnore(TemporalRelation ee) {
+            return ! (ee instanceof TemporalRelation_EE)
+                    ||ee.isNull();
         }
     }
     public void autoTempRelCorrectionViaILP(List<myTemporalDocument> docs){
         for(myTemporalDocument doc:docs) {
-            TempRelAnnotator tra = new TempRelAnnotator(doc, null, new TempRelLabeler_Gold(), rm, true);
+            TempRelAnnotator tra = new TempRelAnnotator(doc, null, new TempRelLabeler_Gold(),TempRelAnnotator.defaultTempRelLabeler_ET(),rm,true);
             tra.setup(true, true, true, false);
             tra.annotator();
         }
@@ -176,7 +178,8 @@ public class myDatasetLoader {
     public static void main(String[] args) throws Exception {
         myDatasetLoader loader = new myDatasetLoader();
         mySerialization myser = new mySerialization(true);
-        List<myTemporalDocument> docs = loader.getTBDense_Test();
+        List<myTemporalDocument> docs;
+        docs = loader.getTBDense_Test();
         loader.autoTempRelCorrectionViaILP(docs);
         for(myTemporalDocument doc:docs) {
             myser.serialize(doc,"serialization/myTemporalDocument/TBDense_Test/"+doc.getDocid()+".ser");

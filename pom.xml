@@ -50,6 +50,11 @@
             <version>4.0.4</version>
         </dependency>
         <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-curator</artifactId>
+            <version>4.0.4</version>
+        </dependency>
+        <dependency>
             <groupId>temporal</groupId>
             <artifactId>KBconstruction</artifactId>
             <version>1.0-SNAPSHOT</version>

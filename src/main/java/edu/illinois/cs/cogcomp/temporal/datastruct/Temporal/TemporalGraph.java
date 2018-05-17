@@ -64,19 +64,29 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
     /*Functions*/
 
     //todo
-    public void dropAllEERelations(){
-        // todo
-    }
+    public void dropAllEERelations(){}
 
-    public void dropAllETRelations(){
-        // todo
-    }
+    public void dropAllETRelations(){}
 
-    public void dropAllTTRelations(){
-        // todo
-    }
+    public void dropAllTTRelations(){}
 
     /*Getters and Setters*/
+    @Nullable
+    public EventTemporalNode getEventNode(String uniqueId){
+        TemporalNode node = getNode(uniqueId);
+        if(node instanceof EventTemporalNode)
+            return (EventTemporalNode) node;
+        return null;
+    }
+
+    @Nullable
+    public TimexTemporalNode getTimexNode(String uniqueId){
+        TemporalNode node = getNode(uniqueId);
+        if(node instanceof TimexTemporalNode)
+            return (TimexTemporalNode) node;
+        return null;
+    }
+
     @Override
     public TemporalRelation getRelBetweenNodes(String uniqueId1, String uniqueId2){
         return super.getRelBetweenNodes(uniqueId1,uniqueId2);
@@ -84,14 +94,28 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     @Nullable
     public TemporalRelation_EE getEERelBetweenEvents(String uniqueId1, String uniqueId2){
-        if(getNode(uniqueId1) instanceof TimexTemporalNode || getNode(uniqueId2) instanceof TimexTemporalNode)
-            return null;
+        if(getEventNode(uniqueId1)==null||getEventNode(uniqueId2)==null) return null;
         TemporalRelation rel = getRelBetweenNodes(uniqueId1,uniqueId2);
         if(rel==null||rel.isNull())
             return null;
         if(rel instanceof TemporalRelation_EE)
             return (TemporalRelation_EE)rel;
-        System.out.println("[WARNING] Get EE Relation Unexpectedly Failed. Null is returned.");
+        System.out.println("[WARNING] Getting EE Relation Unexpectedly Failed. Null is returned.");
+        return null;
+    }
+
+    @Nullable
+    public TemporalRelation_ET getETRelBetweenEventTimex(String uniqueId1, String uniqueId2){
+        TemporalNode n1 = getNode(uniqueId1);
+        TemporalNode n2 = getNode(uniqueId2);
+        if(n1 instanceof EventTemporalNode && n2 instanceof EventTemporalNode) return null;
+        if(n1 instanceof TimexTemporalNode && n2 instanceof TimexTemporalNode) return null;
+        TemporalRelation rel = getRelBetweenNodes(uniqueId1,uniqueId2);
+        if(rel==null||rel.isNull())
+            return null;
+        if(rel instanceof TemporalRelation_ET)
+            return (TemporalRelation_ET)rel;
+        System.out.println("[WARNING] Getting ET Relation Unexpectedly Failed. Null is returned.");
         return null;
     }
 
@@ -151,8 +175,6 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         graphJavaScript.createJS();
     }
 
-    // todo: get ET / TT sub-graphs
-
     public List<TemporalRelation_EE> getAllEERelations(int sentDiff){
         // All EE
         // - source should be before target
@@ -169,6 +191,24 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             }
         }
         return allEERelations;
+    }
+
+    public List<TemporalRelation_TT> getAllTTRelations(int sentDiff){
+        // All TT
+        // - source should be before target
+        // - only sentDiff can be kept (sentDiff<0 means this option is inactive)
+        List<TemporalRelation> allRelations = getRelations();
+        List<TemporalRelation_TT> allTTRelations = new ArrayList<>();
+        for(TemporalRelation rel:allRelations){
+            if(rel.getSourceNode() instanceof TimexTemporalNode
+                    && rel.getTargetNode() instanceof TimexTemporalNode){
+                TemporalRelation_TT tt_rel = (TemporalRelation_TT) rel;
+                if(tt_rel.isSourceFirstInText()&&
+                        (sentDiff<0||sentDiff==tt_rel.getSentDiff()))
+                    allTTRelations.add(tt_rel);
+            }
+        }
+        return allTTRelations;
     }
 
     public List<TemporalRelation_ET> getAllETRelations(int sentDiff){

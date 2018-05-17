@@ -9,9 +9,10 @@ import java.io.IOException;
 public class temporalConfigurator extends Configurator {
     public static Property EVENT_DETECTOR_WINDOW = new Property("EVENT_DETECTOR_WINDOW", "2");
     public static Property EVENT_TEMPREL_WINDOW = new Property("EVENT_TEMPREL_WINDOW", "3");
+    public static Property EVENT_TIMEX_TEMPREL_WINDOW = new Property("EVENT_TIMEX_TEMPREL_WINDOW", "3");
     @Override
     public ResourceManager getDefaultConfig() {
-        Property[] props = {EVENT_DETECTOR_WINDOW,EVENT_TEMPREL_WINDOW};
+        Property[] props = {EVENT_DETECTOR_WINDOW,EVENT_TEMPREL_WINDOW,EVENT_TIMEX_TEMPREL_WINDOW};
         return new ResourceManager(generateProperties(props));
     }
 

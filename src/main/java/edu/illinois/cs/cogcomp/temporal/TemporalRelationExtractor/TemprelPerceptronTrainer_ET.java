@@ -40,7 +40,7 @@ public class TemprelPerceptronTrainer_ET extends CVWrapper_LBJ_Perceptron<Tempor
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
         LEARNRATE = new double[]{0.001};
         THICKNESS = new double[]{0,1};
-        SAMRATE = new double[]{0.8,1,1.2};
+        SAMRATE = new double[]{0.4,0.5,0.6};
         ROUND = new double[]{50,100};
 
         System.out.println(myLogFormatter.fullBlockLog("autoSelectSamplingRate:"+this.autoAdjustSamplingRate));

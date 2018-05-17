@@ -11,6 +11,7 @@ import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationTy
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
+import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls_ET.etTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
 
@@ -19,12 +20,13 @@ import java.util.*;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.TimexNodeType;
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
 
 public class TempRelAnnotator {
     private myTemporalDocument doc;
     private EventAxisLabeler axisLabeler;
-    private TempRelLabeler tempRelLabeler;
+    private TempRelLabeler eeTempRelLabeler, etTempRelLabeler;
     private TemporalChunkerAnnotator tca;
     private ResourceManager rm;
     private boolean goldTimex=false, goldEvent=false, respectExistingTempRels=false, respectAsHardConstraints=false;
@@ -52,17 +54,18 @@ public class TempRelAnnotator {
     }
 
     public TempRelAnnotator(myTemporalDocument doc, ResourceManager rm) {
-        this(doc,defaultAxisLabeler(),defaultTempRelLabeler(),rm);
+        this(doc,defaultAxisLabeler(), defaultTempRelLabeler_EE(),rm);
     }
 
-    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm) {
-        this(doc,axisLabeler,tempRelLabeler,rm,true);
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler eeTempRelLabeler, ResourceManager rm) {
+        this(doc,axisLabeler, eeTempRelLabeler, defaultTempRelLabeler_ET(), rm,true);
     }
 
-    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler tempRelLabeler, ResourceManager rm, boolean ilp) {
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler eeTempRelLabeler, TempRelLabeler etTempRelLabeler, ResourceManager rm, boolean ilp) {
         this.doc = doc;
         this.axisLabeler = axisLabeler;
-        this.tempRelLabeler = tempRelLabeler;
+        this.eeTempRelLabeler = eeTempRelLabeler;
+        this.etTempRelLabeler = etTempRelLabeler;
         this.rm = rm;
         this.ilp = ilp;
         tca = defaultTemporalChunkerAnnotator();
@@ -143,6 +146,7 @@ public class TempRelAnnotator {
             doc.dropAllRelations();
         }
         eeTempRelAnnotator();
+        etTempRelAnnotator();
     }
 
     public void axisAnnotator(){
@@ -186,9 +190,8 @@ public class TempRelAnnotator {
         List<EventTemporalNode> eventList = doc.getEventList();
 
         // extract features
-        for(EventTemporalNode e:eventList){
+        for(EventTemporalNode e:eventList)
             e.extractAllFeats(window);
-        }
 
         for(EventTemporalNode e1:eventList){
             int i = eventList.indexOf(e1);
@@ -200,14 +203,14 @@ public class TempRelAnnotator {
                 if(ee==null){
                     ee = new TemporalRelation_EE(e1, e2, new TemporalRelType(TemporalRelType.relTypes.NULL), doc);
                 }
-                ignoreMap[i][j] = tempRelLabeler.isIgnore(ee);
+                ignoreMap[i][j] = eeTempRelLabeler.isIgnore(ee);
                 if(ignoreMap[i][j])
                     continue;
                 ee.extractAllFeats();
                 TemporalRelType reltype = ee.getRelType();
                 if(reltype.isNull()){
-                    reltype = tempRelLabeler.tempRelLabel(ee);
-                    if(reltype.isNull()) {// even if tempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
+                    reltype = eeTempRelLabeler.tempRelLabel(ee);
+                    if(reltype.isNull()) {// even if eeTempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
                         System.out.println("[WARNING] reltype by TempRelLabeler is unexpectedly null.");
                         continue;
                     }
@@ -266,12 +269,45 @@ public class TempRelAnnotator {
         //doc.extractAllFeats(window);
     }
 
+    public void etTempRelAnnotator(){
+        int window = rm.getInt("EVENT_TIMEX_TEMPREL_WINDOW");
+        List<EventTemporalNode> eventList = doc.getEventList();
+        List<TimexTemporalNode> timexList = doc.getTimexList();
+
+        // extract features
+        for(EventTemporalNode e:eventList)
+            e.extractAllFeats(window);
+        for(TimexTemporalNode t:timexList)
+            t.extractPosLemmaWin(window);
+        for(EventTemporalNode e:eventList){
+            for(TimexTemporalNode t:timexList){
+                TemporalRelation_ET et = doc.getGraph().getETRelBetweenEventTimex(e.getUniqueId(),t.getUniqueId());
+                if(et==null){
+                    et = new TemporalRelation_ET(e, t, new TemporalRelType(TemporalRelType.relTypes.NULL), doc);
+                }
+                if(etTempRelLabeler.isIgnore(et))
+                    continue;
+                et.extractAllFeats();
+                TemporalRelType reltype = et.getRelType();
+                if(reltype.isNull()){
+                    reltype = etTempRelLabeler.tempRelLabel(et);
+                    if(reltype.isNull()) {// even if eeTempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
+                        System.out.println("[WARNING] reltype by TempRelLabeler is unexpectedly null.");
+                        continue;
+                    }
+                    et.setRelType(reltype);
+                    doc.getGraph().addRelNoDup(et);
+                }
+            }
+        }
+    }
+
     public void setAxisLabeler(EventAxisLabeler axisLabeler) {
         this.axisLabeler = axisLabeler;
     }
 
-    public void setTempRelLabeler(TempRelLabeler tempRelLabeler) {
-        this.tempRelLabeler = tempRelLabeler;
+    public void setEeTempRelLabeler(TempRelLabeler eeTempRelLabeler) {
+        this.eeTempRelLabeler = eeTempRelLabeler;
     }
 
     private static EventAxisLabeler defaultAxisLabeler(){
@@ -287,28 +323,37 @@ public class TempRelAnnotator {
         return new TemporalChunkerAnnotator(new ResourceManager(rmProps));
     }
 
-    private static TempRelLabeler defaultTempRelLabeler(){
+    private static TempRelLabeler defaultTempRelLabeler_EE(){
         String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
         eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
-        return new TempRelLabelerLBJ(cls0,cls1);
+        return new TempRelLabelerLBJ_EE(cls0,cls1);
 
         /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";
         eeTempRelCls cls_mod1_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,0));
         eeTempRelCls cls_mod2_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,2,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,2,0));
         eeTempRelCls cls_mod1_dist1 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,1),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,1));
         eeTempRelCls cls_mod2_dist1 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,2,1),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,2,1));
-        TempRelLabelerLBJ tempRelLabelerLBJ = new TempRelLabelerLBJ(cls_mod1_dist0,cls_mod2_dist0,cls_mod1_dist1,cls_mod2_dist1);*/
+        TempRelLabelerLBJ_EE tempRelLabelerLBJ = new TempRelLabelerLBJ_EE(cls_mod1_dist0,cls_mod2_dist0,cls_mod1_dist1,cls_mod2_dist1);*/
+    }
+
+    public static TempRelLabeler defaultTempRelLabeler_ET(){
+        String temprelMdlDir = "models/tempRel_ET", temprelMldNamePrefix = "etTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+        etTempRelCls cls0 = new etTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
+                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
+        return new TempRelLabelerLBJ_ET(cls0);
     }
 
     public static void rawtext2graph() throws Exception{
-        //String text = "He fell in love with her after they first met 9 years ago. Now they are expecting their first baby this June.";
-        String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
+        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
+        //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
+        //String text = "The flu season is winding down. It has killed 105 children so far.";
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
+        doc.getGraph().visualize("data/html");
         System.out.println();
     }
 
@@ -321,7 +366,7 @@ public class TempRelAnnotator {
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
 
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
-        TempRelLabeler tempRelLabeler = defaultTempRelLabeler();
+        TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
         List<myTemporalDocument> myAllDocs = new ArrayList<>(), myAllDocs_Gold = new ArrayList<>();
         int cnt=0;
         for(TemporalDocument d:allDocs){
@@ -338,7 +383,7 @@ public class TempRelAnnotator {
             myAllDocs.add(doc);
             myAllDocs_Gold.add(docGold);
 
-            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,tempRelLabeler,rm);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,rm);
             tra.annotator(goldEvent,goldTimex);
             cnt++;
             if(cnt>=20)

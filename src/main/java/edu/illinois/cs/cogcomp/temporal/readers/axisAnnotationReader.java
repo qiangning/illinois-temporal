@@ -17,6 +17,7 @@ public class axisAnnotationReader {
     public static String LABEL_ON_OTHER_AXIS = "others";
     public static String axis_label_conversion(String label){
         switch (label){
+            case "yes"://herited from older version of anchorability
             case "yes_its_anchorable":
                 return LABEL_ON_MAIN_AXIS;
             case "no_its_intentionwishopinion":
@@ -68,6 +69,8 @@ public class axisAnnotationReader {
                     String docid = cf_reader.getLineTag(i, "docid");
                     int eventid = Integer.valueOf(cf_reader.getLineTag(i, "eventid"));
                     String anchorability = cf_reader.getLineTag(i, "can_the_verb_span_stylecolorblueverb_span_be_anchored_in_time");
+                    if(cf_reader.getLineTag(i,"_golden").equals("false")&&cf_reader.getLineTag(i,"_unit_state").equals("golden"))
+                        continue;
                     if(!axisMap.containsKey(docid))
                         axisMap.put(docid,new HashMap<>());
                     axisMap.get(docid).put(eventid,anchorability);

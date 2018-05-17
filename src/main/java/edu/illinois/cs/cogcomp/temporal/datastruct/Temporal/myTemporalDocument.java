@@ -68,7 +68,7 @@ public class myTemporalDocument implements Serializable {
     public myTemporalDocument(TemporalDocument temporalDocument, int mode){
         // mode: 0-->don't load events, timexes, and relations
         // mode: 1-->load events and timexes in the original temporalDocument
-        // mode: 2-->load all ET relations in the original temporalDocument
+        // mode: 2-->load all ET relations in the original temporalDocument (only keep equal or not)
         docid = temporalDocument.getDocID();
         ta = temporalDocument.getTextAnnotation();
         graph = new TemporalGraph(this);
@@ -97,17 +97,17 @@ public class myTemporalDocument implements Serializable {
                 TemporalRelType reltype;
                 switch (tlink.getReducedRelType().toStringfull()) {
                     case "before":
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
                         break;
                     case "after":
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
                         break;
                     case "equal":
                         reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
                         break;
                     case "includes":
                         if(tmpRel.isEventFirstInPair())
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
                         else
                             reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
                         break;
@@ -115,7 +115,7 @@ public class myTemporalDocument implements Serializable {
                         if(tmpRel.isEventFirstInPair())
                             reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
                         else
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                            reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
                         break;
                     default:
                         reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
@@ -123,10 +123,11 @@ public class myTemporalDocument implements Serializable {
                 tmpRel.setRelType(reltype);
                 graph.addRelNoDup(tmpRel);
             }
+            // fill missing ET relations by "vague"
             for(EventTemporalNode e:eventList){
                 for(TimexTemporalNode t:timexList){
                     if(t.isDCT()||Math.abs(e.getSentId() - t.getSentId()) <= 1){
-                        if(graph.getRelBetweenNodes(e.getUniqueId(), t.getUniqueId()) == null){
+                        if(graph.getETRelBetweenEventTimex(e.getUniqueId(), t.getUniqueId()) == null){
                             TemporalRelation_ET tmpRel = new TemporalRelation_ET(e, t, new TemporalRelType(TemporalRelType.relTypes.VAGUE), this);
                             graph.addRelNoDup(tmpRel);
                         }
@@ -179,7 +180,7 @@ public class myTemporalDocument implements Serializable {
         List<EventTemporalNode> newEventList = new ArrayList<>();
         for(EventTemporalNode e:eventList){
             if(!axisMap.containsKey(eventList.indexOf(e))
-                    ||!axisMap.get(eventList.indexOf(e)).equals("yes_its_anchorable")) {
+                    ||!axisMap.get(eventList.indexOf(e)).contains("yes")) {
                 graph.dropNode(EventNodeType+":"+e.getEiid());
             }
             else{
@@ -204,6 +205,19 @@ public class myTemporalDocument implements Serializable {
             }
             TemporalRelation_EE tmpRel = new TemporalRelation_EE(sourceNode, targetNode, rel, this);
             graph.addRelNoDup(tmpRel);
+        }
+        // fill missing EE relations by "vague" (although in my current collection scheme, there should never be missing EE relations)
+        for(EventTemporalNode e1:eventList){
+            for(EventTemporalNode e2:eventList){
+                if(e1.getTokenId() < e2.getTokenId() && Math.abs(e1.getSentId() - e2.getSentId()) <= 1){
+                    if(graph.getEERelBetweenEvents(e1.getUniqueId(), e2.getUniqueId()) == null){
+                        TemporalRelation_EE tmpRel = new TemporalRelation_EE(e1, e2, new TemporalRelType(TemporalRelType.relTypes.VAGUE), this);
+                        graph.addRelNoDup(tmpRel);
+                        System.out.println("[WARNING] unexpected missing ee relations "+docid+":"+tmpRel);
+                        System.out.println("This is a sanity check and can be safely ignored.");
+                    }
+                }
+            }
         }
     }
 

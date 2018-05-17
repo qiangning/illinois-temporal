@@ -24,8 +24,7 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
 
     private static CommandLine cmd;
 
-    public TemprelPerceptronTrainer_EE(int seed, int totalFold, int labelMode, boolean autoAdjustSamplingRate, int clsMode, int window, int sentDiff, int evalMetric,
-                                       String[] trainSet, String[] testSet) {
+    public TemprelPerceptronTrainer_EE(int seed, int totalFold, int labelMode, boolean autoAdjustSamplingRate, int clsMode, int window, int sentDiff, int evalMetric, String[] trainSet, String[] testSet) {
         super(seed, totalFold, evalMetric);
         this.autoAdjustSamplingRate = autoAdjustSamplingRate;
         this.window = window;
@@ -39,12 +38,15 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
         LEARNRATE = new double[]{0.001};
-        //THICKNESS = new double[]{0,1};
-        //SAMRATE = new double[]{0.1,0.2,0.3};
-        //ROUND = new double[]{50,100,200};
-        THICKNESS = new double[]{1};
+        THICKNESS = new double[]{0,1};
+        SAMRATE = new double[]{0.1,0.2,0.3};
+        ROUND = new double[]{50,100,200};
+        /*THICKNESS = new double[]{1};
+        SAMRATE = new double[]{0.1};
+        ROUND = new double[]{200};*/
+        /*THICKNESS = new double[]{1};
         SAMRATE = new double[]{2};
-        ROUND = new double[]{200};
+        ROUND = new double[]{200};*/
 
         System.out.println(myLogFormatter.fullBlockLog("autoSelectSamplingRate:"+this.autoAdjustSamplingRate));
     }
@@ -64,12 +66,12 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
             List<myTemporalDocument> allTrainingDocs = new ArrayList<>();//myLoader.getTimeBank();
             for(String str:trainSet){
                 System.out.printf("Loading %s as training data...\n",str);
-                allTrainingDocs.addAll(myLoader.getDataset(str));
+                allTrainingDocs.addAll(myLoader.getDatasetAutoCorrected(str));
             }
             List<myTemporalDocument> allTestingDocs = new ArrayList<>();//myLoader.getPlatinum();
             for(String str:testSet){
                 System.out.printf("Loading %s as test data...\n",str);
-                allTestingDocs.addAll(myLoader.getDataset(str));
+                allTestingDocs.addAll(myLoader.getDatasetAutoCorrected(str));
             }
             trainingStructs = preprocess(allTrainingDocs);
             testStructs = preprocess(allTestingDocs);
@@ -179,8 +181,8 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         int sentDiff = Integer.valueOf(cmd.getOptionValue("sentDiff"));
         int fold = Integer.valueOf(cmd.getOptionValue("fold","4"));
         boolean autoSelectSamplingRate = cmd.hasOption("autoSelectSamplingRate");
-        String[] trainSet = cmd.getOptionValue("train","TimeBank_Ser,AQUAINT_Ser").split(",");
-        String[] testSet = cmd.getOptionValue("test","PLATINUM_Ser").split(",");
+        String[] trainSet = cmd.getOptionValue("train","TimeBank_Ser_AutoCorrected,AQUAINT_Ser_AutoCorrected").split(",");
+        String[] testSet = cmd.getOptionValue("test","PLATINUM_Ser_AutoCorrected").split(",");
         modelName += String.format("_sent%d_labelMode%d_clsMode%d_win%d",sentDiff,labelMode,clsMode,window);
         TemprelPerceptronTrainer_EE exp = new TemprelPerceptronTrainer_EE(0,fold,labelMode,autoSelectSamplingRate,clsMode,window,sentDiff,2,
                 trainSet,testSet);
