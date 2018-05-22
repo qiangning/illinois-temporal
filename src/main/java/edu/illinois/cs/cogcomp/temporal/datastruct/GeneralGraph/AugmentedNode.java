@@ -31,6 +31,10 @@ public abstract class AugmentedNode implements Serializable {
                 other!=null&&getUniqueId().equals(other.getUniqueId());
     }
 
+    public int compare(AugmentedNode other){
+        return getUniqueId().compareTo(other.getUniqueId());
+    }
+
     /*Getters and Setters*/
 
     public int getNodeId() {
