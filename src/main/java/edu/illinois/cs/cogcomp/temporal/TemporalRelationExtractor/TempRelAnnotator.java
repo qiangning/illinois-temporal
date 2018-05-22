@@ -5,6 +5,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
@@ -14,6 +15,9 @@ import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls_ET.etTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
+import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
+import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
+import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.io.File;
 import java.util.*;
@@ -22,6 +26,8 @@ import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDoc
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.TimexNodeType;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
+import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
 public class TempRelAnnotator {
     private myTemporalDocument doc;
@@ -327,7 +333,14 @@ public class TempRelAnnotator {
     }
 
     private static TempRelLabeler defaultTempRelLabeler_EE(){
-        String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+        /*String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+        eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
+                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
+        eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
+                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
+        return new TempRelLabelerLBJ_EE(cls0,cls1);*/
+
+        String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
         eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
@@ -362,38 +375,21 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        rawtext2graph();
-        /*boolean goldEvent = true, goldTimex = true;
+        //rawtext2graph();
+        myDatasetLoader loader = new myDatasetLoader();
+        boolean goldEvent = false, goldTimex = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-        List<TemporalDocument> allDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
-        HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));
-        HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
 
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
-        List<myTemporalDocument> myAllDocs = new ArrayList<>(), myAllDocs_Gold = new ArrayList<>();
-        int cnt=0;
-        for(TemporalDocument d:allDocs){
-            String docid = d.getDocID();
-            if(!axisMap.containsKey(docid)||!relMap.containsKey(docid))
-                continue;
-            myTemporalDocument doc = new myTemporalDocument(d,1);
-            doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
-
-            myTemporalDocument docGold = new myTemporalDocument(d,1);
-            docGold.keepAnchorableEvents(axisMap.get(doc.getDocid()));
-            docGold.loadRelationsFromMap(relMap.get(doc.getDocid()),0);
-
-            myAllDocs.add(doc);
-            myAllDocs_Gold.add(docGold);
-
-            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,rm);
-            tra.annotator(goldEvent,goldTimex);
-            cnt++;
-            if(cnt>=20)
-                break;
+        List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
+        TempRelAnnotator.performET = false;
+        for(myTemporalDocument doc:myAllDocs){
+            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,null,rm,true);
+            tra.setup(goldTimex,goldEvent,false,false);
+            tra.annotator();
         }
 
-        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);*/
+        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
     }
 }

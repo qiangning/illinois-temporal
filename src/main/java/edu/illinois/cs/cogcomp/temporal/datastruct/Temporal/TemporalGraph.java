@@ -4,6 +4,9 @@ import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
 import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.alg.TransitiveReduction;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 
 import java.io.File;
 import java.io.Serializable;
@@ -63,12 +66,85 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     /*Functions*/
 
-    //todo
-    public void dropAllEERelations(){}
+    public void reduction(){
+        // todo do ee first
+        dropAllETRelations();
+        dropAllTTRelations();
 
-    public void dropAllETRelations(){}
+        // group equal nodes
+        for(TemporalRelation rel:relations_directed){
+            if(rel.getRelType().getReltype()==TemporalRelType.relTypes.EQUAL){
+                TemporalNode.setEquivalentNodes(rel.getSourceNode(),rel.getTargetNode());
+            }
+        }
 
-    public void dropAllTTRelations(){}
+        // construct graph
+        DefaultDirectedGraph<String, DefaultEdge> directedGraph = new DefaultDirectedGraph<>(DefaultEdge.class);
+        for(String nodeId:nodeMap.keySet()){
+            directedGraph.addVertex(nodeId);
+        }
+        for(TemporalRelation rel:relations_directed){
+            TemporalNode n1 = rel.getSourceNode().getEquivalentNodeHead();
+            TemporalNode n2 = rel.getTargetNode().getEquivalentNodeHead();
+            String v1 = n1.getUniqueId();
+            String v2 = n2.getUniqueId();
+            if(rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE){
+                directedGraph.addEdge(v1,v2);
+            }
+            else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
+                directedGraph.addEdge(v2,v1);
+            }
+        }
+
+        // reduction
+        TransitiveReduction.INSTANCE.reduce(directedGraph);
+
+        // remove redundant edges
+        List<TemporalRelation> reducedRelations = new ArrayList<>();
+        for(DefaultEdge e:directedGraph.edgeSet()){
+            String v1 = directedGraph.getEdgeSource(e);
+            String v2 = directedGraph.getEdgeTarget(e);
+            TemporalRelation rel = getRelBetweenNodes(v1,v2);
+            reducedRelations.add(rel);
+        }
+        dropAllRelations();
+        for(TemporalRelation rel:reducedRelations)
+            addRelNoDup(rel);
+
+        // add back equal edges
+        for(TemporalNode node:nodeMap.values()){
+            if(node.equivalentNodes.size()>0){
+                String v1 = node.getUniqueId();
+                for(TemporalNode node2 : node.equivalentNodes){
+                    String v2 = node2.getUniqueId();
+                    setRelBetweenNodes(v1,v2,new TemporalRelType(TemporalRelType.relTypes.EQUAL));
+                }
+            }
+        }
+    }
+
+    // todo graph satuartion
+
+    public void dropAllEERelations(){
+        List<TemporalRelation_EE> allEE = getAllEERelations(-1);
+        for(TemporalRelation_EE ee:allEE){
+            dropRelation(ee.getSourceNode().getUniqueId(),ee.getTargetNode().getUniqueId());
+        }
+    }
+
+    public void dropAllETRelations(){
+        List<TemporalRelation_ET> allET = getAllETRelations(-2);
+        for(TemporalRelation_ET et:allET){
+            dropRelation(et.getSourceNode().getUniqueId(),et.getTargetNode().getUniqueId());
+        }
+    }
+
+    public void dropAllTTRelations(){
+        List<TemporalRelation_TT> allTT = getAllTTRelations(-1);
+        for(TemporalRelation_TT tt:allTT){
+            dropRelation(tt.getSourceNode().getUniqueId(),tt.getTargetNode().getUniqueId());
+        }
+    }
 
     /*Getters and Setters*/
     @Nullable
@@ -213,7 +289,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     public List<TemporalRelation_ET> getAllETRelations(int sentDiff){
         // All ET
-        // - E should be T in pair
+        // - E should be before T in pair
         // - only sentDiff can be kept (sentDiff=-1 means E-DCT;sentDiff=-2 means everything)
         List<TemporalRelation> allRelations = getRelations();
         List<TemporalRelation_ET> allETRelations = new ArrayList<>();

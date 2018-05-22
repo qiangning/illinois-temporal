@@ -339,6 +339,14 @@ public class myTemporalDocument implements Serializable {
         NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,2,verbose);
 
         System.out.println(myLogFormatter.endBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
+
+        System.out.println(myLogFormatter.fullBlockLog("EE Temporal Awareness"));
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,0);
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,1);
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,2);
     }
 
     public static void NaiveEvaluator_EventDetection(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
@@ -445,6 +453,69 @@ public class myTemporalDocument implements Serializable {
             System.out.println("----------CONFUSION MATRIX----------");
             tempRelClsEvaluator.printConfusionMatrix();
         }
+    }
+
+    public static double AwarenessEvaluator_EETempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int mode){
+        if(doc_gold_list.size()!=doc_pred_list.size()){
+            System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+            return 0d;
+        }
+        int prec_corr = 0, prec_all = 0, recall_corr = 0, recall_all = 0;
+        for(int k=0;k<doc_gold_list.size();k++) {
+            myTemporalDocument doc_gold = doc_gold_list.get(k);
+            myTemporalDocument doc_pred = doc_pred_list.get(k);
+            myTemporalDocument doc_gold_reduced = new myTemporalDocument(doc_gold);
+            doc_gold_reduced.getGraph().reduction();
+            myTemporalDocument doc_pred_reduced = new myTemporalDocument(doc_pred);
+            doc_pred_reduced.getGraph().reduction();
+            // check
+            if(!doc_gold.getDocid().equals(doc_pred.getDocid())){
+                System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
+                return 0d;
+            }
+
+            List<TemporalRelation_EE> allEE4prec = doc_pred_reduced.getGraph().getAllEERelations(-1);
+            for(TemporalRelation_EE ee:allEE4prec){
+                int tokId1 = ee.getSourceNode().getTokenId();
+                int tokId2 = ee.getTargetNode().getTokenId();
+                if(tokId1>tokId2) continue;
+                TemporalRelType rel_gold = doc_gold.getEERelFromTokenIds(tokId1,tokId2);
+                if(mode>0&&rel_gold.isNull())
+                    continue;
+                if(mode==2){
+                    if(rel_gold.getReltype() == TemporalRelType.relTypes.VAGUE
+                            &&ee.getRelType().getReltype() != TemporalRelType.relTypes.VAGUE)
+                        rel_gold = ee.getRelType();
+                }
+                if(rel_gold.getReltype()==ee.getRelType().getReltype())
+                    prec_corr++;
+                prec_all++;
+            }
+
+            List<TemporalRelation_EE> allEE4recall = doc_gold_reduced.getGraph().getAllEERelations(-1);
+            for(TemporalRelation_EE ee:allEE4recall){
+                int tokId1 = ee.getSourceNode().getTokenId();
+                int tokId2 = ee.getTargetNode().getTokenId();
+                if(tokId1>tokId2) continue;
+                TemporalRelType rel_gold = doc_pred.getEERelFromTokenIds(tokId1,tokId2);
+                if(mode>0&&rel_gold.isNull())
+                    continue;
+                if(mode==2){
+                    if(rel_gold.getReltype() == TemporalRelType.relTypes.VAGUE
+                            &&ee.getRelType().getReltype() != TemporalRelType.relTypes.VAGUE)
+                        rel_gold = ee.getRelType();
+                }
+                if(rel_gold.getReltype()==ee.getRelType().getReltype())
+                    recall_corr++;
+                recall_all++;
+            }
+        }
+        System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
+        double prec = 1.0*prec_corr/prec_all;
+        double rec = 1.0*recall_corr/recall_all;
+        double f1 = 2*prec*rec/(prec+rec);
+        System.out.printf("Prec=%.4f, Recall=%.4f, F=%.4f\n",prec,rec,f1);
+        return f1;
     }
 
     /*Getters and Setters*/
