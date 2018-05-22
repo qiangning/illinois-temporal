@@ -41,6 +41,8 @@ public class TempRelAnnotator {
     private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
     public int[][] result;
 
+    public static boolean performET = true;
+
     public TempRelAnnotator(myTemporalDocument doc){
         this(doc,null);
         try{
@@ -146,7 +148,8 @@ public class TempRelAnnotator {
             doc.dropAllRelations();
         }
         eeTempRelAnnotator();
-        etTempRelAnnotator();
+        if(performET)
+            etTempRelAnnotator();
     }
 
     public void axisAnnotator(){
@@ -347,9 +350,10 @@ public class TempRelAnnotator {
     }
 
     public static void rawtext2graph() throws Exception{
-        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
+        //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
+        String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();

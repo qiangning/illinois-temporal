@@ -158,8 +158,8 @@ public class myTemporalDocument implements Serializable {
                         new TemporalRelType(rel.getRelType()),
                         this));
             else if(rel instanceof TemporalRelation_ET){
-                graph.addRelNoDup(new TemporalRelation_ET((EventTemporalNode)graph.getNode(rel.getSourceNode().getUniqueId()),
-                        (TimexTemporalNode)graph.getNode(rel.getTargetNode().getUniqueId()),
+                graph.addRelNoDup(new TemporalRelation_ET(graph.getNode(rel.getSourceNode().getUniqueId()),
+                        graph.getNode(rel.getTargetNode().getUniqueId()),
                         new TemporalRelType(rel.getRelType()),
                         this));
             }

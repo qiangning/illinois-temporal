@@ -37,10 +37,10 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
 
         TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
-        LEARNRATE = new double[]{0.001};
-        THICKNESS = new double[]{0,1};
-        SAMRATE = new double[]{0.1,0.2,0.3};
-        ROUND = new double[]{50,100,200};
+        LEARNRATE = ParamLBJ.EETempRelClassifierPerceptronParams.LEARNRATE;
+        THICKNESS = ParamLBJ.EETempRelClassifierPerceptronParams.THICKNESS;
+        SAMRATE = ParamLBJ.EETempRelClassifierPerceptronParams.SAMRATE;
+        ROUND = ParamLBJ.EETempRelClassifierPerceptronParams.ROUND;
         /*THICKNESS = new double[]{1};
         SAMRATE = new double[]{0.1};
         ROUND = new double[]{200};*/
@@ -51,6 +51,28 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         System.out.println(myLogFormatter.fullBlockLog("autoSelectSamplingRate:"+this.autoAdjustSamplingRate));
     }
 
+    public void setTuningParams(){
+        boolean update = false;
+        if(cmd.hasOption("learningRates")) {
+            setLEARNRATE(parseStringParamInput(cmd.getOptionValue("learningRates")));
+            update = true;
+        }
+        if(cmd.hasOption("thicknesses")) {
+            setTHICKNESS(parseStringParamInput(cmd.getOptionValue("thicknesses")));
+            update = true;
+        }
+        if(cmd.hasOption("samRates")) {
+            setSAMRATE(parseStringParamInput(cmd.getOptionValue("samRates")));
+            update = true;
+        }
+        if(cmd.hasOption("rounds")) {
+            setROUND(parseStringParamInput(cmd.getOptionValue("rounds")));
+            update = true;
+        }
+        if(update)
+            printParams();
+    }
+
     private List<TemporalRelation_EE> preprocess(List<myTemporalDocument> docList){
         List<TemporalRelation_EE> ret = new ArrayList<>();
         for(myTemporalDocument d:docList){
@@ -59,6 +81,7 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         }
         return ret;
     }
+
     @Override
     public void load() {
         try {
@@ -159,6 +182,22 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         fold.setRequired(false);
         options.addOption(fold);
 
+        Option learningRates = new Option("lr", "learningRates", true, "learningRates for cross-validation");
+        learningRates.setRequired(false);
+        options.addOption(learningRates);
+
+        Option thicknesses = new Option("th", "thicknesses", true, "thicknesses for cross-validation");
+        thicknesses.setRequired(false);
+        options.addOption(thicknesses);
+
+        Option samRates = new Option("sr", "samRates", true, "samRates for cross-validation");
+        samRates.setRequired(false);
+        options.addOption(samRates);
+
+        Option rounds = new Option("round", "rounds", true, "rounds for cross-validation");
+        rounds.setRequired(false);
+        options.addOption(rounds);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         try {
@@ -184,9 +223,9 @@ public class TemprelPerceptronTrainer_EE extends CVWrapper_LBJ_Perceptron<Tempor
         String[] trainSet = cmd.getOptionValue("train","TimeBank_Ser_AutoCorrected,AQUAINT_Ser_AutoCorrected").split(",");
         String[] testSet = cmd.getOptionValue("test","PLATINUM_Ser_AutoCorrected").split(",");
         modelName += String.format("_sent%d_labelMode%d_clsMode%d_win%d",sentDiff,labelMode,clsMode,window);
-        TemprelPerceptronTrainer_EE exp = new TemprelPerceptronTrainer_EE(0,fold,labelMode,autoSelectSamplingRate,clsMode,window,sentDiff,2,
-                trainSet,testSet);
+        TemprelPerceptronTrainer_EE exp = new TemprelPerceptronTrainer_EE(0,fold,labelMode,autoSelectSamplingRate,clsMode,window,sentDiff,2, trainSet,testSet);
         exp.setModelPath(modelDir,modelName);
+        exp.setTuningParams();
         StandardExperiment(exp);
     }
 }

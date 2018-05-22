@@ -38,10 +38,10 @@ public class TemprelPerceptronTrainer_ET extends CVWrapper_LBJ_Perceptron<Tempor
 
         TemporalRelation.setLabelMode(labelMode);
         LABEL_TO_IGNORE = TEMP_LABEL_TO_IGNORE;
-        LEARNRATE = new double[]{0.001};
-        THICKNESS = new double[]{0,1};
-        SAMRATE = new double[]{0.4,0.5,0.6};
-        ROUND = new double[]{50,100};
+        LEARNRATE = ParamLBJ.ETTempRelClassifierPerceptronParams.LEARNRATE;
+        THICKNESS = ParamLBJ.ETTempRelClassifierPerceptronParams.THICKNESS;
+        SAMRATE = ParamLBJ.ETTempRelClassifierPerceptronParams.SAMRATE;
+        ROUND = ParamLBJ.ETTempRelClassifierPerceptronParams.ROUND;
 
         System.out.println(myLogFormatter.fullBlockLog("autoSelectSamplingRate:"+this.autoAdjustSamplingRate));
     }
