@@ -61,5 +61,5 @@ public abstract class AugmentedNode implements Serializable {
         this.text = text;
     }
 
-    public String getUniqueId(){return nodeType+":"+ nodeId;}
+    public String getUniqueId(){return getNodeType()+":"+ nodeId;}
 }

@@ -1,6 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
@@ -34,7 +35,7 @@ public class myTemporalDocument implements Serializable {
     public final static String TimexNodeType = "TIMEX";
     private List<EventTemporalNode> eventList = new ArrayList<>();
     private List<TimexTemporalNode> timexList = new ArrayList<>();
-    private TimexTemporalNode dct;// a shallow copy of one of those in timexList
+    private Pair<TimexTemporalNode,TimexTemporalNode> dct;// a shallow copy of one of those in timexList
     private TextAnnotation ta;
     private TemporalGraph graph;
     private String docid;
@@ -242,9 +243,13 @@ public class myTemporalDocument implements Serializable {
         graph.addNodeNoDup(e);
     }
 
-    public void addTimex(TimexTemporalNode t){
-        timexList.add(t);
-        graph.addNodeNoDup(t);
+    public void addTimex(int nodeId, String text, int index_in_doc,IntPair tokenSpan, int sentId, boolean isDCT,String type, String mod, String normVal){// In our current setting, timex is an interval, not a point like event.
+        TimexTemporalNode t_start = new TimexTemporalNode(nodeId,TimexNodeType,text,index_in_doc,tokenSpan,sentId,isDCT,true,type,mod,normVal,ta);
+        TimexTemporalNode t_end = new TimexTemporalNode(nodeId,TimexNodeType,text,index_in_doc,tokenSpan,sentId,isDCT,false,type,mod,normVal,ta);
+        timexList.add(t_start);
+        graph.addNodeNoDup(t_start);
+        timexList.add(t_end);
+        graph.addNodeNoDup(t_end);
     }
 
     private void addTimexFromTemporalJointChunk(TemporalJointChunk tjc, int id, boolean isDCT){
@@ -259,8 +264,7 @@ public class myTemporalDocument implements Serializable {
             sentId = ta.getSentenceId(tokenSpan.getFirst());
 
         }
-        TimexTemporalNode t = new TimexTemporalNode(tjc.getTID(),TimexNodeType,tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue(),ta);
-        addTimex(t);
+        addTimex(tjc.getTID(),tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue());
         if(isDCT)
             dct = t;
     }
