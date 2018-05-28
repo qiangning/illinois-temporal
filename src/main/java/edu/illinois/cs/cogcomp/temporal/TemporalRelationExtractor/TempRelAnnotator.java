@@ -5,7 +5,6 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
@@ -16,8 +15,6 @@ import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls_ET.etTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
-import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
-import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.io.File;
 import java.util.*;
@@ -26,8 +23,6 @@ import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDoc
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.TimexNodeType;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
-import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
 public class TempRelAnnotator {
     private myTemporalDocument doc;
@@ -363,20 +358,22 @@ public class TempRelAnnotator {
     }
 
     public static void rawtext2graph() throws Exception{
-        //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
+        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
-        String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
+        //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
-        doc.getGraph().visualize("data/html");
+        doc.getGraph().reduction();
+        doc.getGraph().graphVisualization("data/html");
+        doc.getGraph().chainVisualization("data/html");
         System.out.println();
     }
 
     public static void main(String[] args) throws Exception{
-        //rawtext2graph();
-        myDatasetLoader loader = new myDatasetLoader();
+        rawtext2graph();
+        /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -390,6 +387,6 @@ public class TempRelAnnotator {
             tra.annotator();
         }
 
-        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);*/
     }
 }

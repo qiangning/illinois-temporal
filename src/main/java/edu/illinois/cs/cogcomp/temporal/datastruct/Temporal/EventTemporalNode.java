@@ -1,5 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
+import edu.illinois.cs.cogcomp.core.algorithms.Sorters;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
@@ -15,10 +16,7 @@ import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.*;
@@ -317,6 +315,50 @@ public class EventTemporalNode extends TemporalNode{
 
     public static void setWNsim(WNSim wnsim) {
         EventTemporalNode.wnsim = wnsim;
+    }
+
+    public String interpret(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(getUniqueId());
+        sb.append("\n");
+        if(verb_srl!=null) {
+            String pred = verb_srl.getAttribute("predicate") + ":" + verb_srl.getAttribute("SenseNumber");
+
+            sb.append(pred);
+            sb.append("\n");
+
+            StringBuilder spaces = new StringBuilder();
+            for (int i = 0; i < 4; i++)
+                spaces.append(" ");
+
+            List<Relation> outgoingRelations = new ArrayList<>(verb_srl.getOutgoingRelations());
+
+            Collections.sort(outgoingRelations, new Comparator<Relation>() {
+
+                @Override
+                public int compare(Relation arg0, Relation arg1) {
+                    return arg0.getRelationName().compareTo(arg1.getRelationName());
+                }
+            });
+
+            for (Relation r : outgoingRelations) {
+                Constituent target = r.getTarget();
+                sb.append(spaces).append(r.getRelationName()).append(": ")
+                        .append(target.getTokenizedSurfaceForm());
+
+                if (target.getAttributeKeys().size() > 0) {
+                    sb.append("[");
+                    for (String key : Sorters.sortSet(target.getAttributeKeys())) {
+                        sb.append(key).append("=").append(target.getAttribute(key)).append(" ");
+                    }
+                    sb.append("]");
+                }
+                sb.append("\n");
+            }
+        }
+        else
+            sb.append(text);
+        return sb.toString();
     }
 
     @Override

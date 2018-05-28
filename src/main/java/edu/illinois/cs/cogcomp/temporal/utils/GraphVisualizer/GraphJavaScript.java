@@ -1,6 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer;
 
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.EventTemporalNode;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
 
@@ -240,11 +241,14 @@ public class GraphJavaScript {
 
     public static void main(String[] args) throws Exception{
         myDatasetLoader loader = new myDatasetLoader();
-        String htmlDir = "data/html/TBDense_Test";
+        String htmlDir = "data/html/TBDense_Test_autoCorrected_reduced";
         IOUtils.mkdir(htmlDir);
-        List<myTemporalDocument> docs = loader.getTBDense_Test();
+        List<myTemporalDocument> docs = loader.getTBDense_Test_autoCorrected();
         for(myTemporalDocument doc:docs){
-            doc.getGraph().visualize(htmlDir);
+            System.out.println(doc.getDocid());
+            //doc.getGraph().reduction();
+            //doc.getGraph().graphVisualization(htmlDir);
+            doc.getGraph().chainVisualization(htmlDir);
         }
     }
 }
