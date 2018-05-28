@@ -185,6 +185,8 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         GraphJavaScript graphJavaScript = new GraphJavaScript(fname);
         for(String nodeid:nodeMap.keySet()){
             TemporalNode node = nodeMap.get(nodeid);
+            if(degreeOf(node.getUniqueId())<=0)
+                continue;
             graphJavaScript.addVertex(nodeid,node.getText());
         }
         graphJavaScript.sortVertexes();

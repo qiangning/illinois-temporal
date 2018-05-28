@@ -246,8 +246,8 @@ public class GraphJavaScript {
         List<myTemporalDocument> docs = loader.getTBDense_Test_autoCorrected();
         for(myTemporalDocument doc:docs){
             System.out.println(doc.getDocid());
-            //doc.getGraph().reduction();
-            //doc.getGraph().graphVisualization(htmlDir);
+            doc.getGraph().reduction();
+            doc.getGraph().graphVisualization(htmlDir);
             doc.getGraph().chainVisualization(htmlDir);
         }
     }

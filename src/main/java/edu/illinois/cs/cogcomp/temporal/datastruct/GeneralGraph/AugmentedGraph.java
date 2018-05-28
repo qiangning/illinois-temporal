@@ -194,4 +194,20 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     public List<Relation> getRelations() {
         return relations;
     }
+
+    public int inDegreeOf(String uniqueid){
+        if(nodeInRelationMap.containsKey(uniqueid))
+            return nodeInRelationMap.get(uniqueid).size();
+        return -1;
+    }
+
+    public int outDegreeOf(String uniqueid){
+        if(nodeOutRelationMap.containsKey(uniqueid))
+            return nodeOutRelationMap.get(uniqueid).size();
+        return -1;
+    }
+
+    public int degreeOf(String uniqueid){
+        return inDegreeOf(uniqueid)+outDegreeOf(uniqueid);
+    }
 }
