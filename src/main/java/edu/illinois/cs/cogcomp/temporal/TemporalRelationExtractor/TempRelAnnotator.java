@@ -40,10 +40,12 @@ public class TempRelAnnotator {
     private boolean[][] ignoreMap;//n_entity x n_entity
     private List<int[][][]> constraintMap;// A list of {n_entity x n_entity x (n_relation+1)} //+1dim is the "1" in x1+x2+x3=1
     private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
+    private static TempRelLabeler defaultEE,defaultET;
     public int[][] result;
 
     public static boolean performET = true;
 
+    /*Constructors*/
     public TempRelAnnotator(myTemporalDocument doc){
         this(doc,null);
         try{
@@ -75,6 +77,8 @@ public class TempRelAnnotator {
         if(doc.getDct()!=null)
             setDCT(doc.getDct().getNormVal());
     }
+
+    /*Functions*/
 
     private void initAllArrays4ILP(){
         n_entity = doc.getEventList().size();
@@ -148,9 +152,9 @@ public class TempRelAnnotator {
             //System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
             doc.dropAllRelations();
         }
-        eeTempRelAnnotator();
         if(performET)
             etTempRelAnnotator();
+        eeTempRelAnnotator();
     }
 
     public void axisAnnotator(){
@@ -284,6 +288,7 @@ public class TempRelAnnotator {
         for(TimexTemporalNode t:timexList)
             t.extractPosLemmaWin(window);
         for(EventTemporalNode e:eventList){
+            List<TemporalRelation_ET> et2add = new ArrayList<>();
             for(TimexTemporalNode t:timexList){
                 TemporalRelation_ET et = doc.getGraph().getETRelBetweenEventTimex(e.getUniqueId(),t.getUniqueId());
                 if(et==null){
@@ -300,11 +305,23 @@ public class TempRelAnnotator {
                         continue;
                     }
                     et.setRelType(reltype);
-                    doc.getGraph().addRelNoDup(et);
+                    et2add.add(et);
                 }
             }
+            TemporalRelation_ET bestET = null;
+            double maxScore = -1d;
+            for(TemporalRelation_ET et:et2add) {
+                double currScore = et.getRelType().getScores()[TemporalRelType.relTypes.EQUAL.getIndex()];
+                if(maxScore<currScore){
+                    maxScore = currScore;
+                    bestET = et;
+                }
+            }
+            doc.getGraph().addRelNoDup(bestET);
         }
     }
+
+    /*Getters and Setters*/
 
     public void setAxisLabeler(EventAxisLabeler axisLabeler) {
         this.axisLabeler = axisLabeler;
@@ -328,6 +345,7 @@ public class TempRelAnnotator {
     }
 
     private static TempRelLabeler defaultTempRelLabeler_EE(){
+        if(defaultEE==null) {
         /*String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
@@ -335,12 +353,14 @@ public class TempRelAnnotator {
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
         return new TempRelLabelerLBJ_EE(cls0,cls1);*/
 
-        String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
-        eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
-        eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
-        return new TempRelLabelerLBJ_EE(cls0,cls1);
+            String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+            eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lex");
+            eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lex");
+            defaultEE = new TempRelLabelerLBJ_EE(cls0, cls1);
+        }
+        return defaultEE;
 
         /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";
         eeTempRelCls cls_mod1_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,0));
@@ -351,10 +371,13 @@ public class TempRelAnnotator {
     }
 
     public static TempRelLabeler defaultTempRelLabeler_ET(){
-        String temprelMdlDir = "models/tempRel_ET", temprelMldNamePrefix = "etTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
-        etTempRelCls cls0 = new etTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
-        return new TempRelLabelerLBJ_ET(cls0);
+        if(defaultET==null) {
+            String temprelMdlDir = "models/tempRel_ET", temprelMldNamePrefix = "etTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+            etTempRelCls cls0 = new etTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lex");
+            defaultET = new TempRelLabelerLBJ_ET(cls0);
+        }
+        return defaultET;
     }
 
     public static void rawtext2graph() throws Exception{
@@ -365,6 +388,7 @@ public class TempRelAnnotator {
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
+        doc.addTTRelationsBasedOnNormVals();
         doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
         doc.getGraph().chainVisualization("data/html");
@@ -372,8 +396,8 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        //rawtext2graph();
-        myDatasetLoader loader = new myDatasetLoader();
+        rawtext2graph();
+        /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -389,6 +413,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
     }
 }

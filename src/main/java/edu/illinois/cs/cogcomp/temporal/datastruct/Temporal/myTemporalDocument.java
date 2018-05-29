@@ -41,6 +41,7 @@ public class myTemporalDocument implements Serializable {
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
     private HashMap<String,TimexTemporalNode> map_tokenSpan2timex = new HashMap<>();
 
+    /*Constructors*/
     public myTemporalDocument() {
     }
 
@@ -175,6 +176,8 @@ public class myTemporalDocument implements Serializable {
             }
         }
     }
+
+    /*Functions*/
 
     public void keepAnchorableEvents(HashMap<Integer,String> axisMap){
         // axisMap: (index in doc, CrowdFlower axis name)
@@ -323,6 +326,18 @@ public class myTemporalDocument implements Serializable {
             tmp.extractAllFeats();
         for(TemporalRelation_ET tmp:graph.getAllETRelations(-2))
             tmp.extractAllFeats();
+    }
+
+    public void addTTRelationsBasedOnNormVals(){
+        for(int i=0;i<timexList.size();i++){
+            TimexTemporalNode t1 = timexList.get(i);
+            for(int j=i+1;j<timexList.size();j++){
+                TimexTemporalNode t2 = timexList.get(j);
+                TemporalRelType relType = t1.compareTo(t2,dct);
+                TemporalRelation_TT tt = new TemporalRelation_TT(t1,t2,relType,this);
+                getGraph().addRelNoDup(tt);
+            }
+        }
     }
 
     /*Evaluators*/
