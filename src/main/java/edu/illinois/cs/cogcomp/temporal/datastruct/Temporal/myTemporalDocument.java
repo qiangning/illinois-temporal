@@ -7,7 +7,6 @@ import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
-import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TemprelPerceptronTrainer_EE;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
@@ -24,14 +23,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedNode.getUniqueId;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
 import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
 
 public class myTemporalDocument implements Serializable {
     private static final long serialVersionUID = -1304837964767492246L;
-    public final static String EventNodeType = "EVENT";
-    public final static String TimexNodeType = "TIMEX";
+    public final static String EventNodeType = "E";
+    public final static String TimexNodeType = "T";
     private List<EventTemporalNode> eventList = new ArrayList<>();
     private List<TimexTemporalNode> timexList = new ArrayList<>();
     private TimexTemporalNode dct;// a shallow copy of one of those in timexList
@@ -39,6 +39,7 @@ public class myTemporalDocument implements Serializable {
     private TemporalGraph graph;
     private String docid;
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
+    private HashMap<String,TimexTemporalNode> map_tokenSpan2timex = new HashMap<>();
 
     public myTemporalDocument() {
     }
@@ -89,8 +90,8 @@ public class myTemporalDocument implements Serializable {
         }
         if(mode>=2) {
             for (TLINK tlink : temporalDocument.getBodyTlinks()) {
-                TemporalNode sourceNode = graph.getNode((tlink.getSourceType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType) + ":" + tlink.getSourceId());
-                TemporalNode targetNode = graph.getNode((tlink.getTargetType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType) + ":" + tlink.getTargetId());
+                TemporalNode sourceNode = graph.getNode(getUniqueId(tlink.getSourceType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType,tlink.getSourceId()));
+                TemporalNode targetNode = graph.getNode(getUniqueId(tlink.getTargetType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType,tlink.getTargetId()));
                 if (sourceNode == null || targetNode == null) continue;
                 if(sourceNode.getClass().equals(targetNode.getClass())) continue;//ignore EE or TT links
                 TemporalRelation_ET tmpRel = new TemporalRelation_ET(sourceNode, targetNode, null,this);
@@ -196,8 +197,8 @@ public class myTemporalDocument implements Serializable {
             int eiid1 = entry.getEventid1();
             int eiid2 = entry.getEventid2();
             TemporalRelType rel = entry.getRel().getRelType();
-            EventTemporalNode sourceNode = (EventTemporalNode) graph.getNode(EventNodeType+":"+eiid1);
-            EventTemporalNode targetNode = (EventTemporalNode) graph.getNode(EventNodeType+":"+eiid2);
+            EventTemporalNode sourceNode = (EventTemporalNode) graph.getNode(getUniqueId(EventNodeType,eiid1));
+            EventTemporalNode targetNode = (EventTemporalNode) graph.getNode(getUniqueId(EventNodeType,eiid2));
             if(sourceNode==null||targetNode==null){
                 if(verbose>0)
                     System.out.printf("[WARNING] null node in graph %s: %s\n", docid,entry.toString());
@@ -329,8 +330,12 @@ public class myTemporalDocument implements Serializable {
     public static void NaiveEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
         System.out.println(myLogFormatter.startBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
 
-        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT DETECTION"));
+        System.out.println(myLogFormatter.startBlockLog("EVALUATING EVENT DETECTION"));
         NaiveEvaluator_EventDetection(doc_gold_list,doc_pred_list,verbose);
+        System.out.println(myLogFormatter.endBlockLog("EVALUATING EVENT DETECTION"));
+
+        System.out.println(myLogFormatter.startBlockLog("EVALUATING TEMPREL"));
+
         System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)"));
         NaiveEvaluator_TempRelClassification(doc_gold_list,doc_pred_list,0,verbose);
         System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)"));
@@ -340,13 +345,7 @@ public class myTemporalDocument implements Serializable {
 
         System.out.println(myLogFormatter.endBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
 
-        System.out.println(myLogFormatter.fullBlockLog("EE Temporal Awareness"));
-        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)"));
-        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,0);
-        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)"));
-        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,1);
-        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)"));
-        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,2);
+
     }
 
     public static void NaiveEvaluator_EventDetection(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
@@ -393,15 +392,20 @@ public class myTemporalDocument implements Serializable {
     }
 
     public static void NaiveEvaluator_TempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int mode, int verbose){
+        String[] EE_IGNORE = new String[]{TemporalRelType.relTypes.VAGUE.getName(),TemporalRelType.relTypes.NULL.getName()};
+        String[] ET_IGNORE = new String[]{TemporalRelType.relTypes.NULL.getName()};
         // mode: 0--default, 1--ignore gold is null, 2--1+relax vague
-        PrecisionRecallManager tempRelClsEvaluator = new PrecisionRecallManager();
-        PrecisionRecallManager tempRelClsEvaluatorDetail;
+        PrecisionRecallManager eeTempRelClsEvaluator = new PrecisionRecallManager();
+        PrecisionRecallManager eeTempRelClsEvaluatorDetail;
+        PrecisionRecallManager etTempRelClsEvaluator = new PrecisionRecallManager();
+        PrecisionRecallManager etTempRelClsEvaluatorDetail;
         if(doc_gold_list.size()!=doc_pred_list.size()){
             System.out.println("[WARNING] doc_gold_list and doc_pred_list don't match.");
             return;
         }
         for(int k=0;k<doc_gold_list.size();k++) {
-            tempRelClsEvaluatorDetail = new PrecisionRecallManager();
+            eeTempRelClsEvaluatorDetail = new PrecisionRecallManager();
+            etTempRelClsEvaluatorDetail = new PrecisionRecallManager();
             myTemporalDocument doc_gold = doc_gold_list.get(k);
             myTemporalDocument doc_pred = doc_pred_list.get(k);
             // check
@@ -421,6 +425,18 @@ public class myTemporalDocument implements Serializable {
                 allEEPairs_str.add(tokId1+":"+tokId2);
             }
 
+            // Get all ET pairs set
+            HashSet<String> allETPairs_str = new HashSet<>();// format: event_tokenId + ":" + timex_tokenSpan
+            List<TemporalRelation_ET> allET = doc_gold.getGraph().getAllETRelations(0);
+            allET.addAll(doc_pred.getGraph().getAllETRelations(0));
+            for(TemporalRelation_ET et:allET){
+                if(!et.isEventFirstInPair())
+                    continue;
+                int tokId = et.getEventNode().getTokenId();
+                IntPair tokSpan = et.getTimexNode().getTokenSpan();
+                allETPairs_str.add(tokId+":"+tokSpan.toString());
+            }
+
             // Evaluate all EE pairs
             for(String ee_str:allEEPairs_str){
                 String[] tmp = ee_str.split(":");
@@ -435,24 +451,70 @@ public class myTemporalDocument implements Serializable {
                             &&rel_pred.getReltype() != TemporalRelType.relTypes.VAGUE)
                         rel_gold = rel_pred;
                 }
-                tempRelClsEvaluator.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
-                tempRelClsEvaluatorDetail.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+                eeTempRelClsEvaluator.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+                eeTempRelClsEvaluatorDetail.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+            }
+
+            // Evaluate all ET pairs
+            for(String et_str:allETPairs_str){
+                String[] tmp = et_str.split(":");
+                int tokId = Integer.valueOf(tmp[0]);
+                String tokSpan = tmp[1];
+                TemporalRelType rel_gold = doc_gold.getETRelFromTokenIdAndSpan(tokId,tokSpan);
+                TemporalRelType rel_pred = doc_pred.getETRelFromTokenIdAndSpan(tokId,tokSpan);
+                if(rel_gold.isNull()&&rel_pred.getReltype()== TemporalRelType.relTypes.VAGUE)
+                    rel_gold = rel_pred;
+
+                if(mode>0&&rel_gold.isNull())
+                    continue;
+                if(mode==2){
+                    if(rel_gold.getReltype() == TemporalRelType.relTypes.VAGUE
+                            &&rel_pred.getReltype() != TemporalRelType.relTypes.VAGUE)
+                        rel_gold = rel_pred;
+                }
+                etTempRelClsEvaluator.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
+                etTempRelClsEvaluatorDetail.addPredGoldLabels(rel_pred.getReltype().getName(), rel_gold.getReltype().getName());
             }
             if(verbose>1) {
                 System.out.printf("--------#%d Doc: %s--------\n",k,doc_gold.getDocid());
-                tempRelClsEvaluatorDetail.printPrecisionRecall(TemprelPerceptronTrainer_EE.TEMP_LABEL_TO_IGNORE);
+                eeTempRelClsEvaluatorDetail.printPrecisionRecall(EE_IGNORE);
+                etTempRelClsEvaluatorDetail.printPrecisionRecall(ET_IGNORE);
                 if (verbose > 2) {
                     System.out.println("----------CONFUSION MATRIX----------");
-                    tempRelClsEvaluatorDetail.printConfusionMatrix();
+                    eeTempRelClsEvaluatorDetail.printConfusionMatrix();
+                    etTempRelClsEvaluatorDetail.printConfusionMatrix();
                 }
             }
         }
-        System.out.printf("########Evaluation of %d documents########\n",doc_gold_list.size());
-        tempRelClsEvaluator.printPrecisionRecall(TemprelPerceptronTrainer_EE.TEMP_LABEL_TO_IGNORE);
+
+        System.out.println(myLogFormatter.fullBlockLog(String.format("Evaluation of %d documents",doc_gold_list.size())));
+        System.out.println(myLogFormatter.startBlockLog("Event-Event TempRels"));
+        eeTempRelClsEvaluator.printPrecisionRecall(EE_IGNORE);
         if (verbose > 0) {
             System.out.println("----------CONFUSION MATRIX----------");
-            tempRelClsEvaluator.printConfusionMatrix();
+            eeTempRelClsEvaluator.printConfusionMatrix();
         }
+        System.out.println(myLogFormatter.endBlockLog("Event-Event TempRels"));
+        System.out.println(myLogFormatter.startBlockLog("Event-Timex TempRels"));
+        etTempRelClsEvaluator.printPrecisionRecall(ET_IGNORE);
+        if (verbose > 0) {
+            System.out.println("----------CONFUSION MATRIX----------");
+            etTempRelClsEvaluator.printConfusionMatrix();
+        }
+        System.out.println(myLogFormatter.endBlockLog("Event-Timex TempRels"));
+    }
+
+    public static void AwarenessEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
+        System.out.println(myLogFormatter.startBlockLog("EE Temporal Awareness"));
+
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=0)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,0);
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=1)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,1);
+        System.out.println(myLogFormatter.fullBlockLog("EVALUATING EVENT TEMPREL CLASSIFICATION (MODE=2)"));
+        AwarenessEvaluator_EETempRelClassification(doc_gold_list,doc_pred_list,2);
+
+        System.out.println(myLogFormatter.endBlockLog("EE Temporal Awareness"));
     }
 
     public static double AwarenessEvaluator_EETempRelClassification(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int mode){
@@ -558,6 +620,17 @@ public class myTemporalDocument implements Serializable {
         return map_tokenId2event.get(tokenId);
     }
 
+    @Nullable
+    public TimexTemporalNode getTimexFromTokenSpan(String tokenSpanStr){
+        if(map_tokenSpan2timex==null||map_tokenSpan2timex.size()==0) {
+            map_tokenSpan2timex = new HashMap<>();
+            for(TimexTemporalNode t:timexList){
+                map_tokenSpan2timex.put(t.getTokenSpan().toString(),t);
+            }
+        }
+        return map_tokenSpan2timex.get(tokenSpanStr);
+    }
+
     public TemporalRelType getEERelFromTokenIds(int tokenId1, int tokenId2){
         EventTemporalNode e1 = getEventFromTokenId(tokenId1);
         EventTemporalNode e2 = getEventFromTokenId(tokenId2);
@@ -567,6 +640,17 @@ public class myTemporalDocument implements Serializable {
         if(ee_rel==null)
             return getNullTempRel();
         return ee_rel.getRelType();
+    }
+
+    public TemporalRelType getETRelFromTokenIdAndSpan(int tokenId, String tokenSpanStr){
+        EventTemporalNode event = getEventFromTokenId(tokenId);
+        TimexTemporalNode timex = getTimexFromTokenSpan(tokenSpanStr);
+        if(event==null||timex==null)
+            return getNullTempRel();
+        TemporalRelation et_rel = graph.getRelBetweenNodes(event.getUniqueId(),timex.getUniqueId());
+        if(et_rel==null)
+            return getNullTempRel();
+        return et_rel.getRelType();
     }
 
     public static void main(String[] args) throws Exception{

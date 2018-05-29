@@ -372,21 +372,23 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        rawtext2graph();
-        /*myDatasetLoader loader = new myDatasetLoader();
-        boolean goldEvent = false, goldTimex = true;
+        //rawtext2graph();
+        myDatasetLoader loader = new myDatasetLoader();
+        boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
+        TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
         List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
-        TempRelAnnotator.performET = false;
+        TempRelAnnotator.performET = true;
         for(myTemporalDocument doc:myAllDocs){
-            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,null,rm,true);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,true);
             tra.setup(goldTimex,goldEvent,false,false);
             tra.annotator();
         }
 
-        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);*/
+        myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
     }
 }
