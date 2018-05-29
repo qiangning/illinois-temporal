@@ -14,9 +14,10 @@ import java.util.List;
 
 public class GraphJavaScript {
     private String fname;
-    private final int width = 4000;
-    private final int height = 2000;
-    private final int linkDistance = 200;
+    private final int width = 2000;
+    private final int height = 1000;
+    private final int linkDistance = 50;
+    private final int circle_size = 10;
     private List<vertex> V;
     private HashMap<String,vertex> V_map;
     private List<edge> E;
@@ -28,18 +29,18 @@ public class GraphJavaScript {
         E = new ArrayList<>();
     }
 
-    public void addVertex(String uniqueid,String text){
-        vertex v = new vertex(uniqueid,text);
+    public void addVertex(String uniqueid,String text, int colorId){
+        vertex v = new vertex(uniqueid,text,colorId);
         V.add(v);
         V_map.put(uniqueid,v);
     }
 
-    public void addEdge(String uniqueid1, String uniqueid2, String label){
+    public void addEdge(String uniqueid1, String uniqueid2, String label, int length, int colorId, String markerEnd){
         if(!V_map.containsKey(uniqueid1)||!V_map.containsKey(uniqueid2))
             return;
         vertex v1 = V_map.get(uniqueid1);
         vertex v2 = V_map.get(uniqueid2);
-        E.add(new edge(v1,v2,label));
+        E.add(new edge(getVertexIdx(v1),getVertexIdx(v2),label,length*linkDistance, colorId, markerEnd));
     }
 
     public void sortVertexes(){
@@ -54,14 +55,11 @@ public class GraphJavaScript {
         String js_vertex = "";
         String js_edge = "";
         for(vertex v:V){
-            String tmp = "    {name: \"" +v.toString() +"\"},\n";
+            String tmp = String.format("    {%s},\n",v.toString4d3());
             js_vertex += tmp;
         }
         for(edge e:E){
-            int source = getVertexIdx(e.getSource());
-            int target = getVertexIdx(e.getTarget());
-            String type = e.getLabel();
-            String tmp = "    {source: "+source+", target: "+target+", label: \""+type+"\"},\n";
+            String tmp = String.format("    {%s},\n",e.toString4d3());
             js_edge += tmp;
         }
         String jscript = "<!DOCTYPE html>\n" +
@@ -80,6 +78,7 @@ public class GraphJavaScript {
                 "    var w = "+width+"\n" +
                 "    var h = "+height+"\n" +
                 "    var linkDistance="+linkDistance+";\n" +
+                "    var circle_size="+circle_size+";\n"+
                 "\n" +
                 "    var colors = d3.scale.category10();\n" +
                 "\t\n" +
@@ -100,7 +99,7 @@ public class GraphJavaScript {
                 "        .nodes(dataset.nodes)\n" +
                 "        .links(dataset.edges)\n" +
                 "        .size([w,h])\n" +
-                "        .linkDistance([linkDistance])\n" +
+                "        .linkDistance(function(d) {return d.len;})\n" +
                 "        .charge([-500])\n" +
                 "        .theta(0.1)\n" +
                 "        .gravity(0.05)\n" +
@@ -113,16 +112,16 @@ public class GraphJavaScript {
                 "      .enter()\n" +
                 "      .append(\"line\")\n" +
                 "      .attr(\"id\",function(d,i) {return 'edge'+i})\n" +
-                "      .attr('marker-end','url(#arrowhead)')\n" +
-                "      .style(\"stroke\",\"#ccc\")\n" +
+                "      .attr('marker-end',function(d,i){return 'url(#' + d.markerend + ')';})\n" +
+                "      .style(\"stroke\",function(d,i){return colors(d.color);})\n" +
                 "      .style(\"pointer-events\", \"none\");\n" +
                 "    \n" +
                 "    var nodes = svg.selectAll(\"circle\")\n" +
                 "      .data(dataset.nodes)\n" +
                 "      .enter()\n" +
                 "      .append(\"circle\")\n" +
-                "      .attr({\"r\":20})\n" +
-                "      .style(\"fill\",function(d,i){return d.type==\"EVENT\"?colors(0): colors(1);})\n" +
+                "      .attr({\"r\":circle_size})\n" +
+                "      .style(\"fill\",function(d,i){return colors(d.color);})\n" +
                 "      .call(force.drag)\n" +
                 "\n" +
                 "\n" +
@@ -179,8 +178,8 @@ public class GraphJavaScript {
                 "               'xoverflow':'visible'})\n" +
                 "        .append('svg:path')\n" +
                 "            .attr('d', 'M 0,-5 L 10 ,0 L 0,5')\n" +
-                "            .attr('fill', '#ccc')\n" +
-                "            .attr('stroke','#ccc');\n" +
+                "            .attr('fill', '#000')\n" +
+                "            .attr('stroke','#000');\n" +
                 "     \n" +
                 "\n" +
                 "    force.on(\"tick\", function(){\n" +

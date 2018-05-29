@@ -149,6 +149,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     public void reduction(){
         // todo do ee first
+        List<TemporalRelation_ET> allET = getAllETRelations(0);
         dropAllETRelations();
         dropAllTTRelations();
 
@@ -169,12 +170,18 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             TemporalRelation rel = getRelBetweenNodes(v1,v2);
             reducedRelations.add(rel);
         }
-        dropAllRelations();
+        dropAllEERelations();
         for(TemporalRelation rel:reducedRelations)
             addRelNoDup(rel);
 
         // add back equal edges
         addRelations4EqualGroupNodes();
+
+        // add back ET edges
+        for(TemporalRelation_ET et:allET){
+            if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
+                addRelNoDup(et);
+        }
     }
 
     // todo graph satuartion
@@ -187,23 +194,28 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             TemporalNode node = nodeMap.get(nodeid);
             if(degreeOf(node.getUniqueId())<=0)
                 continue;
-            graphJavaScript.addVertex(nodeid,node.getText());
+            int colorId = node instanceof EventTemporalNode? 1:2;
+            graphJavaScript.addVertex(nodeid,node.getText(),colorId);
         }
         graphJavaScript.sortVertexes();
         for(TemporalRelation rel:relations_directed){
             String id1 = rel.getSourceNode().getUniqueId();
             String id2 = rel.getTargetNode().getUniqueId();
             TemporalRelType.relTypes reltype = rel.getRelType().getReltype();
+            int len = rel.getSentDiff()+1;
+            if(rel instanceof TemporalRelation_EE)
+                len *= 2;
+            int colorId = rel instanceof TemporalRelation_EE? 3:4;
+            String markerEnd = rel instanceof TemporalRelation_EE?"arrowhead":"";
             switch (reltype.getName().toLowerCase()){
                 case "before":
-                    graphJavaScript.addEdge(id1,id2,"");
+                    graphJavaScript.addEdge(id1,id2,"",len,colorId,markerEnd);
                     break;
                 case "after":
-                    graphJavaScript.addEdge(id2,id1,"");
+                    graphJavaScript.addEdge(id2,id1,"",len,colorId,markerEnd);
                     break;
                 case "equal":
-                    graphJavaScript.addEdge(id1,id2,"");
-                    graphJavaScript.addEdge(id2,id1,"");
+                    graphJavaScript.addEdge(id1,id2,"",len,colorId,markerEnd);
                     break;
             }
         }

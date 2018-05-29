@@ -3,10 +3,12 @@ package edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer;
 public class vertex {
     private String uniqueid;
     private String text;
+    private int colorId;
 
-    public vertex(String uniqueid, String text) {
+    public vertex(String uniqueid, String text, int colorId) {
         this.uniqueid = uniqueid;
         this.text = text;
+        this.colorId = colorId;
     }
 
     public boolean equals(vertex v2){
@@ -19,6 +21,10 @@ public class vertex {
 
     public String getText() {
         return text;
+    }
+
+    public String toString4d3(){
+        return String.format("name:\"%s\", color: %d", toString(),colorId);
     }
 
     public String toString(){
