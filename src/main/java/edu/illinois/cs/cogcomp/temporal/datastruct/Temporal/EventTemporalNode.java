@@ -320,6 +320,17 @@ public class EventTemporalNode extends TemporalNode{
     public String interpret(){
         StringBuilder sb = new StringBuilder();
         sb.append(getUniqueId());
+        // get timexes that are linked to this event
+        List<TemporalRelation> outrelations = doc.getGraph().getNodeOutRelationMap().getOrDefault(getUniqueId(),new ArrayList<>());
+        for(TemporalRelation rel:outrelations){
+            if(rel instanceof TemporalRelation_ET){
+                TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
+                sb.append("\t==\t");
+                sb.append(timex.getText());
+                sb.append(String.format("\t(%s)",timex.getNormVal()));
+            }
+        }
+
         sb.append("\n");
         if(verb_srl!=null) {
             String pred = verb_srl.getAttribute("predicate") + ":" + verb_srl.getAttribute("SenseNumber");

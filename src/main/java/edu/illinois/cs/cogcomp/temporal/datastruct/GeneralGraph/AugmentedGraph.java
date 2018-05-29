@@ -210,4 +210,12 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     public int degreeOf(String uniqueid){
         return inDegreeOf(uniqueid)+outDegreeOf(uniqueid);
     }
+
+    public HashMap<String, List<Relation>> getNodeInRelationMap() {
+        return nodeInRelationMap;
+    }
+
+    public HashMap<String, List<Relation>> getNodeOutRelationMap() {
+        return nodeOutRelationMap;
+    }
 }

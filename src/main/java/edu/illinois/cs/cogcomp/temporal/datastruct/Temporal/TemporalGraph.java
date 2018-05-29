@@ -112,6 +112,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
     public List<EventTemporalNode> convert2chain(){
         List<EventTemporalNode> ret = new ArrayList<>();
         // todo do ee first
+        List<TemporalRelation_ET> allET = getAllETRelations(0);
         dropAllETRelations();
         dropAllTTRelations();
 
@@ -143,7 +144,11 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 return 0;
             }
         });
-
+        // add back ET edges
+        for(TemporalRelation_ET et:allET){
+            if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
+                addRelNoDup(et);
+        }
         return ret;
     }
 
@@ -205,7 +210,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             int len = rel.getSentDiff()+1;
             if(rel instanceof TemporalRelation_EE)
                 len *= 2;
-            int colorId = rel instanceof TemporalRelation_EE? 3:4;
+            int colorId = rel instanceof TemporalRelation_EE? 1:2;
             String markerEnd = rel instanceof TemporalRelation_EE?"arrowhead":"";
             switch (reltype.getName().toLowerCase()){
                 case "before":
