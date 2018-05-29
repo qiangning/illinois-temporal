@@ -326,8 +326,10 @@ public class EventTemporalNode extends TemporalNode{
             if(rel instanceof TemporalRelation_ET){
                 TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
                 sb.append("\t==\t");
+                sb.append(timex.getUniqueId());
+                sb.append(":");
                 sb.append(timex.getText());
-                sb.append(String.format("\t(%s)",timex.getNormVal()));
+                sb.append(String.format(" (%s)",timex.getNormVal()));
             }
         }
 

@@ -322,16 +322,13 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             TemporalNode n2 = getNode(uniqueId2);
             if(n1==null||n2==null)
                 return false;
-            if(n1 instanceof EventTemporalNode && n2 instanceof EventTemporalNode){
+            if(n1 instanceof EventTemporalNode && n2 instanceof EventTemporalNode)
                 temporalRelation = new TemporalRelation_EE((EventTemporalNode)n1,(EventTemporalNode)n2,relType,doc);
-                addRelNoDup(temporalRelation);
-            }
-            else if(n1 instanceof TimexTemporalNode && n2 instanceof TimexTemporalNode){
-                //todo TT
-            }
-            else{
-                //todo ET
-            }
+            else if(n1 instanceof TimexTemporalNode && n2 instanceof TimexTemporalNode)
+                temporalRelation = new TemporalRelation_TT((TimexTemporalNode)n1,(TimexTemporalNode)n2,relType,doc);
+            else
+                temporalRelation = new TemporalRelation_ET(n1,n2,relType,doc);
+            addRelNoDup(temporalRelation);
         }
         else
             temporalRelation.setRelType(relType);
