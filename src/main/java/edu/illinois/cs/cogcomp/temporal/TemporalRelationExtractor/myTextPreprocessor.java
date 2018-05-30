@@ -5,13 +5,22 @@ import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotationUtilities;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.myTextAnnotationUtilities;
+import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.curator.CuratorFactory;
+import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
 
 public class myTextPreprocessor {
     private AnnotatorService annotator;
 
     public myTextPreprocessor() throws Exception{
         annotator = CuratorFactory.buildCuratorClient();
+    }
+
+    public TextAnnotation extractTextAnnotationPipeline(String text) throws Exception{
+        ResourceManager userConfig = new ResourceManager("config/pipeline-config.properties");
+        AnnotatorService pipeline = PipelineFactory.buildPipeline(userConfig);
+        TextAnnotation ta = pipeline.createAnnotatedTextAnnotation( "", "", text );
+        return ta;
     }
 
     public TextAnnotation extractTextAnnotation(String text)  throws Exception{
@@ -44,5 +53,12 @@ public class myTextPreprocessor {
             myTextAnnotationUtilities.copyViewsFromTo(sentTa[sentenceId],ta, start, end, start);
         }
         return ta;
+    }
+
+    public static void main(String[] args) throws Exception{
+        myTextPreprocessor exc = new myTextPreprocessor();
+        String text = "Helicopters patrol the temporary no-fly zone around New Jersey's MetLife Stadium Sunday, with F-16s based in Atlantic City ready to be scrambled if an unauthorized aircraft does enter the restricted airspace.";
+        TextAnnotation ta = exc.extractTextAnnotation(text);
+        System.out.println();
     }
 }

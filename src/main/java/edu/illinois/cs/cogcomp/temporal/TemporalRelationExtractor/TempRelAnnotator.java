@@ -386,10 +386,12 @@ public class TempRelAnnotator {
     }
 
     public static void rawtext2graph() throws Exception{
-        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
+        //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
         //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
+        //String text = "Helicopters patrol the temporary no-fly zone around New Jersey's MetLife Stadium Sunday, with F-16s based in Atlantic City ready to be scrambled if an unauthorized aircraft does enter the restricted airspace.";
+        String text = "It reflected the President’s deeply felt resentment at his portrayal in the media.";
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
@@ -400,7 +402,7 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        //rawtext2graph();
+        rawtext2graph();
         myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
