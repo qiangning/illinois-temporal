@@ -336,6 +336,8 @@ public class myTemporalDocument implements Serializable {
             for(int j=i+1;j<timexList.size();j++){
                 TimexTemporalNode t2 = timexList.get(j);
                 TemporalRelType relType = t1.compareTo(t2,dct);
+                if(relType.getReltype()== TemporalRelType.relTypes.VAGUE)
+                    continue;
                 TemporalRelation_TT tt = new TemporalRelation_TT(t1,t2,relType,this);
                 getGraph().addRelNoDup(tt);
             }

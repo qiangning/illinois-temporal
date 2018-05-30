@@ -103,7 +103,12 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 directedGraph.addEdge(v1,v2);
             }
             else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
-                directedGraph.addEdge(v2,v1);
+                try {
+                    directedGraph.addEdge(v2, v1);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
         return directedGraph;
