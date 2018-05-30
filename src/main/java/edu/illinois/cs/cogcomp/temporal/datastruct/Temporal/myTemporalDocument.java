@@ -18,10 +18,12 @@ import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import jline.internal.Nullable;
 
+import java.awt.*;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedNode.getUniqueId;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
@@ -185,7 +187,7 @@ public class myTemporalDocument implements Serializable {
         for(EventTemporalNode e:eventList){
             if(!axisMap.containsKey(eventList.indexOf(e))
                     ||!axisMap.get(eventList.indexOf(e)).contains("yes")) {
-                graph.dropNode(EventNodeType+":"+e.getEiid());
+                graph.dropNode(getUniqueId(EventNodeType,e.getEiid()));
             }
             else{
                 newEventList.add(e);
@@ -336,6 +338,39 @@ public class myTemporalDocument implements Serializable {
                 TemporalRelType relType = t1.compareTo(t2,dct);
                 TemporalRelation_TT tt = new TemporalRelation_TT(t1,t2,relType,this);
                 getGraph().addRelNoDup(tt);
+            }
+        }
+    }
+
+    public void addEERelationsBasedOnETAndTT(){
+        for(TemporalRelation_TT rel:getGraph().getAllTTRelations(-1)){
+            if(!rel.isNull() && rel.getRelType().getReltype() != TemporalRelType.relTypes.VAGUE){
+                TimexTemporalNode t1 = rel.getSourceNode();
+                TimexTemporalNode t2 = rel.getTargetNode();
+                List<EventTemporalNode> t1_events = new ArrayList<>();
+                List<EventTemporalNode> t2_events = new ArrayList<>();
+                for(TemporalNode tmp:getGraph().getNodesToThis(t1.getUniqueId())){
+                    if(tmp instanceof EventTemporalNode){
+                        TemporalRelation_ET et1 = getGraph().getETRelBetweenEventTimex(t1.getUniqueId(),tmp.getUniqueId());
+                        if(et1!=null&&et1.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
+                            t1_events.add((EventTemporalNode) tmp);
+                    }
+                }
+                for(TemporalNode tmp:getGraph().getNodesToThis(t2.getUniqueId())){
+                    if(tmp instanceof EventTemporalNode){
+                        TemporalRelation_ET et2 = getGraph().getETRelBetweenEventTimex(t2.getUniqueId(),tmp.getUniqueId());
+                        if(et2!=null&&et2.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
+                            t2_events.add((EventTemporalNode) tmp);
+                    }
+                }
+                for(EventTemporalNode e1 : t1_events){
+                    for(EventTemporalNode e2: t2_events){
+                        if(e1.isEqual(e2))
+                            continue;
+                        TemporalRelation_EE newEE = new TemporalRelation_EE(e1,e2,rel.getRelType(),this);
+                        getGraph().addRelNoDup(newEE);
+                    }
+                }
             }
         }
     }

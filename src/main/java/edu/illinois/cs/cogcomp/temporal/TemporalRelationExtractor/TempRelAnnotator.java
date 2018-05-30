@@ -152,8 +152,11 @@ public class TempRelAnnotator {
             //System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
             doc.dropAllRelations();
         }
-        if(performET)
+        doc.addTTRelationsBasedOnNormVals();
+        if(performET) {
             etTempRelAnnotator();
+        }
+        doc.addEERelationsBasedOnETAndTT();
         eeTempRelAnnotator();
     }
 
@@ -287,6 +290,8 @@ public class TempRelAnnotator {
             e.extractAllFeats(window);
         for(TimexTemporalNode t:timexList)
             t.extractPosLemmaWin(window);
+
+        // guaranteed: only one timex can be associated with a single event
         for(EventTemporalNode e:eventList){
             List<TemporalRelation_ET> et2add = new ArrayList<>();
             for(TimexTemporalNode t:timexList){
@@ -388,7 +393,6 @@ public class TempRelAnnotator {
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
-        doc.addTTRelationsBasedOnNormVals();
         doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
         doc.getGraph().chainVisualization("data/html");
@@ -396,8 +400,8 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        rawtext2graph();
-        /*myDatasetLoader loader = new myDatasetLoader();
+        //rawtext2graph();
+        myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -413,6 +417,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
     }
 }
