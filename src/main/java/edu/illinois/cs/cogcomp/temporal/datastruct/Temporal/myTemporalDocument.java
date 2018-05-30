@@ -370,6 +370,7 @@ public class myTemporalDocument implements Serializable {
                         if(e1.isEqual(e2))
                             continue;
                         TemporalRelation_EE newEE = new TemporalRelation_EE(e1,e2,rel.getRelType(),this);
+                        if(Math.abs(newEE.getSentDiff()) > 1) continue;
                         getGraph().addRelNoDup(newEE);
                     }
                 }
