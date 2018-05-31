@@ -389,14 +389,20 @@ public class TempRelAnnotator {
     }
 
     public static void rawtext2graph() throws Exception{
-        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
-        //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
+        // sample input
+        //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
-        //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
-        //String text = "Helicopters patrol the temporary no-fly zone around New Jersey's MetLife Stadium Sunday, with F-16s based in Atlantic City ready to be scrambled if an unauthorized aircraft does enter the restricted airspace. Down below, bomb-sniffing dogs will patrol the trains and buses that are expected to take approximately 30,000 of the 80,000-plus spectators to Sunday's Super Bowl between the Denver Broncos and Seattle Seahawks. The Transportation Security Administration said it has added about two dozen dogs to monitor passengers coming in and out of the airport around the Super Bowl. On Saturday, TSA agents demonstrated how the dogs can sniff out many different types of explosives. Once they do, they're trained to sit rather than attack, so as not to raise suspicion or create a panic. TSA spokeswoman Lisa Farbstein said the dogs undergo 12 weeks of training, which costs about $200,000, factoring in food, vehicles and salaries for trainers. Dogs have been used in cargo areas for some time, but have just been introduced recently in passenger areas at Newark and JFK airports. JFK has one dog and Newark has a handful, Farbstein said.";
-        //String text = "Helicopters patrol the temporary no-fly zone around New Jersey's MetLife Stadium Sunday, with F-16s based in Atlantic City ready to be scrambled if an unauthorized aircraft does enter the restricted airspace.";
-        //String text = "It reflected the President’s deeply felt resentment at his portrayal in the media.";
-        myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
+        //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the FBI infiltrated his campaign as he targets those he views as political enemies.";
+        //String text = "Yesterday's presentation was well received since we had practiced a lot.";
+        //String text = "The Transportation Security Administration said it has added about two dozen dogs to monitor passengers coming in and out of the airport around the Super Bowl. On Saturday, TSA agents demonstrated how the dogs can sniff out many different types of explosives.";
+        //String text = "TSA spokeswoman Lisa Farbstein said the dogs undergo 12 weeks of training, which costs about $200,000, factoring in food, vehicles and salaries for trainers. Dogs have been used in cargo areas for some time, but have just been introduced recently in passenger areas at Newark and JFK airports.";
+        //String text = "Thousands of people in Germany have been demonstrating today against the high level of unemployment in the country. Latest report shows a sharp rise, with nearly five million Germans out of work.";
+        //String text = "The US military buildup in the Persian gulf continues apace and more planes are heading from the United States. Senior officials say Iraq's president Saddam Hussein can expect punishing air strikes if he doesn't stop building biological and chemical weapons.";
+        //String text = "The president called out Robert Iger who had phoned Valerie Jarrett on Tuesday to apologize. The president complained on Twitter that Mr. Iger had not called President Donald Trump to apologize for the horrible statements said about him on ABC.";
+        //String text = "Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.";
+        String text = "George Lowe, the last surviving member of the team which first conquered Everest in 1953, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. The last British climbing member of the 1953 team, Mike Westmacott, died last June. Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.";
+        String dct = "2013-03-22";
+        myTemporalDocument doc = new myTemporalDocument(text,"test",dct);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
         doc.getGraph().reduction();

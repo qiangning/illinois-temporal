@@ -239,7 +239,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         List<EventTemporalNode> events = convert2chain();
         try{
             PrintStream ps = new PrintStream(new File(fname));
-            ps.println("|\n|");
+            ps.println("|");
             int cnt = 0;
             for(EventTemporalNode e:events) {
                 ps.print(e.interpret());

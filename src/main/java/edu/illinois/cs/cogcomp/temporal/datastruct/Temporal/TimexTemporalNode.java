@@ -46,7 +46,9 @@ public class TimexTemporalNode extends TemporalNode{
         this.ta = ta;
         pp_head = retrievePPHeadOfTokenId(ta,this.tokenSpan.getFirst());
         // Verb SRL from the same sentence
-        List<Constituent> allPredicates = ((PredicateArgumentView)ta.getView(ViewNames.SRL_VERB)).getPredicates();
+        List<Constituent> allPredicates = new ArrayList<>();
+        if(ta.hasView(ViewNames.SRL_VERB))
+            allPredicates = ((PredicateArgumentView)ta.getView(ViewNames.SRL_VERB)).getPredicates();
         for(Constituent c:allPredicates){
             if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
                 List<Relation> tmp = c.getOutgoingRelations();

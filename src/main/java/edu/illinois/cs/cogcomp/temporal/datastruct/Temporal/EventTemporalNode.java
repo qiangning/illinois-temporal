@@ -92,7 +92,9 @@ public class EventTemporalNode extends TemporalNode{
         isIntention = SignalWordSet.getInstance().intentionVerbSet.contains(lemma);
 
         // Verb SRL from the same sentence
-        List<Constituent> allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
+        List<Constituent> allPredicates = new ArrayList<>();
+        if(ta.hasView(ViewNames.SRL_VERB))
+            allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
         for(Constituent c:allPredicates){
             if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
                 verb_srl_same_sentence.add(c);
@@ -319,31 +321,23 @@ public class EventTemporalNode extends TemporalNode{
 
     public String interpret(){
         int normValLen = 13;
-        int eventValLen = 15;
         StringBuilder sb = new StringBuilder();
-        String normVal = "", timexVal = "UNKNOWN", eventVal = getUniqueId()+":"+getText();
+        String normVal = "", eventVal = getUniqueId()+":"+getText();
         // get timexes that are linked to this event
         List<TemporalRelation> outrelations = doc.getGraph().getNodeOutRelationMap().getOrDefault(getUniqueId(),new ArrayList<>());
         for(TemporalRelation rel:outrelations){
             if(rel instanceof TemporalRelation_ET){
                 TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
-                timexVal = String.format("%s:%s",timex.getUniqueId(),timex.getText());
                 normVal = timex.getNormVal();
-                /*sb.append("\t==\t");
-                sb.append(timex.getUniqueId());
-                sb.append(":");
-                sb.append(timex.getText());*/
-                //sb.append(String.format(" (%s)",timex.getNormVal()));
+                if(normVal.equals("PRESENT_REF"))
+                    normVal = doc.getDct().getNormVal();
+                else if(normVal.equals("PAST_REF")||normVal.equals("FURTURE_REF"))
+                    normVal = timex.getText();
+                break;
             }
         }
-        sb.append(String.format("|%-"+normValLen+"s",normVal).replaceAll(" ","-"));
-        sb.append(String.format("%-"+eventValLen+"s = %s\n",eventVal,timexVal));
-        if(verb_srl!=null) {
-            /*String pred = verb_srl.getAttribute("predicate") + ":" + verb_srl.getAttribute("SenseNumber");
-            sb.append(String.format("%-"+normValLen+"s",""));
-            sb.append(pred);
-            sb.append("\n");*/
-
+        sb.append(String.format("|%-"+normValLen+"s%s\n",normVal,eventVal).replaceAll(" ","-"));
+        /*if(verb_srl!=null) {
             StringBuilder spaces = new StringBuilder();
             for (int i = 0; i < normValLen; i++)
                 spaces.append(" ");
@@ -360,8 +354,6 @@ public class EventTemporalNode extends TemporalNode{
             for (Relation r : outgoingRelations) {
                 Constituent target = r.getTarget();
                 if(r.getRelationName().charAt(1)>'9'||r.getRelationName().charAt(1)<'0') continue;
-                /*sb.append(spaces).append(r.getRelationName()).append(": ")
-                        .append(target.getTokenizedSurfaceForm());*/
                 sb.append("|").append(spaces).append("[").append(r.getRelationName()).append("] ")
                         .append(target.getTokenizedSurfaceForm());
 
@@ -375,7 +367,7 @@ public class EventTemporalNode extends TemporalNode{
                 sb.append("\n");
             }
         }
-        /*else
+        else
             sb.append(text);*/
         return sb.toString();
     }

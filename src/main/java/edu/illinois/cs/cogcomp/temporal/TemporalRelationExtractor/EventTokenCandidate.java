@@ -107,7 +107,9 @@ public class EventTokenCandidate {
             closestTimex_right = allTimexes.get(i);
 
         // Verb SRL from the same sentence
-        List<Constituent> allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
+        List<Constituent> allPredicates = new ArrayList<>();
+        if(ta.hasView(ViewNames.SRL_VERB))
+            allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
         for(Constituent c:allPredicates){
             if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
                 verb_srl_same_sentence.add(c);
