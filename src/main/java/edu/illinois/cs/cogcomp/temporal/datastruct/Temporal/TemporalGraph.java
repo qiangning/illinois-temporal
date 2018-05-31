@@ -3,6 +3,7 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
 import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
@@ -238,8 +239,16 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         List<EventTemporalNode> events = convert2chain();
         try{
             PrintStream ps = new PrintStream(new File(fname));
-            for(EventTemporalNode e:events)
-                ps.println(e.interpret());
+            ps.println("|\n|");
+            int cnt = 0;
+            for(EventTemporalNode e:events) {
+                ps.print(e.interpret());
+                ps.println("|");
+                cnt++;
+            }
+            ps.println("V\n\nTime Axis");
+            if(cnt==0)
+                ps.println("(No main-axis events were found in the given text)");
         }
         catch (Exception e){
             e.printStackTrace();
