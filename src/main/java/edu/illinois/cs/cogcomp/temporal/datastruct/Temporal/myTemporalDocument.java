@@ -35,7 +35,7 @@ public class myTemporalDocument implements Serializable {
     private List<EventTemporalNode> eventList = new ArrayList<>();
     private List<TimexTemporalNode> timexList = new ArrayList<>();
     private TimexTemporalNode dct;// a shallow copy of one of those in timexList
-    private TextAnnotation ta;
+    public TextAnnotation ta;
     private TemporalGraph graph;
     private String docid;
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
@@ -651,6 +651,56 @@ public class myTemporalDocument implements Serializable {
         if(et_rel==null)
             return getNullTempRel();
         return et_rel.getRelType();
+    }
+
+    public String taVisualization(){
+        Set<Integer> highlights_timex = new HashSet<>();
+        Set<Integer> highlights_events = new HashSet<>();
+        Map<Integer, String> start_idx_map = new HashMap<>();
+        Map<Integer, String> timex_norm_val = new HashMap<>();
+        Set<Integer> ends = new HashSet<>();
+
+        for (TimexTemporalNode node : timexList){
+           for (int i = node.tokenSpan.getFirst(); i < node.tokenSpan.getSecond(); i++){
+                highlights_timex.add(i);
+            } 
+            start_idx_map.put(node.tokenSpan.getFirst(), node.getUniqueId());
+            ends.add(node.tokenSpan.getSecond() - 1);
+            timex_norm_val.put(node.tokenSpan.getSecond() - 1, node.getNormVal());
+        }
+        for (EventTemporalNode node : eventList){
+            highlights_events.add(node.tokenId); 
+            start_idx_map.put(node.tokenId, node.getUniqueId());
+            ends.add(node.tokenId);
+        }
+        String ret = "";
+        for (int i = 0; i < ta.getTokens().length; i++){
+            boolean added = false;
+           if (highlights_events.contains(i)){
+                added = true;
+                ret += "<font color=\"#1f77b4\">";
+            } 
+           if (highlights_timex.contains(i)){
+                added = true;
+                ret += "<font color=\"#ff7f0e\">";
+            }
+            if (start_idx_map.containsKey(i)){
+                ret += "[" + start_idx_map.get(i) + ": ";
+            }
+            ret += ta.getToken(i);
+            if (timex_norm_val.containsKey(i)){
+                ret += " (" + timex_norm_val.get(i) + ")";
+            }
+            if (ends.contains(i)){
+                ret += "]";
+            }
+            ret += " ";
+            if (added){
+                ret += "</font>";
+            }
+
+        }
+        return ret;
     }
 
     public static void main(String[] args) throws Exception{

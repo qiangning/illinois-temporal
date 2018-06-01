@@ -1,0 +1,514 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building illinois-temporal 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[WARNING] The POM for edu.illinois.cs.cogcomp:illinois-prepsrl-model:jar:3.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+[INFO] 
+[INFO] --- exec-maven-plugin:1.3.2:java (default-cli) @ illinois-temporal ---
+[WARNING] Warning: killAfter is now deprecated. Do you need it ? Please comment on MEXEC-6.
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/home/xzhou45/.m2/repository/ch/qos/logback/logback-classic/1.1.5/logback-classic-1.1.5.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/home/xzhou45/.m2/repository/org/slf4j/slf4j-nop/1.7.13/slf4j-nop-1.7.13.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelectorStaticBinder]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v1.3.3.RELEASE)
+
+2018-06-01 00:21:45.016  INFO 13674 --- [ntroller.main()] e.i.c.c.t.T.APIController                : Starting APIController on sauron with PID 13674 (/home/xzhou45/illinois-temporal-vc/illinois-temporal/target/classes started by xzhou45 in /home/xzhou45/illinois-temporal-vc/illinois-temporal)
+2018-06-01 00:21:45.022  INFO 13674 --- [ntroller.main()] e.i.c.c.t.T.APIController                : No active profile set, falling back to default profiles: default
+2018-06-01 00:21:45.086  INFO 13674 --- [ntroller.main()] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@65ed6be: startup date [Fri Jun 01 00:21:45 CDT 2018]; root of context hierarchy
+2018-06-01 00:21:45.848  INFO 13674 --- [ntroller.main()] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'beanNameViewResolver' with a different definition: replacing [Root bean: class [null]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=org.springframework.boot.autoconfigure.web.ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration; factoryMethodName=beanNameViewResolver; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/web/ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration.class]] with [Root bean: class [null]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter; factoryMethodName=beanNameViewResolver; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/web/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]]
+2018-06-01 00:21:46.464  INFO 13674 --- [ntroller.main()] org.eclipse.jetty.util.log               : Logging initialized @10512ms
+2018-06-01 00:21:46.693  INFO 13674 --- [ntroller.main()] e.j.JettyEmbeddedServletContainerFactory : Server initialized with port: 8080
+2018-06-01 00:21:46.697  INFO 13674 --- [ntroller.main()] org.eclipse.jetty.server.Server          : jetty-9.2.15.v20160210
+2018-06-01 00:21:46.745  INFO 13674 --- [ntroller.main()] application                              : Initializing Spring embedded WebApplicationContext
+2018-06-01 00:21:46.745  INFO 13674 --- [ntroller.main()] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 1664 ms
+2018-06-01 00:21:47.100  INFO 13674 --- [ntroller.main()] o.s.b.c.e.ServletRegistrationBean        : Mapping servlet: 'dispatcherServlet' to [/]
+2018-06-01 00:21:47.104  INFO 13674 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'characterEncodingFilter' to: [/*]
+2018-06-01 00:21:47.107  INFO 13674 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2018-06-01 00:21:47.107  INFO 13674 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'httpPutFormContentFilter' to: [/*]
+2018-06-01 00:21:47.107  INFO 13674 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'requestContextFilter' to: [/*]
+2018-06-01 00:21:47.108  INFO 13674 --- [ntroller.main()] o.e.jetty.server.handler.ContextHandler  : Started o.s.b.c.e.j.JettyEmbeddedWebAppContext@671997ca{/,file:/tmp/jetty-docbase.2777442209720244029.8080/,AVAILABLE}
+2018-06-01 00:21:47.108  INFO 13674 --- [ntroller.main()] org.eclipse.jetty.server.Server          : Started @11158ms
+2018-06-01 00:21:47.500  INFO 13674 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@65ed6be: startup date [Fri Jun 01 00:21:45 CDT 2018]; root of context hierarchy
+2018-06-01 00:21:47.605  INFO 13674 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/],methods=[GET]}" onto public java.lang.String edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.renderidx()
+2018-06-01 00:21:47.609  INFO 13674 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api],methods=[GET]}" onto public java.lang.String edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(java.lang.String)
+2018-06-01 00:21:47.612  INFO 13674 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2018-06-01 00:21:47.613  INFO 13674 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2018-06-01 00:21:47.654  INFO 13674 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-01 00:21:47.654  INFO 13674 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-01 00:21:47.701  INFO 13674 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-01 00:21:47.926  INFO 13674 --- [ntroller.main()] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2018-06-01 00:21:47.955  INFO 13674 --- [ntroller.main()] application                              : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2018-06-01 00:21:47.956  INFO 13674 --- [ntroller.main()] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization started
+2018-06-01 00:21:47.972  INFO 13674 --- [ntroller.main()] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization completed in 16 ms
+2018-06-01 00:21:48.068  INFO 13674 --- [ntroller.main()] o.eclipse.jetty.server.ServerConnector   : Started ServerConnector@4b761721{HTTP/1.1}{0.0.0.0:8080}
+2018-06-01 00:21:48.075  INFO 13674 --- [ntroller.main()] .s.b.c.e.j.JettyEmbeddedServletContainer : Jetty started on port(s) 8080 (http/1.1)
+2018-06-01 00:21:48.081  INFO 13674 --- [ntroller.main()] e.i.c.c.t.T.APIController                : Started APIController in 3.624 seconds (JVM running for 12.131)
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+
+Loading WordNet data and index...
+	# of noun synset: 82116
+	# of verb synset: 13768
+	# of adj synset: 18157
+	# of adv synset: 3622
+	# of noun: 117798
+	# of verb: 11529
+	# of adj: 21479
+	# of adv: 4481
+Done.
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+The president called out Robert Iger who had phoned Valerie Jarrett on Tuesday to apologize. The president complained on Twitter that Mr. Iger had not called President Donald Trump to apologize for the horrible statements said about him on ABC.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+George Lowe, the last surviving member of the team which first conquered Everest in 1953, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. The last British climbing member of the 1953 team, Mike Westmacott, died last June. Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+The Transportation Security Administration said it has added about two dozen dogs to monitor passengers coming in and out of the airport around the Super Bowl. On Saturday, TSA agents demonstrated how the dogs can sniff out many different types of explosives.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+President Trump on Sunday demanded that the Justice Department investigate whether the FBI infiltrated his campaign as he targets those he views as political enemies.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+TSA spokeswoman Lisa Farbstein said the dogs undergo 12 weeks of training, which costs about $200,000, factoring in food, vehicles and salaries for trainers. Dogs have been used in cargo areas for some time, but have just been introduced recently in passenger areas at Newark and JFK airports.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+President Trump on Sunday demanded that the Justice Department investigate whether the FBI infiltrated his campaign as he targets those he views as political enemies.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc
+Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.
+Adding SRL view failed for doc  sentId=0
+edu.illinois.cs.cogcomp.annotation.AnnotatorException
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotator.addView(CuratorAnnotator.java:55)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.lazyAddView(Annotator.java:203)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.getView(Annotator.java:167)
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation.addView(TextAnnotation.java:109)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:257)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:255)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor.extractTextAnnotation(myTextPreprocessor.java:35)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:61)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+java.lang.IllegalArgumentException: View SRL_VERB not found
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.AbstractTextAnnotation.getView(AbstractTextAnnotation.java:134)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TimexTemporalNode.<init>(TimexTemporalNode.java:48)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:65)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.
+Adding SRL view failed for doc  sentId=0
+edu.illinois.cs.cogcomp.annotation.AnnotatorException
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotator.addView(CuratorAnnotator.java:55)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.lazyAddView(Annotator.java:203)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.getView(Annotator.java:167)
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation.addView(TextAnnotation.java:109)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:257)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:255)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor.extractTextAnnotation(myTextPreprocessor.java:35)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:61)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+java.lang.IllegalArgumentException: View SRL_VERB not found
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.AbstractTextAnnotation.getView(AbstractTextAnnotation.java:134)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TimexTemporalNode.<init>(TimexTemporalNode.java:48)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:65)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.
+Adding SRL view failed for doc  sentId=0
+edu.illinois.cs.cogcomp.annotation.AnnotatorException
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotator.addView(CuratorAnnotator.java:55)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.lazyAddView(Annotator.java:203)
+	at edu.illinois.cs.cogcomp.annotation.Annotator.getView(Annotator.java:167)
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation.addView(TextAnnotation.java:109)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:257)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.addView(CuratorAnnotatorService.java:255)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor.extractTextAnnotation(myTextPreprocessor.java:35)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:61)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+java.lang.IllegalArgumentException: View SRL_VERB not found
+	at edu.illinois.cs.cogcomp.core.datastructures.textannotation.AbstractTextAnnotation.getView(AbstractTextAnnotation.java:134)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TimexTemporalNode.<init>(TimexTemporalNode.java:48)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:65)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:375)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.GeneratedMethodAccessor38.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+TSA spokeswoman Lisa Farbstein said the dogs undergo 12 weeks of training, which costs about $200,000, factoring in food, vehicles and salaries for trainers. Dogs have been used in cargo areas for some time, but have just been introduced recently in passenger areas at Newark and JFK airports.
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/eventDetector/eventPerceptronDetector_win2_cls0.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent0_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel/bugfix/eeTempRelClsBugFix_sent1_labelMode0_clsMode0_win3.lc
+Model file read from /home/xzhou45/illinois-temporal-vc/illinois-temporal/models/tempRel_ET/etTempRelCls_sent0_labelMode0_clsMode0_win3.lc

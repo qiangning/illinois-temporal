@@ -7,7 +7,32 @@
     <groupId>edu.illinois.cs.cogcomp</groupId>
     <artifactId>illinois-temporal</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.3.3.RELEASE</version>
+    </parent>
+
+<profiles>
+    <profile>
+        <id>profile1</id>
+        <properties>
+          <spring.boot.mainclass>edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.APIController</spring.boot.mainclass>
+        </properties>
+    </profile>
+</profiles>
+
+<properties>
+    <!-- The main class to start by executing java -jar -->
+    <start-class>edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.APIController</start-class>
+
+</properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-time</artifactId>
@@ -47,11 +72,6 @@
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-core-utilities</artifactId>
-            <version>4.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-curator</artifactId>
             <version>4.0.4</version>
         </dependency>
         <dependency>
@@ -105,6 +125,20 @@
                         <param>${project.basedir}/src/main/lbj/etTempRelCls.lbj</param>
                     </lbjavaInputFileList>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>${spring.boot.mainclass}</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

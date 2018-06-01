@@ -17,7 +17,7 @@ import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retr
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrievePPHeadOfTokenId;
 
 public class TimexTemporalNode extends TemporalNode{
-    private IntPair tokenSpan;
+    public IntPair tokenSpan;
     private boolean isDCT;
     private String type;
     private String mod;

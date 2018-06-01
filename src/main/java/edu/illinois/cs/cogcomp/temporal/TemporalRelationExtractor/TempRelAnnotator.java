@@ -365,10 +365,22 @@ public class TempRelAnnotator {
         myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
-        doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
         doc.getGraph().chainVisualization("data/html");
         System.out.println();
+    }
+
+    public static String processRawText(String text) throws Exception{
+        System.out.println(text);
+        myTemporalDocument doc = new myTemporalDocument(text, "test", "2018-05-15");
+        TempRelAnnotator tra = new TempRelAnnotator(doc);
+        tra.annotator();
+        doc.getGraph().reduction();
+        //return doc.getGraph().chainVisualization("") + "SPRTTRPS" + doc.getGraph().graphVisualization("");
+        String graphText = doc.getGraph().graphVisualization("");
+        String chainText = doc.getGraph().chainVisualization("");
+        String originalText = doc.taVisualization();
+        return graphText + "SPRTTRPS" + chainText + "SPRTTRPS" + originalText;
     }
 
     public static void main(String[] args) throws Exception{

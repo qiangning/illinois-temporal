@@ -46,7 +46,7 @@ public class GraphJavaScript {
     public void sortVertexes(){
         V.sort(Comparator.comparing(vertex::getUniqueid));
     }
-    public void createJS(){
+    public String createJS(){
         if(V.size()==0){
             System.out.println(fname+": Graph has not been initialized.");
         }
@@ -55,13 +55,20 @@ public class GraphJavaScript {
         String js_vertex = "";
         String js_edge = "";
         for(vertex v:V){
-            String tmp = String.format("    {%s},\n",v.toString4d3());
+            String tmp = String.format("{%s},",v.toString4d3());
             js_vertex += tmp;
         }
         for(edge e:E){
-            String tmp = String.format("    {%s},\n",e.toString4d3());
+            String tmp = String.format("{%s},",e.toString4d3());
             js_edge += tmp;
         }
+        if (js_vertex.endsWith(",")){
+            js_vertex = js_vertex.substring(0, js_vertex.length() - 1);
+        }
+        if (js_edge.endsWith(",")){
+            js_edge = js_edge.substring(0, js_edge.length() - 1);
+        }
+        String jsonData = "{\"nodes\":[" + js_vertex + "],\"edges\":[" + js_edge + "]}";
         String jscript = "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
@@ -219,15 +226,11 @@ public class GraphJavaScript {
                 "</body>\n" +
                 "</html>";
         try{
-            File file = new File(fname);
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(jscript);
-            fileWriter.flush();
-            fileWriter.close();
         }
         catch (Exception e){
             e.printStackTrace();
         }
+        return jsonData;
     }
 
     private int getVertexIdx(vertex v){
@@ -245,7 +248,6 @@ public class GraphJavaScript {
         List<myTemporalDocument> docs = loader.getTBDense_Test_autoCorrected();
         for(myTemporalDocument doc:docs){
             System.out.println(doc.getDocid());
-            doc.getGraph().reduction();
             doc.getGraph().graphVisualization(htmlDir);
             doc.getGraph().chainVisualization(htmlDir);
         }

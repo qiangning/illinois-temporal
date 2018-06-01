@@ -24,7 +24,7 @@ public class vertex {
     }
 
     public String toString4d3(){
-        return String.format("name:\"%s\", color: %d", toString(),colorId);
+        return String.format("\"name\":\"%s\", \"color\": %d", toString(),colorId);
     }
 
     public String toString(){
