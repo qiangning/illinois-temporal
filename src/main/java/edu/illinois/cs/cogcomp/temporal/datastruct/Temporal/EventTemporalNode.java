@@ -92,7 +92,9 @@ public class EventTemporalNode extends TemporalNode{
         isIntention = SignalWordSet.getInstance().intentionVerbSet.contains(lemma);
 
         // Verb SRL from the same sentence
-        List<Constituent> allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
+        List<Constituent> allPredicates = new ArrayList<>();
+        if(ta.hasView(ViewNames.SRL_VERB))
+            allPredicates = ((PredicateArgumentView)doc.getTextAnnotation().getView(ViewNames.SRL_VERB)).getPredicates();
         for(Constituent c:allPredicates){
             if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
                 verb_srl_same_sentence.add(c);
@@ -318,23 +320,31 @@ public class EventTemporalNode extends TemporalNode{
     }
 
     public String interpret(){
+        int normValLen = 13;
         StringBuilder sb = new StringBuilder();
-        sb.append(getUniqueId());
-        sb.append("\n");
-        if(verb_srl!=null) {
-            String pred = verb_srl.getAttribute("predicate") + ":" + verb_srl.getAttribute("SenseNumber");
-
-            sb.append(pred);
-            sb.append("\n");
-
+        String normVal = "", eventVal = getUniqueId()+":"+getText();
+        // get timexes that are linked to this event
+        List<TemporalRelation> outrelations = doc.getGraph().getNodeOutRelationMap().getOrDefault(getUniqueId(),new ArrayList<>());
+        for(TemporalRelation rel:outrelations){
+            if(rel instanceof TemporalRelation_ET){
+                TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
+                normVal = timex.getNormVal();
+                if(normVal.equals("PRESENT_REF"))
+                    normVal = doc.getDct().getNormVal();
+                else if(normVal.equals("PAST_REF")||normVal.equals("FURTURE_REF"))
+                    normVal = timex.getText();
+                break;
+            }
+        }
+        sb.append(String.format("|%-"+normValLen+"s%s\n",normVal,eventVal).replaceAll(" ","-"));
+        /*if(verb_srl!=null) {
             StringBuilder spaces = new StringBuilder();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < normValLen; i++)
                 spaces.append(" ");
 
             List<Relation> outgoingRelations = new ArrayList<>(verb_srl.getOutgoingRelations());
 
-            Collections.sort(outgoingRelations, new Comparator<Relation>() {
-
+            outgoingRelations.sort(new Comparator<Relation>() {
                 @Override
                 public int compare(Relation arg0, Relation arg1) {
                     return arg0.getRelationName().compareTo(arg1.getRelationName());
@@ -343,7 +353,8 @@ public class EventTemporalNode extends TemporalNode{
 
             for (Relation r : outgoingRelations) {
                 Constituent target = r.getTarget();
-                sb.append(spaces).append(r.getRelationName()).append(": ")
+                if(r.getRelationName().charAt(1)>'9'||r.getRelationName().charAt(1)<'0') continue;
+                sb.append("|").append(spaces).append("[").append(r.getRelationName()).append("] ")
                         .append(target.getTokenizedSurfaceForm());
 
                 if (target.getAttributeKeys().size() > 0) {
@@ -357,7 +368,7 @@ public class EventTemporalNode extends TemporalNode{
             }
         }
         else
-            sb.append(text);
+            sb.append(text);*/
         return sb.toString();
     }
 
@@ -374,5 +385,9 @@ public class EventTemporalNode extends TemporalNode{
                 ", pos_window=" + Arrays.toString(pos_window) +
                 ", lemma_window=" + Arrays.toString(lemma_window) +
                 '}';
+    }
+
+    public static void main(String[] args) {
+        System.out.println(String.format("%10s","").replace(" ","-"));
     }
 }

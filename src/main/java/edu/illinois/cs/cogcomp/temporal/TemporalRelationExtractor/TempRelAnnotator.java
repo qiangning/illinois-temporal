@@ -40,10 +40,12 @@ public class TempRelAnnotator {
     private boolean[][] ignoreMap;//n_entity x n_entity
     private List<int[][][]> constraintMap;// A list of {n_entity x n_entity x (n_relation+1)} //+1dim is the "1" in x1+x2+x3=1
     private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
+    private static TempRelLabeler defaultEE,defaultET;
     public int[][] result;
 
     public static boolean performET = true;
 
+    /*Constructors*/
     public TempRelAnnotator(myTemporalDocument doc){
         this(doc,null);
         try{
@@ -72,9 +74,11 @@ public class TempRelAnnotator {
         this.rm = rm;
         this.ilp = ilp;
         tca = defaultTemporalChunkerAnnotator();
-        if(doc.getDct()!=null)
-            setDCT(doc.getDct().getNormVal());
+        //if(doc.getDct()!=null)
+        //    setDCT(doc.getDct().getNormVal());
     }
+
+    /*Functions*/
 
     private void initAllArrays4ILP(){
         n_entity = doc.getEventList().size();
@@ -119,6 +123,7 @@ public class TempRelAnnotator {
     }
 
     public void setDCT(String dct){
+        System.out.println(dct);
         tca.addDocumentCreationTime(dct);
     }
 
@@ -148,9 +153,12 @@ public class TempRelAnnotator {
             //System.out.println("[TempRelAnnotator.annotator] Start from scratch. Drop all relations in "+doc.getDocid());
             doc.dropAllRelations();
         }
-        eeTempRelAnnotator();
-        if(performET)
+        doc.addTTRelationsBasedOnNormVals();
+        if(performET) {
             etTempRelAnnotator();
+        }
+        doc.addEERelationsBasedOnETAndTT();
+        eeTempRelAnnotator();
     }
 
     public void axisAnnotator(){
@@ -206,8 +214,11 @@ public class TempRelAnnotator {
                 TemporalRelation_EE ee = doc.getGraph().getEERelBetweenEvents(e1.getUniqueId(),e2.getUniqueId());
                 if(ee==null){
                     ee = new TemporalRelation_EE(e1, e2, new TemporalRelType(TemporalRelType.relTypes.NULL), doc);
+                    ignoreMap[i][j] = eeTempRelLabeler.isIgnore(ee);
                 }
-                ignoreMap[i][j] = eeTempRelLabeler.isIgnore(ee);
+                else{
+                    ignoreMap[i][j] = false;
+                }
                 if(ignoreMap[i][j])
                     continue;
                 ee.extractAllFeats();
@@ -283,7 +294,10 @@ public class TempRelAnnotator {
             e.extractAllFeats(window);
         for(TimexTemporalNode t:timexList)
             t.extractPosLemmaWin(window);
+
+        // guaranteed: only one timex can be associated with a single event
         for(EventTemporalNode e:eventList){
+            List<TemporalRelation_ET> et2add = new ArrayList<>();
             for(TimexTemporalNode t:timexList){
                 TemporalRelation_ET et = doc.getGraph().getETRelBetweenEventTimex(e.getUniqueId(),t.getUniqueId());
                 if(et==null){
@@ -300,11 +314,23 @@ public class TempRelAnnotator {
                         continue;
                     }
                     et.setRelType(reltype);
-                    doc.getGraph().addRelNoDup(et);
+                    et2add.add(et);
                 }
             }
+            TemporalRelation_ET bestET = null;
+            double maxScore = -1d;
+            for(TemporalRelation_ET et:et2add) {
+                double currScore = et.getRelType().getScores()[TemporalRelType.relTypes.EQUAL.getIndex()];
+                if(maxScore<currScore){
+                    maxScore = currScore;
+                    bestET = et;
+                }
+            }
+            doc.getGraph().addRelNoDup(bestET);
         }
     }
+
+    /*Getters and Setters*/
 
     public void setAxisLabeler(EventAxisLabeler axisLabeler) {
         this.axisLabeler = axisLabeler;
@@ -328,6 +354,7 @@ public class TempRelAnnotator {
     }
 
     private static TempRelLabeler defaultTempRelLabeler_EE(){
+        if(defaultEE==null) {
         /*String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
@@ -335,12 +362,14 @@ public class TempRelAnnotator {
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
         return new TempRelLabelerLBJ_EE(cls0,cls1);*/
 
-        String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
-        eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
-        eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
-        return new TempRelLabelerLBJ_EE(cls0,cls1);
+            String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+            eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lex");
+            eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lex");
+            defaultEE = new TempRelLabelerLBJ_EE(cls0, cls1);
+        }
+        return defaultEE;
 
         /*String temprelMdlDir = "models", temprelMldNamePrefix = "eeTempRelCls";
         eeTempRelCls cls_mod1_dist0 = new eeTempRelCls(String.format("%s/%s_mod%d_win2_sent%d.lc",temprelMdlDir,temprelMldNamePrefix,1,0),String.format("%s/%s_mod%d_win2_sent%d.lex",temprelMdlDir,temprelMldNamePrefix,1,0));
@@ -351,18 +380,30 @@ public class TempRelAnnotator {
     }
 
     public static TempRelLabeler defaultTempRelLabeler_ET(){
-        String temprelMdlDir = "models/tempRel_ET", temprelMldNamePrefix = "etTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
-        etTempRelCls cls0 = new etTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
-                temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lex");
-        return new TempRelLabelerLBJ_ET(cls0);
+        if(defaultET==null) {
+            String temprelMdlDir = "models/tempRel_ET", temprelMldNamePrefix = "etTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+            etTempRelCls cls0 = new etTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lc",
+                    temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lex");
+            defaultET = new TempRelLabelerLBJ_ET(cls0);
+        }
+        return defaultET;
     }
 
     public static void rawtext2graph() throws Exception{
-        String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
-        //String text = "Thanks for yesterday's presentation. I think it was well received. We should decide how to move forward by next Monday and then perhaps we can talk about presenting to the CEO.";
+        // sample input
+        //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
-        //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the department or the FBI \"infiltrated or surveilled\" his campaign at the behest of the Obama administration, following through on his frequent threats to intervene in the special counsel inquiry as he targets those he views as political enemies.";
-        myTemporalDocument doc = new myTemporalDocument(text,"test","2010-05-04");
+        //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the FBI infiltrated his campaign as he targets those he views as political enemies.";
+        //String text = "Yesterday's presentation was well received since we had practiced a lot.";
+        //String text = "The Transportation Security Administration said it has added about two dozen dogs to monitor passengers coming in and out of the airport around the Super Bowl. On Saturday, TSA agents demonstrated how the dogs can sniff out many different types of explosives.";
+        //String text = "TSA spokeswoman Lisa Farbstein said the dogs undergo 12 weeks of training, which costs about $200,000, factoring in food, vehicles and salaries for trainers. Dogs have been used in cargo areas for some time, but have just been introduced recently in passenger areas at Newark and JFK airports.";
+        //String text = "Thousands of people in Germany have been demonstrating today against the high level of unemployment in the country. Latest report shows a sharp rise, with nearly five million Germans out of work.";
+        //String text = "The US military buildup in the Persian gulf continues apace and more planes are heading from the United States. Senior officials say Iraq's president Saddam Hussein can expect punishing air strikes if he doesn't stop building biological and chemical weapons.";
+        //String text = "The president called out Robert Iger who had phoned Valerie Jarrett on Tuesday to apologize. The president complained on Twitter that Mr. Iger had not called President Donald Trump to apologize for the horrible statements said about him on ABC.";
+        //String text = "Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.";
+        String text = "George Lowe, the last surviving member of the team which first conquered Everest in 1953, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. The last British climbing member of the 1953 team, Mike Westmacott, died last June. Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.";
+        String dct = "2013-03-22";
+        myTemporalDocument doc = new myTemporalDocument(text,"test",dct);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
         doc.getGraph().graphVisualization("data/html");
@@ -370,13 +411,12 @@ public class TempRelAnnotator {
         System.out.println();
     }
 
-    public static String processRawText(String text) throws Exception{
+    public static String processRawText(String text, String dct) throws Exception{
         System.out.println(text);
-        myTemporalDocument doc = new myTemporalDocument(text, "test", "2018-05-15");
+        myTemporalDocument doc = new myTemporalDocument(text, "test", dct);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
         doc.getGraph().reduction();
-        //return doc.getGraph().chainVisualization("") + "SPRTTRPS" + doc.getGraph().graphVisualization("");
         String graphText = doc.getGraph().graphVisualization("");
         String chainText = doc.getGraph().chainVisualization("");
         String originalText = doc.taVisualization();
@@ -384,8 +424,8 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        //rawtext2graph();
-        myDatasetLoader loader = new myDatasetLoader();
+        rawtext2graph();
+        /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -401,6 +441,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
     }
 }

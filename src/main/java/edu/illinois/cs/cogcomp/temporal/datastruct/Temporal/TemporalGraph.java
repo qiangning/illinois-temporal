@@ -3,6 +3,7 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
 import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
@@ -103,7 +104,12 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 directedGraph.addEdge(v1,v2);
             }
             else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
-                directedGraph.addEdge(v2,v1);
+                try {
+                    directedGraph.addEdge(v2, v1);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
         return directedGraph;
@@ -112,6 +118,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
     public List<EventTemporalNode> convert2chain(){
         List<EventTemporalNode> ret = new ArrayList<>();
         // todo do ee first
+        List<TemporalRelation_ET> allET = getAllETRelations(0);
         dropAllETRelations();
         dropAllTTRelations();
 
@@ -143,7 +150,11 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 return 0;
             }
         });
-
+        // add back ET edges
+        for(TemporalRelation_ET et:allET){
+            if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
+                addRelNoDup(et);
+        }
         return ret;
     }
 
@@ -205,7 +216,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             int len = rel.getSentDiff()+1;
             if(rel instanceof TemporalRelation_EE)
                 len *= 2;
-            int colorId = rel instanceof TemporalRelation_EE? 3:4;
+            int colorId = rel instanceof TemporalRelation_EE? 1:2;
             String markerEnd = rel instanceof TemporalRelation_EE?"arrowhead":"";
             switch (reltype.getName().toLowerCase()){
                 case "before":
@@ -228,10 +239,16 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         List<EventTemporalNode> events = convert2chain();
         String ret = "";
         try{
-            //PrintStream ps = new PrintStream(new File(fname));
-            for(EventTemporalNode e:events)
-                ret += e.interpret() + "<br>";
-                //ps.println(e.interpret());
+            ret += "|\n";
+            int cnt = 0;
+            for(EventTemporalNode e:events) {
+                ret += e.interpret();
+                ret += "|\n";
+                cnt++;
+            }
+            ret += "V\n\nTime Axis";
+            if(cnt==0)
+                ret += "(No main-axis events were found in the given text)\n";
         }
         catch (Exception e){
             e.printStackTrace();
@@ -320,16 +337,13 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
             TemporalNode n2 = getNode(uniqueId2);
             if(n1==null||n2==null)
                 return false;
-            if(n1 instanceof EventTemporalNode && n2 instanceof EventTemporalNode){
+            if(n1 instanceof EventTemporalNode && n2 instanceof EventTemporalNode)
                 temporalRelation = new TemporalRelation_EE((EventTemporalNode)n1,(EventTemporalNode)n2,relType,doc);
-                addRelNoDup(temporalRelation);
-            }
-            else if(n1 instanceof TimexTemporalNode && n2 instanceof TimexTemporalNode){
-                //todo TT
-            }
-            else{
-                //todo ET
-            }
+            else if(n1 instanceof TimexTemporalNode && n2 instanceof TimexTemporalNode)
+                temporalRelation = new TemporalRelation_TT((TimexTemporalNode)n1,(TimexTemporalNode)n2,relType,doc);
+            else
+                temporalRelation = new TemporalRelation_ET(n1,n2,relType,doc);
+            addRelNoDup(temporalRelation);
         }
         else
             temporalRelation.setRelType(relType);

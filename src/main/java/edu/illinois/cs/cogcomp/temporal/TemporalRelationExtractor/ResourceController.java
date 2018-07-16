@@ -36,10 +36,12 @@ public class ResourceController{
 
     @CrossOrigin
     @RequestMapping(value = "/api", method = RequestMethod.GET)
-    public String annotate(@RequestParam(value = "text", defaultValue = "") String text){
+    public String annotate(@RequestParam(value = "text", defaultValue = "") String text, 
+                           @RequestParam(value = "dct", defaultValue = "") String dct){
         String ret = "ERROR";
         try{
-            ret = TempRelAnnotator.processRawText(text);
+            System.out.println("Got DCT:" + dct);
+            ret = TempRelAnnotator.processRawText(text, dct);
         }
         catch (Exception e){
             e.printStackTrace();

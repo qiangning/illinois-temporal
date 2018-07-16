@@ -31,6 +31,7 @@ public class TimexTemporalNode extends TemporalNode{
     private String[] pos_window;
     private String[] lemma_window;
 
+    /*Constructors*/
     public TimexTemporalNode(TimexTemporalNode other){
         this(other.nodeId,other.nodeType,other.text,other.index_in_doc,other.tokenSpan,other.sentId,other.isDCT,other.type,other.mod,other.normVal,other.ta);
     }
@@ -45,7 +46,9 @@ public class TimexTemporalNode extends TemporalNode{
         this.ta = ta;
         pp_head = retrievePPHeadOfTokenId(ta,this.tokenSpan.getFirst());
         // Verb SRL from the same sentence
-        List<Constituent> allPredicates = ((PredicateArgumentView)ta.getView(ViewNames.SRL_VERB)).getPredicates();
+        List<Constituent> allPredicates = new ArrayList<>();
+        if(ta.hasView(ViewNames.SRL_VERB))
+            allPredicates = ((PredicateArgumentView)ta.getView(ViewNames.SRL_VERB)).getPredicates();
         for(Constituent c:allPredicates){
             if(sentId==c.getSentenceId()&& !VerbIgnoreSet.getInstance().srlVerbIgnoreSet.contains(c.getAttribute("predicate"))) {
                 List<Relation> tmp = c.getOutgoingRelations();
@@ -67,6 +70,96 @@ public class TimexTemporalNode extends TemporalNode{
             pos_window = retrievePOSWindow_Span(ta,tokenSpan,win);
         if(lemma_window==null||lemma_window.length!=win*2+1)
             lemma_window = retrieveLemmaWindow_Span(ta,tokenSpan,win);
+    }
+
+    public TemporalRelType compareTo(TimexTemporalNode other, TimexTemporalNode dctTimex){// todo now only gives out before/after relations. other relations are all changed to vague.
+        if(!getType().equals("DATE") || !other.getType().equals("DATE"))
+            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+        String timex1 = getNormVal();
+        String timex2 = other.getNormVal();
+        /*If both are PRESENT_REF/PAST_REF/FUTURE_REF*/
+        if((timex1.equals("PRESENT_REF")||timex1.equals("PAST_REF")||timex1.equals("FUTURE_REF"))
+                &&(timex2.equals("PRESENT_REF")||timex2.equals("PAST_REF")||timex2.equals("FUTURE_REF"))){
+            switch(timex1){
+                case "PRESENT_REF":
+                    switch(timex2){
+                        case "PAST_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        case "FUTURE_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        case "PRESENT_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                        default:
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                    }
+                case "PAST_REF":
+                    switch(timex2){
+                        case "PAST_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                        case "FUTURE_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        case "PRESENT_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        default:
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                    }
+                case "FUTURE_REF":
+                    switch(timex2){
+                        case "PAST_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        case "FUTURE_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                        case "PRESENT_REF":
+                            return new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        default:
+                            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                    }
+                default:
+                    return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+            }
+        }
+        /*If either one is PRESENT_REF/PAST_REF/FUTURE_REF*/
+        String dct = dctTimex.getNormVal();
+        if(timex1.equals("PRESENT_REF")||timex1.equals("PAST_REF")||timex1.equals("FUTURE_REF")) {
+            TemporalRelType comp = mySimpleDate.compareString(dct,timex2);
+            switch(timex1){
+                case "PRESENT_REF":
+                    return comp;
+                case "PAST_REF"://timex1 before dct
+                    if(comp.getReltype()== TemporalRelType.relTypes.BEFORE)//dct before/equal to/includes timex2
+                        return comp;
+                    else
+                        return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                case "FUTURE_REF"://timex1 after dct
+                    if(comp.getReltype()== TemporalRelType.relTypes.AFTER)//dct after/equal to/includes timex2
+                        return comp;
+                    else
+                        return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                default:
+                    return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+            }
+        }
+        if(timex2.equals("PRESENT_REF")||timex2.equals("PAST_REF")||timex2.equals("FUTURE_REF")){
+            TemporalRelType comp = mySimpleDate.compareString(timex1,dct);
+            switch(timex2){
+                case "PRESENT_REF"://timex2 is dct
+                    return comp;
+                case "PAST_REF"://timex2 before dct
+                    if(comp.getReltype()== TemporalRelType.relTypes.AFTER)//timex1 after/equal to/includes dct
+                        return comp;
+                    else
+                        return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                case "FUTURE_REF"://timex2 after dct
+                    if(comp.getReltype()== TemporalRelType.relTypes.BEFORE)//timex1 before/equal to/includes dct
+                        return comp;
+                    else
+                        return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                default:
+                    return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+            }
+        }
+		/*both are standard dates*/
+        return mySimpleDate.compareString(timex1,timex2);
     }
 
     /*Getters and Setters*/
@@ -123,13 +216,13 @@ public class TimexTemporalNode extends TemporalNode{
     public String toString() {
         return "TimexTemporalNode{" +
                 "isDCT=" + isDCT +
+                ", nodeId=" + nodeId +
                 ", sentId=" + sentId +
                 ", tokenSpan=" + tokenSpan +
                 ", text=" + getText()+
                 ", type='" + type + '\'' +
                 ", mod='" + mod + '\'' +
                 ", normVal='" + normVal + '\'' +
-                ", index_in_doc=" + index_in_doc +
                 '}';
     }
 

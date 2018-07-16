@@ -44,7 +44,7 @@
             <version>1.3.1</version>
             <exclusions>
                 <exclusion>
-                    <groupId>net.sf.jgrapht</groupId> <!-- Exclude Project-D from Project-B -->
+                    <groupId>net.sf.jgrapht</groupId>
                     <artifactId>jgrapht</artifactId>
                 </exclusion>
             </exclusions>
@@ -89,17 +89,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-chunker</artifactId>
             <version>3.0.99</version>
             <exclusions>
                 <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId> <!-- Exclude Project-D from Project-B -->
+                    <groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;
                     <artifactId>illinois-chunker-model</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
 

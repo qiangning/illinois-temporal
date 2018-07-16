@@ -16,7 +16,7 @@ public class GraphJavaScript {
     private String fname;
     private final int width = 2000;
     private final int height = 1000;
-    private final int linkDistance = 50;
+    private final int linkDistance = 30;
     private final int circle_size = 10;
     private List<vertex> V;
     private HashMap<String,vertex> V_map;

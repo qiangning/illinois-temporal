@@ -210,4 +210,29 @@ public class AugmentedGraph<Node extends AugmentedNode, Relation extends BinaryR
     public int degreeOf(String uniqueid){
         return inDegreeOf(uniqueid)+outDegreeOf(uniqueid);
     }
+
+    public HashMap<String, List<Relation>> getNodeInRelationMap() {
+        return nodeInRelationMap;
+    }
+
+    public HashMap<String, List<Relation>> getNodeOutRelationMap() {
+        return nodeOutRelationMap;
+    }
+
+    public List<Node> getNodesToThis(String uniqueId){
+        List<Node> ret = new ArrayList<>();
+        List<Relation> inRelations = nodeInRelationMap.getOrDefault(uniqueId, new ArrayList<>());
+        for(Relation rel:inRelations){
+            ret.add(rel.getSourceNode());
+        }
+        return ret;
+    }
+    public List<Node> getNodesFromThis(String uniqueId){
+        List<Node> ret = new ArrayList<>();
+        List<Relation> outRelations = nodeOutRelationMap.getOrDefault(uniqueId, new ArrayList<>());
+        for(Relation rel:outRelations){
+            ret.add(rel.getTargetNode());
+        }
+        return ret;
+    }
 }

@@ -21,6 +21,12 @@ public class TemporalRelation_TT extends TemporalRelation{
     public TimexTemporalNode getTargetNode(){
         return (TimexTemporalNode) super.getTargetNode();
     }
+
+    @Override
+    public TemporalRelation_TT inverse(){
+        return new TemporalRelation_TT(getTargetNode(), getSourceNode(),getRelType().inverse(), getDoc());
+    }
+
     @Override
     @NotNull
     public TemporalRelation_TT getInverse(){
