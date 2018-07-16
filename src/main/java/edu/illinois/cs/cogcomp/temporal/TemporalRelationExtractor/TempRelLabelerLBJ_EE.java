@@ -32,8 +32,9 @@ public class TempRelLabelerLBJ_EE extends TempRelLabeler {
 
     @Override
     public boolean isIgnore(TemporalRelation ee) {
-        return ! (ee instanceof TemporalRelation_EE)
-                || Math.abs(ee.getSentDiff()) > 1;
+        /*return ! (ee instanceof TemporalRelation_EE)
+                || Math.abs(ee.getSentDiff()) > 1;*/
+        return ! (ee instanceof TemporalRelation_EE);
     }
 
     @Override
@@ -69,6 +70,10 @@ public class TempRelLabelerLBJ_EE extends TempRelLabeler {
             else if (ee.getSentDiff() == 1 && classifier_dist1 != null) {
                 ret = new TemporalRelType(classifier_dist1.discreteValue(ee));
                 ret.setScores(temporalScores2doubles(classifier_dist1.scores(ee),TemporalRelType.relTypes.getAllNames(),true));
+            }
+            else {
+                ret = new TemporalRelType("VAGUE");
+                ret.setScores(new double[]{0.33,0.33,0,0.33,0});
             }
         }
         return ret;

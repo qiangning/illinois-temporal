@@ -15,8 +15,10 @@ import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls_ET.etTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.*;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
@@ -44,6 +46,7 @@ public class TempRelAnnotator {
     public int[][] result;
 
     public static boolean performET = true;
+    public static boolean printILP = false;
 
     /*Constructors*/
     public TempRelAnnotator(myTemporalDocument doc){
@@ -280,6 +283,20 @@ public class TempRelAnnotator {
                     doc.getGraph().setRelBetweenNodes(doc.getEventList().get(i).getUniqueId(), doc.getEventList().get(j).getUniqueId(),reltype);
                 }
             }
+
+            //todo polish this snippet
+            if(printILP){
+                String printILP_dir = "data/ILP";
+                try {
+                    PrintStream ps = new PrintStream(new File(printILP_dir + File.separator + doc.getDocid()));
+                    StringBuffer sb = new StringBuffer();
+                    solver.getSolver().write(sb);
+                    ps.println(sb.toString());
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
         }
         //doc.extractAllFeats(window);
     }
@@ -401,9 +418,44 @@ public class TempRelAnnotator {
         //String text = "The US military buildup in the Persian gulf continues apace and more planes are heading from the United States. Senior officials say Iraq's president Saddam Hussein can expect punishing air strikes if he doesn't stop building biological and chemical weapons.";
         //String text = "The president called out Robert Iger who had phoned Valerie Jarrett on Tuesday to apologize. The president complained on Twitter that Mr. Iger had not called President Donald Trump to apologize for the horrible statements said about him on ABC.";
         //String text = "Instead, he expressed his own grievances on Wednesday and Thursday with what the network’s on-air personalities have said about him, and insisted he was the one who deserved an apology.";
-        String text = "George Lowe, the last surviving member of the team which first conquered Everest in 1953, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. The last British climbing member of the 1953 team, Mike Westmacott, died last June. Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.";
+        //String text = "George Lowe, the last surviving member of the team which first conquered Everest in 1953, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. The last British climbing member of the 1953 team, Mike Westmacott, died last June. Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.";
+        String text = "The last surviving member of the team which first conquered Everest in 1953 has died in a Derbyshire nursing home.\n" +
+                "\n" +
+                "George Lowe, 89, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side.\n" +
+                "\n" +
+                "New Zealand-born Mr Lowe was part of the team that helped Sir Edmund Hillary and Tenzing Norgay to the summit in 1953.\n" +
+                "\n" +
+                "Family friend and historian Dr Huw Lewis-Jones paid tribute to a \"gentle soul and fine climber\" who shunned the limelight.\n" +
+                "\n" +
+                "Mr Lowe also took part in the trans-Antarctic expedition of 1957-58, which made the first successful overland crossing of Antarctica via the South Pole.\n" +
+                "\n" +
+                "He later made expeditions to Greenland, Greece and Ethiopia.\n" +
+                "\n" +
+                "Speaking to the BBC in 1995, Mr Lowe said of his Antarctic adventure: \"We estimated we could do it in 100 days, and we got across on the 99th day.\n" +
+                "\n" +
+                "\"There was a great feeling of euphoria from everyone. It had a multiplying effect.\n" +
+                "\n" +
+                "\"We were pleased that England and New Zealand knew about it, and we thought that's where it would stop.\"\n" +
+                "\n" +
+                "He also talked about his \"second job\" as the group's cameraman, and having to wear four pairs of gloves to work the clockwork camera.\n" +
+                "\n" +
+                "\"When there were dramas, there was a split problem. Do you take part in the urgency - or do you record it?\" he said.\n" +
+                "\n" +
+                "Dr Lewis-Jones, the former curator at the Scott Polar Research Institute at the University of Cambridge, who first met Mr Lowe in 2005, called him a \"hero\".\n" +
+                "\n" +
+                "\"I don't often use that word but then it is not very often that you get to meet one,\" he said.\n" +
+                "\n" +
+                "A book of memoirs and photographs from the climb by Mr Lowe, which he worked on with Dr Lewis-Jones, is due to be published in May.\n" +
+                "\n" +
+                "He said: \"Lowe was a brilliant, kind fellow who never sought the limelight... and 60 years on from Everest his achievements deserve wider recognition.\n" +
+                "\n" +
+                "\"He was involved in two of the most important explorations of the 20th Century... yet remained a humble, happy man right to the end... an inspirational lesson to us all.\"\n" +
+                "\n" +
+                "Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage.\n" +
+                "\n" +
+                "The last British climbing member of the 1953 team, Mike Westmacott, died last June.";
         String dct = "2013-03-22";
-        myTemporalDocument doc = new myTemporalDocument(text,"test",dct);
+        myTemporalDocument doc = new myTemporalDocument(text,"test_longDist",dct);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
         tra.annotator();
         doc.getGraph().graphVisualization("data/html");
