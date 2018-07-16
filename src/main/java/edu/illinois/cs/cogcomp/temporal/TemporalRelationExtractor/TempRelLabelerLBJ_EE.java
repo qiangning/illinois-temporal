@@ -73,7 +73,7 @@ public class TempRelLabelerLBJ_EE extends TempRelLabeler {
             }
             else {
                 ret = new TemporalRelType("VAGUE");
-                ret.setScores(new double[]{0.33,0.33,0,0.33,0});
+                ret.setScores(new double[]{0.334,0.333,0,0.333,0});
             }
         }
         return ret;

@@ -5,6 +5,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
@@ -456,11 +457,14 @@ public class TempRelAnnotator {
         String dct = "2013-03-22";
         myTemporalDocument doc = new myTemporalDocument(text,"test_longDist",dct);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
+        ExecutionTimeUtil timer = new ExecutionTimeUtil();
+        timer.start();
         tra.annotator();
+        timer.end();
         doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
         doc.getGraph().chainVisualization("data/html");
-        System.out.println();
+        System.out.println(timer.getTimeSeconds()+" seconds.");
     }
 
     public static void main(String[] args) throws Exception{
