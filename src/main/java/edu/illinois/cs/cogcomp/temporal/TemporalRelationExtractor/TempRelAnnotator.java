@@ -77,8 +77,8 @@ public class TempRelAnnotator {
         this.rm = rm;
         this.ilp = ilp;
         tca = defaultTemporalChunkerAnnotator();
-        //if(doc.getDct()!=null)
-        //    setDCT(doc.getDct().getNormVal());
+        if(doc.getDct()!=null)
+            setDCT(doc.getDct().getNormVal());
     }
 
     /*Functions*/

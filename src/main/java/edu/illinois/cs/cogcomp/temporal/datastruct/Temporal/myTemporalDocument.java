@@ -53,8 +53,9 @@ public class myTemporalDocument implements Serializable {
         ta = myTextPreprocessor.extractTextAnnotation(bodytext);
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = new Date();
-        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        //Date date = new Date();
+        //dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        dct = new TimexTemporalNode(0,TimexNodeType,"2010-01-01",timexList.size(),new IntPair(-1,-1),-1,true,"DATE","","2010-01-01",ta);
         addTimex(dct);
     }
 
