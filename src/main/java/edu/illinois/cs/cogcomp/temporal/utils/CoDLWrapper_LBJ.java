@@ -25,8 +25,9 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
     // needed only if using 2-model
     protected double lambda;// must be in [0,1]
 
-    public CoDLWrapper_LBJ(boolean OneMdlOrTwoMdl,int maxRound, int seed, String modelDir, String modelNamePrefix) throws Exception{
+    public CoDLWrapper_LBJ(boolean OneMdlOrTwoMdl,double lambda,int maxRound, int seed, String modelDir, String modelNamePrefix) throws Exception{
         this.OneMdlOrTwoMdl = OneMdlOrTwoMdl;
+        this.lambda = lambda;
         this.maxRound = maxRound;
         this.seed = seed;
         setModelPath(modelDir,modelNamePrefix);
@@ -166,13 +167,12 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
             return IOUtils.isFile(mdlPath) && IOUtils.isFile(lexPath);
         }
         else{
-            String mdlPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
-            String lexPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lex";
+            //String mdlPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
+            //String lexPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lex";
             String mdlPath2 = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lc";
             String lexPath2 = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lex";
-            return new File(mdlPath1).isFile() && new File(lexPath1).isFile()
-                    &&new File(mdlPath2).isFile() && new File(lexPath2).isFile();
-
+            //return new File(mdlPath1).isFile() && new File(lexPath1).isFile()&&new File(mdlPath2).isFile() && new File(lexPath2).isFile();
+            return new File(mdlPath2).isFile() && new File(lexPath2).isFile();
         }
     }
 
@@ -183,12 +183,12 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
             multiClassifiers.classifiers.get(0).write(mdlPath,lexPath);
         }
         else{
-            String mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
+            /*String mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
             String lexPath = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lex";
-            multiClassifiers.classifiers.get(0).write(mdlPath,lexPath);
+            multiClassifiers.classifiers.get(0).write(mdlPath,lexPath);*/
 
-            mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lc";
-            lexPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lex";
+            String mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lc";
+            String lexPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lex";
             multiClassifiers.classifiers.get(1).write(mdlPath,lexPath);
         }
     }
