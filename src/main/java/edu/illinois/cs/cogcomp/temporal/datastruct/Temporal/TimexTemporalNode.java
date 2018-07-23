@@ -10,7 +10,10 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrieveLemmaWindow_Span;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrievePOSWindow_Span;
@@ -31,6 +34,19 @@ public class TimexTemporalNode extends TemporalNode{
     private String[] pos_window;
     private String[] lemma_window;
 
+    private static HashMap<String,Integer> timeOfDay = new HashMap<String,Integer>(){{
+        put("TMO",0);
+        put("T12:00",1);
+        put("TAF",2);
+        put("TEV",3);
+        put("TNI",4);
+    }};
+    private static HashMap<String,Integer> seasonOfYear = new HashMap<String,Integer>(){{
+        put("SP",0);
+        put("SU",1);
+        put("FA",2);
+        put("WI",3);
+    }};
     /*Constructors*/
     public TimexTemporalNode(TimexTemporalNode other){
         this(other.nodeId,other.nodeType,other.text,other.index_in_doc,other.tokenSpan,other.sentId,other.isDCT,other.type,other.mod,other.normVal,other.ta);
@@ -72,11 +88,28 @@ public class TimexTemporalNode extends TemporalNode{
             lemma_window = retrieveLemmaWindow_Span(ta,tokenSpan,win);
     }
 
-    public TemporalRelType compareTo(TimexTemporalNode other, TimexTemporalNode dctTimex){// todo now only gives out before/after relations. other relations are all changed to vague.
-        if(!getType().equals("DATE") || !other.getType().equals("DATE"))
+    private String[] findDateAndRest(String normVal){
+        Pattern p = Pattern.compile("[0-9]+(-[0-9]+(-[0-9]+)?)?");
+        Matcher m = p.matcher(normVal);
+        if(m.find()) {
+            String matched = m.group();
+            String rest = normVal.substring(matched.length());
+            return new String[]{matched,rest};
+        }
+        else {
+            if(normVal.equals("PRESENT_REF")||normVal.equals("PAST_REF")||normVal.equals("FUTURE_REF"))
+                return new String[]{normVal,""};
+            else
+                return null;
+        }
+    }
+    public TemporalRelType compareTo(TimexTemporalNode other, TimexTemporalNode dctTimex){
+        String[] dateAndRest1 = findDateAndRest(getNormVal());
+        String[] dateAndRest2 = findDateAndRest(other.getNormVal());
+        if(dateAndRest1==null||dateAndRest2==null)
             return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-        String timex1 = getNormVal();
-        String timex2 = other.getNormVal();
+        String timex1 = dateAndRest1[0];
+        String timex2 = dateAndRest2[0];
         /*If both are PRESENT_REF/PAST_REF/FUTURE_REF*/
         if((timex1.equals("PRESENT_REF")||timex1.equals("PAST_REF")||timex1.equals("FUTURE_REF"))
                 &&(timex2.equals("PRESENT_REF")||timex2.equals("PAST_REF")||timex2.equals("FUTURE_REF"))){
@@ -159,7 +192,29 @@ public class TimexTemporalNode extends TemporalNode{
             }
         }
 		/*both are standard dates*/
-        return mySimpleDate.compareString(timex1,timex2);
+		TemporalRelType ret = mySimpleDate.compareString(timex1,timex2);
+		if(ret.getReltype()!= TemporalRelType.relTypes.EQUAL)
+            return ret;
+		// when timex1 = timex2
+        if(timeOfDay.containsKey(dateAndRest1[1])&&timeOfDay.containsKey(dateAndRest2[1])
+                ||seasonOfYear.containsKey(dateAndRest1[1])&&seasonOfYear.containsKey(dateAndRest2[1])){
+            int tmp;
+            if(timeOfDay.containsKey(dateAndRest1[1])&&timeOfDay.containsKey(dateAndRest2[1]))
+                tmp = timeOfDay.get(dateAndRest1[1])-timeOfDay.get(dateAndRest2[1]);
+            else
+                tmp = seasonOfYear.get(dateAndRest1[1])-seasonOfYear.get(dateAndRest2[1]);
+            if(tmp>0){
+                return new TemporalRelType(TemporalRelType.relTypes.AFTER);
+            }
+            else if(tmp<0)
+                return new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+            else
+                return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+        }
+        else if(dateAndRest1[1].isEmpty()&&dateAndRest2[1].isEmpty())//both empty, it's indeed EQUAL
+            return ret;
+        else
+            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);//actually VAGUE
     }
 
     /*Getters and Setters*/
