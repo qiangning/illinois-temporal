@@ -5,6 +5,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
@@ -406,8 +407,9 @@ public class TempRelAnnotator {
         return defaultET;
     }
 
-    public static void rawtext2graph() throws Exception{
+    public static void rawtext2graph(String dir, String fname) throws Exception{
         // sample input
+<<<<<<< HEAD
         //String text = "They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.";
         //String text = "The flu season is winding down. It has killed 105 children so far.";
         //String text = "President Trump on Sunday demanded that the Justice Department investigate whether the FBI infiltrated his campaign as he targets those he views as political enemies.";
@@ -422,12 +424,29 @@ public class TempRelAnnotator {
         String text = "The last surviving member of the team which first conquered Everest in 1953 has died in a Derbyshire nursing home. George Lowe, 89, died in Ripley on Wednesday after a long-term illness, with his wife Mary by his side. New Zealand-born Mr Lowe was part of the team that helped Sir Edmund Hillary and Tenzing Norgay to the summit in 1953.Family friend and historian Dr Huw Lewis-Jones paid tribute to a \"gentle soul and fine climber\" who shunned the limelight. Mr Lowe also took part in the trans-Antarctic expedition of 1957-58, which made the first successful overland crossing of Antarctica via the South Pole. He later made expeditions to Greenland, Greece and Ethiopia. Speaking to the BBC in 1995, Mr Lowe said of his Antarctic adventure: \"We estimated we could do it in 100 days, and we got across on the 99th day. \"There was a great feeling of euphoria from everyone. It had a multiplying effect. \"We were pleased that England and New Zealand knew about it, and we thought that's where it would stop.\" He also talked about his \"second job\" as the group's cameraman, and having to wear four pairs of gloves to work the clockwork camera. \"When there were dramas, there was a split problem. Do you take part in the urgency - or do you record it?\" he said. Dr Lewis-Jones, the former curator at the Scott Polar Research Institute at the University of Cambridge, who first met Mr Lowe in 2005, called him a \"hero\". \"I don't often use that word but then it is not very often that you get to meet one,\" he said. A book of memoirs and photographs from the climb by Mr Lowe, which he worked on with Dr Lewis-Jones, is due to be published in May. He said: \"Lowe was a brilliant, kind fellow who never sought the limelight... and 60 years on from Everest his achievements deserve wider recognition. \"He was involved in two of the most important explorations of the 20th Century... yet remained a humble, happy man right to the end... an inspirational lesson to us all.\" Before retiring in 1984, Mr Lowe worked as an Inspector of Schools with the Department of Education and Sciences, and he leaves three sons from a previous marriage. The last British climbing member of the 1953 team, Mike Westmacott, died last June.";
         String dct = "2013-03-22";
         myTemporalDocument doc = new myTemporalDocument(text,"test_longDist",dct);
+=======
+        String dct = "2013-03-22";//default dct
+        Scanner scanner = new Scanner(new File(dir+File.separator+fname));
+        StringBuilder sb = new StringBuilder();
+        while(scanner.hasNextLine()) {
+            String nl = scanner.nextLine();
+            if(nl.startsWith("DCT:"))
+                dct = nl.substring(4);
+            else
+                sb.append(nl);
+        }
+        String text = sb.toString();
+        myTemporalDocument doc = new myTemporalDocument(text,fname,dct);
+>>>>>>> fa17cbafed9e69644ffd2cfbdec3fb3fbae8ecbc
         TempRelAnnotator tra = new TempRelAnnotator(doc);
+        ExecutionTimeUtil timer = new ExecutionTimeUtil();
+        timer.start();
         tra.annotator();
+        timer.end();
         doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
         doc.getGraph().chainVisualization("data/html");
-        System.out.println();
+        System.out.println(timer.getTimeSeconds()+" seconds.");
     }
 
     public static String processRawText(String text, String dct) throws Exception{
@@ -443,7 +462,7 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        rawtext2graph();
+        rawtext2graph("data/SampleInput","apple");
         /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");

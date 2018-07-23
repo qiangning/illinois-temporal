@@ -320,7 +320,7 @@ public class EventTemporalNode extends TemporalNode{
     }
 
     public String interpret(){
-        int normValLen = 13;
+        int normValLen = 14;
         StringBuilder sb = new StringBuilder();
         String normVal = "", eventVal = getUniqueId()+":"+getText();
         // get timexes that are linked to this event

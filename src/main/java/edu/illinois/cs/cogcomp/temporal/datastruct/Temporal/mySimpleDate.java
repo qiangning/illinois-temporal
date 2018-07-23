@@ -2,6 +2,7 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -71,7 +72,7 @@ public class mySimpleDate {
         this.granularity = granularity;
     }
 
-    public TemporalRelType compareDate(mySimpleDate other){// todo now only gives out before/after relations. other relations are all changed to vague.
+    public TemporalRelType compareDate(mySimpleDate other){
         if(other==null)
             return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
         int year1 = year;
@@ -91,7 +92,7 @@ public class mySimpleDate {
                 if(granularity2<3)
                     return new TemporalRelType(TemporalRelType.relTypes.VAGUE); //TlinkType.INCLUDES;
                 else{//granularity2==3
-                    return new TemporalRelType(TemporalRelType.relTypes.VAGUE); //TlinkType.EQUAL;
+                    return new TemporalRelType(TemporalRelType.relTypes.EQUAL); //TlinkType.EQUAL;
                 }
             }
             else{//granularity1<3
@@ -108,7 +109,7 @@ public class mySimpleDate {
                             if(granularity2<2)
                                 return new TemporalRelType(TemporalRelType.relTypes.VAGUE); // TlinkType.INCLUDES;
                             else {//granularity2==2
-                                return new TemporalRelType(TemporalRelType.relTypes.VAGUE); // TlinkType.EQUAL;
+                                return new TemporalRelType(TemporalRelType.relTypes.EQUAL); // TlinkType.EQUAL;
                             }
                         }
                         else{//granularity1==1
@@ -121,7 +122,7 @@ public class mySimpleDate {
                                 else if(day1<day2)
                                     return new TemporalRelType(TemporalRelType.relTypes.BEFORE);
                                 else // day1==day2
-                                    return new TemporalRelType(TemporalRelType.relTypes.VAGUE); // TlinkType.EQUAL;
+                                    return new TemporalRelType(TemporalRelType.relTypes.EQUAL); // TlinkType.EQUAL;
                             }
                         }
                     }
@@ -132,10 +133,11 @@ public class mySimpleDate {
     /*String2Date() only takes str formatted as 2017-01-01, 2017-01, or 2017*/
     public static mySimpleDate String2Date(String timex){
         Pattern p = Pattern.compile("[0-9]+(-[0-9]+(-[0-9]+)?)?");
-        if(!p.matcher(timex).matches())
+        Matcher m = p.matcher(timex);
+        if(!m.find())
             return null;
         int year=-1, month=-1, day=-1, granularity=-1;
-        String[] date = timex.split("-");
+        String[] date = m.group().split("-");
         granularity = 4-date.length;
         year = Integer.parseInt(date[0]);
         if(granularity<=2)
