@@ -2,7 +2,7 @@ package edu.illinois.cs.cogcomp.temporal.utils.CoDL;
 
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
-import edu.illinois.cs.cogcomp.temporal.utils.mySerialization;
+import edu.illinois.cs.cogcomp.temporal.utils.IO.mySerialization;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -3,7 +3,7 @@ package edu.illinois.cs.cogcomp.temporal.readers;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
-import edu.illinois.cs.cogcomp.temporal.utils.myIOUtils;
+import edu.illinois.cs.cogcomp.temporal.utils.IO.myIOUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.utils;
+package edu.illinois.cs.cogcomp.temporal.utils.IO;
 
 import java.io.*;
 import java.util.ArrayList;

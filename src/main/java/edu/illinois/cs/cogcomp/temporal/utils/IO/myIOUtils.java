@@ -1,4 +1,4 @@
-package edu.illinois.cs.cogcomp.temporal.utils;
+package edu.illinois.cs.cogcomp.temporal.utils.IO;
 
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
