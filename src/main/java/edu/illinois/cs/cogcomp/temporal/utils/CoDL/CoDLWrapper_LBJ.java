@@ -1,8 +1,7 @@
-package edu.illinois.cs.cogcomp.temporal.utils;
+package edu.illinois.cs.cogcomp.temporal.utils.CoDL;
 
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
-import edu.illinois.cs.cogcomp.temporal.explorations.MultiClassifiers;
 import edu.illinois.cs.cogcomp.temporal.utils.mySerialization;
 
 import java.io.File;
