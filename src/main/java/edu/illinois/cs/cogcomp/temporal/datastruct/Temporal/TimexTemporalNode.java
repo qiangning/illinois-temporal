@@ -104,6 +104,8 @@ public class TimexTemporalNode extends TemporalNode{
         }
     }
     public TemporalRelType compareTo(TimexTemporalNode other, TimexTemporalNode dctTimex){
+        if(other==null||other.getNormVal()==null||getNormVal()==null)
+            return new TemporalRelType(TemporalRelType.relTypes.VAGUE);
         String[] dateAndRest1 = findDateAndRest(getNormVal());
         String[] dateAndRest2 = findDateAndRest(other.getNormVal());
         if(dateAndRest1==null||dateAndRest2==null)
