@@ -239,6 +239,22 @@ public class TempRelAnnotator {
                 local_score[i][j] = reltype.getScores();
             }
         }
+        // tune local scores by TT links
+        // assume event time can be approx. by its closest timex
+        double pseudoTT = 0.1d;
+        for(TemporalRelation_TT tt:doc.getGraph().getAllTTRelations(-1)){
+            TimexTemporalNode t1 = tt.getSourceNode(), t2 = tt.getTargetNode();
+            if(t1.getSentId()==t2.getSentId()) continue;
+            for(EventTemporalNode e1:eventList) {
+                if(e1.getSentId()!=t1.getSentId()) continue;
+                int i = eventList.indexOf(e1);
+                for (EventTemporalNode e2 : eventList) {
+                    if(e2.getSentId()!=t2.getSentId()) continue;
+                    int j = eventList.indexOf(e2);
+                    local_score[i][j][tt.getRelType().getReltype().getIndex()] += pseudoTT;
+                }
+            }
+        }
         if(ilp) {
             if(respectAsHardConstraints) {
                 int[][][] originalTempRelConstraintsMap = new int[n_entity][n_entity][TemporalRelType.relTypes.values().length + 1];
