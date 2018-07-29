@@ -43,37 +43,13 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
         setCacheDir();
     }
 
-    // 1-model
-    /*public CoDLWrapper_LBJ(Learner cls0, List<LearningStruct> trainStructs_partial, int maxRound, int seed, List<LearningStruct> trainStructs_full,String modelDir, String modelNamePrefix) {
-        OneMdlOrTwoMdl = true;
-        this.trainStructs_partial = trainStructs_partial;
-        this.maxRound = maxRound;
-        this.seed = seed;
-        this.trainStructs_full = trainStructs_full;
-        lambda = -1;// 1-model: lambda is inactive
-        setModelPath(modelDir,modelNamePrefix);
-        multiClassifiers = new MultiClassifiers<>(cls0,lambda,true);
-        setDefaultCacheDir();
-    }*/
-
-    // 2-model
-    /*public CoDLWrapper_LBJ(Learner cls0, List<LearningStruct> trainStructs_partial, int maxRound, int seed, double lambda, String modelDir, String modelNamePrefix) {
-        OneMdlOrTwoMdl = false;
-        this.trainStructs_partial = trainStructs_partial;
-        this.maxRound = maxRound;
-        this.seed = seed;
-        this.lambda = lambda;
-        setModelPath(modelDir,modelNamePrefix);
-        multiClassifiers = new MultiClassifiers<>(cls0,lambda,true);
-        multiClassifiers.addClassifier(cls0);// this is just a placeholder
-        setDefaultCacheDir();
-    }*/
-
     public abstract void loadData_1model() throws Exception;// load trainStructs_partial and trainStructs_full
 
     public abstract void loadData_2model() throws Exception;// load trainStructs_partial and lambda
 
     public abstract Learner loadBaseCls() throws Exception;
+
+    public abstract Learner loadSavedCls() throws Exception;
 
     public abstract void setCacheDir();// implementation can simply be returning setDefaultCacheDir()
 
@@ -105,7 +81,17 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
 
     public void CoDL(){
         if(!forceUpdate&&modelExists()){
-            System.out.println("Model exists. Do not do CoDL. Returning immediately.");
+            String[] modelandlexpath = modelAndLexPath();
+            System.out.printf("Model exists:\n%s\n%s\n Do not do CoDLWrapper_LBJ::CoDL(). Load them and return.\n",modelandlexpath[0],modelandlexpath[1]);
+            try {
+                Learner cls = loadSavedCls();
+                multiClassifiers.dropClassifier();
+                multiClassifiers.addClassifier(cls);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                System.exit(-1);
+            }
             return;
         }
         for(int iter=0;iter<maxRound;iter++){
@@ -144,6 +130,7 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
                 trainStructs_pseudo_full.addAll(trainStructs_full);
             }
             // else 2-model: do nothing
+
             Learner cls = learn(trainStructs_pseudo_full, iter);
             seed++;
             multiClassifiers.dropClassifier();
@@ -159,36 +146,27 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
         return IOUtils.isFile(cachePath(st,iter));
     }
 
-    protected boolean modelExists(){
+    protected String[] modelAndLexPath (){
+        String tmp = modelDir+File.separator+modelNamePrefix;
         if(OneMdlOrTwoMdl){
-            String mdlPath = modelDir+File.separator+modelNamePrefix+"_1model.lc";
-            String lexPath = modelDir+File.separator+modelNamePrefix+"_1model.lex";
-            return IOUtils.isFile(mdlPath) && IOUtils.isFile(lexPath);
+            tmp+="_1model";
         }
         else{
-            //String mdlPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
-            //String lexPath1 = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lex";
-            String mdlPath2 = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lc";
-            String lexPath2 = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lex";
-            //return new File(mdlPath1).isFile() && new File(lexPath1).isFile()&&new File(mdlPath2).isFile() && new File(lexPath2).isFile();
-            return new File(mdlPath2).isFile() && new File(lexPath2).isFile();
+            tmp+="_2model_2ndCls";
         }
+        return new String[]{tmp+".lc",tmp+".lex"};
     }
-
+    protected boolean modelExists(){
+        String[] modelandlexpath = modelAndLexPath();
+        return IOUtils.isFile(modelandlexpath[0]) && IOUtils.isFile(modelandlexpath[1]);
+    }
     public void saveClassifiers(){
+        String[] modelandlexpath = modelAndLexPath();
         if(OneMdlOrTwoMdl){
-            String mdlPath = modelDir+File.separator+modelNamePrefix+"_1model.lc";
-            String lexPath = modelDir+File.separator+modelNamePrefix+"_1model.lex";
-            multiClassifiers.classifiers.get(0).write(mdlPath,lexPath);
+            multiClassifiers.classifiers.get(0).write(modelandlexpath[0],modelandlexpath[1]);
         }
         else{
-            /*String mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lc";
-            String lexPath = modelDir+File.separator+modelNamePrefix+"_2model_1stCls.lex";
-            multiClassifiers.classifiers.get(0).write(mdlPath,lexPath);*/
-
-            String mdlPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lc";
-            String lexPath = modelDir+File.separator+modelNamePrefix+"_2model_2ndCls.lex";
-            multiClassifiers.classifiers.get(1).write(mdlPath,lexPath);
+            multiClassifiers.classifiers.get(1).write(modelandlexpath[0],modelandlexpath[1]);
         }
     }
 }

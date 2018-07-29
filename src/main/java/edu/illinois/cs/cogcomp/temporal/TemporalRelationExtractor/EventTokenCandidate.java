@@ -10,7 +10,6 @@ import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TimexTemporalNode;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
-import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,20 +78,20 @@ public class EventTokenCandidate {
         signals_after = new HashSet<>();
         int start = startTokInSent(doc.getTextAnnotation(),sentId);
         int end = endTokInSent(ta,sentId);
-        String text_before = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,start,tokenId-1);
-        String text_after = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokenId+1,end);
-        String lemma_before = myUtils4TextAnnotation.getLemmaTextInBetween(ta,start,tokenId-1);
-        String lemma_after = myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokenId+1,end);
-        signals_before = myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
-        signals_after = myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
-        signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
-        signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
-        signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(text_before, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
-        signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(text_after, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
-        signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_before, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
-        signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_after, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
-        signals_before.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_before, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
-        signals_after.addAll(myUtils4TextAnnotation.findKeywordsInText(lemma_after, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
+        String text_before = getSurfaceTextInBetween(ta,start,tokenId-1);
+        String text_after = getSurfaceTextInBetween(ta,tokenId+1,end);
+        String lemma_before = getLemmaTextInBetween(ta,start,tokenId-1);
+        String lemma_after = getLemmaTextInBetween(ta,tokenId+1,end);
+        signals_before = findKeywordsInText(text_before, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
+        signals_after = findKeywordsInText(text_after, SignalWordSet.getInstance().temporalSignalSet.getAllConnectives(),"TemporalConnective");
+        signals_before.addAll(findKeywordsInText(text_before, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
+        signals_after.addAll(findKeywordsInText(text_after, SignalWordSet.getInstance().modalVerbSet,"modalVerbSet"));
+        signals_before.addAll(findKeywordsInText(text_before, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
+        signals_after.addAll(findKeywordsInText(text_after, SignalWordSet.getInstance().axisSignalWordSet,"axisSignalWordSet"));
+        signals_before.addAll(findKeywordsInText(lemma_before, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
+        signals_after.addAll(findKeywordsInText(lemma_after, SignalWordSet.getInstance().reportingVerbSet,"reportingVerbSet"));
+        signals_before.addAll(findKeywordsInText(lemma_before, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
+        signals_after.addAll(findKeywordsInText(lemma_after, SignalWordSet.getInstance().intentionVerbSet,"intentionVerbSet"));
         isReporting = SignalWordSet.getInstance().reportingVerbSet.contains(lemma);
         isIntention = SignalWordSet.getInstance().intentionVerbSet.contains(lemma);
 
@@ -212,6 +211,23 @@ public class EventTokenCandidate {
 
     public myTemporalDocument getDoc() {
         return doc;
+    }
+
+    public String htmlVisualize(){
+        StringBuilder sb = new StringBuilder();
+        TextAnnotation ta = doc.getTextAnnotation();
+        int startTokId = startTokInSent(ta,sentId);
+        int endTokId = endTokInSent(ta,sentId);
+        sb.append("<p>");
+        for(int i=startTokId;i<=endTokId;i++){
+            if(i!=tokenId)
+                sb.append(ta.getToken(i));
+            else
+                sb.append(String.format("<span style='color:red;'><strong>%s (AXIS=%s)</strong></span>",ta.getToken(i),getLabel()));
+            sb.append(" ");
+        }
+        sb.append("</p>\n");
+        return sb.toString();
     }
 
     @Override
