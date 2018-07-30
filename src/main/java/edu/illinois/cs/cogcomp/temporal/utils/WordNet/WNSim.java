@@ -1,6 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.utils.WordNet;
 
-import edu.illinois.cs.cogcomp.temporal.utils.IOManager;
+import edu.illinois.cs.cogcomp.temporal.utils.IO.IOManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;

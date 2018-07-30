@@ -1,7 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.readers;
 
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
-import edu.illinois.cs.cogcomp.temporal.utils.myIOUtils;
+import edu.illinois.cs.cogcomp.temporal.utils.IO.myIOUtils;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 

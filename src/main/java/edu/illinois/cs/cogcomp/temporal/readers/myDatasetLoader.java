@@ -11,7 +11,7 @@ import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
-import edu.illinois.cs.cogcomp.temporal.utils.mySerialization;
+import edu.illinois.cs.cogcomp.temporal.utils.IO.mySerialization;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.io.File;
