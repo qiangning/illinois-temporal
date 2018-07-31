@@ -30,17 +30,22 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
         this.maxRound = maxRound;
         this.seed = seed;
         setModelPath(modelDir,modelNamePrefix);
-        Learner cls0 = loadBaseCls();
+        setCacheDir();
+    }
+
+    public void init() throws Exception{
+        Learner cls0;
         if(OneMdlOrTwoMdl) {
             loadData_1model();
+            cls0 = loadBaseCls();
             multiClassifiers = new MultiClassifiers<>(cls0,-1,true);
         }
         else {
             loadData_2model();
+            cls0 = loadBaseCls();
             multiClassifiers = new MultiClassifiers<>(cls0,lambda,true);
             multiClassifiers.addClassifier(cls0);// this is just a placeholder
         }
-        setCacheDir();
     }
 
     public abstract void loadData_1model() throws Exception;// load trainStructs_partial and trainStructs_full
@@ -51,6 +56,10 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
 
     public abstract Learner loadSavedCls() throws Exception;
 
+    protected void setDefaultCacheDir(){
+        setCacheDir("serialization/CoDL_cache");
+    }
+
     public abstract void setCacheDir();// implementation can simply be returning setDefaultCacheDir()
 
     public abstract LearningStruct inference(LearningStruct doc);//have to make a deep copy of the input
@@ -58,10 +67,6 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
     public abstract Learner learn(List<LearningStruct> slist, int curr_round);
 
     public abstract String getStructId(LearningStruct st);//used for cache purpose
-
-    protected void setDefaultCacheDir(){
-        setCacheDir("serialization/CoDL_cache");
-    }
 
     public void setCacheDir(String cacheDir) {
         this.cacheDir = cacheDir;
