@@ -169,7 +169,8 @@ public class myDatasetLoader {
     }
     public void autoTempRelCorrectionViaILP(List<myTemporalDocument> docs){
         for(myTemporalDocument doc:docs) {
-            TempRelAnnotator tra = new TempRelAnnotator(doc, null, new TempRelLabeler_Gold(),TempRelAnnotator.defaultTempRelLabeler_ET(),rm,true);
+            TempRelAnnotator tra = new TempRelAnnotator(doc, null, new TempRelLabeler_Gold(),null,rm,true);
+            tra.performET = false;
             tra.setup(true, true, true, false);
             tra.annotator();
         }
