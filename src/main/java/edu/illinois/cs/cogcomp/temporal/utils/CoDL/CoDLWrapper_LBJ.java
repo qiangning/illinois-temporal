@@ -15,7 +15,7 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
     protected MultiClassifiers<LearningAtom> multiClassifiers;// this could also be single classifier (i.e., length=1)
     protected String modelDir, modelNamePrefix;
     protected String cacheDir;
-    protected boolean forceUpdate = false;
+    protected boolean forceUpdate = false, saveCache = false;
     protected mySerialization serializer = new mySerialization(true);
 
     // needed only if using 1-model
@@ -24,16 +24,28 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
     // needed only if using 2-model
     protected double lambda;// must be in [0,1]
 
-    public CoDLWrapper_LBJ(boolean OneMdlOrTwoMdl,double lambda,int maxRound, int seed, String modelDir, String modelNamePrefix) throws Exception{
+    public CoDLWrapper_LBJ(boolean OneMdlOrTwoMdl, boolean saveCache, boolean forceUpdate,
+                           double lambda,int maxRound, int seed, String modelDir, String modelNamePrefix) throws Exception{
         this.OneMdlOrTwoMdl = OneMdlOrTwoMdl;
         this.lambda = lambda;
         this.maxRound = maxRound;
         this.seed = seed;
-        setModelPath(modelDir,modelNamePrefix);
-        setCacheDir();
+        this.saveCache = saveCache;
+        setForceUpdate(forceUpdate);
+        modelNamePrefix += "_sd"+seed;
+        setModelDirAndPrefix(modelDir,modelNamePrefix);// this should be before setDefaultCacheDir()
+        if(saveCache)
+            setCacheDir();
     }
 
-    public void init() throws Exception{
+    private void setModelDirAndPrefix(String modelDir,String modelNamePrefix){
+        IOUtils.mkdir(modelDir);
+        this.modelDir = modelDir;
+        this.modelNamePrefix = modelNamePrefix;
+    }
+
+    public void initDataAndModel() throws Exception{
+        // load data and init models
         Learner cls0;
         if(OneMdlOrTwoMdl) {
             loadData_1model();
@@ -56,8 +68,15 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
 
     public abstract Learner loadSavedCls() throws Exception;
 
+    private String modelPrefixPlusParams(){
+        if(OneMdlOrTwoMdl)
+            return String.format("%s_1mdl_round%d",modelNamePrefix,maxRound);
+        else
+            return String.format("%s_2mdl_lambda%.2f_round%d",modelNamePrefix,lambda,maxRound);
+    }
+
     protected void setDefaultCacheDir(){
-        setCacheDir("serialization/CoDL_cache");
+        setCacheDir("serialization"+File.separator+"CoDL_cache"+File.separator + modelPrefixPlusParams());
     }
 
     public abstract void setCacheDir();// implementation can simply be returning setDefaultCacheDir()
@@ -70,18 +89,15 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
 
     public void setCacheDir(String cacheDir) {
         this.cacheDir = cacheDir;
-        IOUtils.mkdir(this.cacheDir);
+        if(saveCache)
+            IOUtils.mkdir(this.cacheDir);
+        else
+            System.out.println("[WARNING] Setting cacheDir while saveCache==false.");
     }
 
-    public void setForceUpdate(boolean forceUpdate){
+    private void setForceUpdate(boolean forceUpdate){
         System.out.printf("[CoDLWrapper_LBJ] forceUpdate=%s\n",forceUpdate);
         this.forceUpdate = forceUpdate;
-    }
-
-    private void setModelPath(String modelDir, String modelNamePrefix) {
-        IOUtils.mkdir(modelDir);
-        this.modelDir = modelDir;
-        this.modelNamePrefix = modelNamePrefix;
     }
 
     public void CoDL(){
@@ -110,7 +126,7 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
                 if(!forceUpdate&&cacheExists(st,iter)){
                     inferenceNeeded = false;
                     try {
-                        String cachepath = cachePath(st, iter);
+                        String cachepath = cachePathPerDoc(st, iter);
                         trainStructs_pseudo_full.add((LearningStruct)serializer.deserialize(cachepath));
                     }
                     catch (Exception e){
@@ -122,11 +138,13 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
                 if(inferenceNeeded) {
                     LearningStruct st_inf = inference(st);
                     trainStructs_pseudo_full.add(st_inf);
-                    try {
-                        serializer.serialize(st_inf, cachePath(st_inf, iter));
-                    } catch (Exception e2) {
-                        e2.printStackTrace();
-                        System.out.println("[WARNING] failed to serialize CoDL cache: "+cachePath(st_inf, iter));
+                    if(saveCache) {
+                        try {
+                            serializer.serialize(st_inf, cachePathPerDoc(st_inf, iter));
+                        } catch (Exception e2) {
+                            e2.printStackTrace();
+                            System.out.println("[WARNING] failed to serialize CoDL cache: " + cachePathPerDoc(st_inf, iter));
+                        }
                     }
                 }
             }
@@ -143,21 +161,18 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
         }
     }
 
-    private String cachePath(LearningStruct st, int iter){
-        return String.format("%s%s%s%s_iter%d.ser",cacheDir,File.separator,getStructId(st),OneMdlOrTwoMdl?"_1model":"_2model",iter);
+    private String cachePathPerDoc(LearningStruct st, int iter){
+        return String.format("%s%s%s_iter%d.ser",cacheDir,File.separator,getStructId(st),iter);
     }
 
     private boolean cacheExists(LearningStruct st, int iter){
-        return IOUtils.isFile(cachePath(st,iter));
+        return IOUtils.isFile(cachePathPerDoc(st,iter));
     }
 
     protected String[] modelAndLexPath (){
-        String tmp = modelDir+File.separator+modelNamePrefix;
-        if(OneMdlOrTwoMdl){
-            tmp+="_1model";
-        }
-        else{
-            tmp+="_2model_2ndCls";
+        String tmp = modelDir+File.separator+modelPrefixPlusParams();
+        if(!OneMdlOrTwoMdl){
+            tmp+="_2ndCls";
         }
         return new String[]{tmp+".lc",tmp+".lex"};
     }

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class CoDL_PartialVsFull extends CoDLWrapper_LBJ<myTemporalDocument,TemporalRelation_EE> {
+public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocument,TemporalRelation_EE> {
     private ResourceManager rm;
     public double learningRate=0.001, thickness=1, samplingRate=1, learningRound=200;
     private double sr_standard;
@@ -34,13 +34,12 @@ public class CoDL_PartialVsFull extends CoDLWrapper_LBJ<myTemporalDocument,Tempo
     private static boolean debug = false;
 
 
-    public CoDL_PartialVsFull(int maxRound, int seed, double graphSamplingRate, int graphSamplingMode,
-                       boolean OneMdlOrTwoMdl, double lambda, boolean forceUpdate, boolean saveCache,
-                       String modelDir, String modelNamePrefix,
-                       ResourceManager rm) throws Exception{
-        super(OneMdlOrTwoMdl,saveCache,forceUpdate,lambda,maxRound,seed,modelDir,modelNamePrefix);
+    public CoDL_PartialVsFull_FixNoDoc(int maxRound, int seed, double graphSamplingRate, int graphSamplingMode,
+                                       boolean OneMdlOrTwoMdl, double lambda, boolean forceUpdate, boolean saveCache,
+                                       String modelDir, String modelNamePrefix,
+                                       ResourceManager rm) throws Exception{
+        super(OneMdlOrTwoMdl,saveCache,forceUpdate,lambda,maxRound,seed,modelDir,modelNamePrefix+String.format("_sm%d_sr%.2f",graphSamplingMode,graphSamplingRate));
         initDataAndModel();
-        //this.lambda = lambda;//only used in 2-model
         this.rm = rm;
         this.graphSamplingRate = graphSamplingRate;
         this.graphSamplingMode = graphSamplingMode;
@@ -146,10 +145,11 @@ public class CoDL_PartialVsFull extends CoDLWrapper_LBJ<myTemporalDocument,Tempo
 
     @Override
     public void setCacheDir() {
-        String cacheDir = "serialization"+ File.separator+modelNamePrefix;
+        /*String cacheDir = "serialization"+ File.separator+modelNamePrefix;
         if(respectExistingTempRelsInCoDL)
             cacheDir += respectAsHardConstraints?"hardConst":"softConst";
-        super.setCacheDir(cacheDir);
+        super.setCacheDir(cacheDir);*/
+        setDefaultCacheDir();
     }
 
     @Override
@@ -183,7 +183,7 @@ public class CoDL_PartialVsFull extends CoDLWrapper_LBJ<myTemporalDocument,Tempo
         TempRelAnnotator.performET = false;
         tra.setup(true,true,respectExistingTempRels,respectAsHardConstraints);
         tra.annotator();
-        if(CoDL_PartialVsFull.debug) {
+        if(CoDL_PartialVsFull_FixNoDoc.debug) {
             doc.getGraph().graphVisualization("data/html/before_inf");
             doc_inf.getGraph().graphVisualization("data/html/after_inf");
         }
@@ -327,27 +327,22 @@ public class CoDL_PartialVsFull extends CoDLWrapper_LBJ<myTemporalDocument,Tempo
         boolean ilp = cmd.hasOption("ilp");
         boolean respect = cmd.hasOption("respect");
         boolean hard = cmd.hasOption("hardConstraint");
-        modelPrefixName += String.format("_sr%.2f_win%d_%s_%s_%s",samplingRate,window,OneMdlOrTwoMdl?"1mdl":"2mdl",ilp?"global":"local",respect?"respect":"norespect");
+        modelPrefixName += String.format("_win%d_%s_%s",window,ilp?"global":"local",respect?"respect":"norespect");
         if(respect)
             modelPrefixName += hard?"_hardConst":"_softConst";
-        if(samplingMode>0)
-            modelPrefixName += "_sm"+samplingMode;
-        if(seed>0)
-            modelPrefixName += "_sd"+seed;
-        if(!OneMdlOrTwoMdl)
-            modelPrefixName += "_lambda"+lambda;
-        CoDL_PartialVsFull.debug = cmd.hasOption("debug");
-        boolean forceUpdate = cmd.hasOption("forceUpdate") || CoDL_PartialVsFull.debug;
+
+        CoDL_PartialVsFull_FixNoDoc.debug = cmd.hasOption("debug");
+        boolean forceUpdate = cmd.hasOption("forceUpdate") || CoDL_PartialVsFull_FixNoDoc.debug;
         boolean saveCache = cmd.hasOption("cache");
 
-        if(CoDL_PartialVsFull.debug)
+        if(CoDL_PartialVsFull_FixNoDoc.debug)
             modelPrefixName += "_debug";
 
-        CoDL_PartialVsFull tester = new CoDL_PartialVsFull(maxIter,seed,samplingRate,samplingMode,OneMdlOrTwoMdl,lambda,forceUpdate,saveCache,modelDir,modelPrefixName,rm);
+        CoDL_PartialVsFull_FixNoDoc tester = new CoDL_PartialVsFull_FixNoDoc(maxIter,seed,samplingRate,samplingMode,OneMdlOrTwoMdl,lambda,forceUpdate,saveCache,modelDir,modelPrefixName,rm);
         tester.ILPSetup(ilp,respect,hard);
         System.out.println("Running CoDL...");
         tester.CoDL();
-        if(!CoDL_PartialVsFull.debug) {
+        if(!CoDL_PartialVsFull_FixNoDoc.debug) {
             tester.saveClassifiers();
             tester.evalTest();
         }
