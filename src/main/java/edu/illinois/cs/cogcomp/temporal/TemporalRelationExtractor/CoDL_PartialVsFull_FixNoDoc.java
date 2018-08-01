@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocument,TemporalRelation_EE> {
     private ResourceManager rm;
-    public double learningRate=0.001, thickness=1, samplingRate=1, learningRound=200;
+    public double learningRate=0.001, thickness=1, samplingRate=2, learningRound=200;
     private double sr_standard;
     private boolean ilp=true,respectExistingTempRelsInCoDL=true,respectAsHardConstraints=false;
     private double graphSamplingRate = 1;
@@ -39,7 +39,6 @@ public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocum
                                        String modelDir, String modelNamePrefix,
                                        ResourceManager rm) throws Exception{
         super(OneMdlOrTwoMdl,saveCache,forceUpdate,lambda,maxRound,seed,modelDir,modelNamePrefix+String.format("_sm%d_sr%.2f",graphSamplingMode,graphSamplingRate));
-        initDataAndModel();
         this.rm = rm;
         this.graphSamplingRate = graphSamplingRate;
         this.graphSamplingMode = graphSamplingMode;
@@ -78,6 +77,7 @@ public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocum
             default:
                 System.out.println("[WARNING] Wrong graphSamplingMode.");
         }
+        initModel();
     }
 
     public void ILPSetup(boolean ilp, boolean respectExistingTempRelsInCoDL, boolean respectAsHardConstraints){
