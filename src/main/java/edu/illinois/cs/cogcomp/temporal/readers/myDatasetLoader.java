@@ -98,13 +98,7 @@ public class myDatasetLoader {
         return getDatasetAutoCorrected("TimeBank_Ser_AutoCorrected");
     }
     public List<myTemporalDocument> getTimeBank_Minus_TBDense_autoCorrected() throws Exception{
-        List<myTemporalDocument> files = getDatasetAutoCorrected("TimeBank_Ser_AutoCorrected");
-        List<myTemporalDocument> filtered = new ArrayList<>();
-        for(myTemporalDocument doc:files){
-            if(TBDense_split.findDoc(doc.getDocid())==0)
-                filtered.add(doc);
-        }
-        return filtered;
+        return getDatasetAutoCorrected("TimeBank_Minus_TBDense_Ser_AutoCorrected");
     }
     public List<myTemporalDocument> getAQUAINT_autoCorrected() throws Exception{
         return getDatasetAutoCorrected("AQUAINT_Ser_AutoCorrected");
@@ -122,6 +116,15 @@ public class myDatasetLoader {
         return getDatasetAutoCorrected("TBDense_Test_Ser_AutoCorrected");
     }
     public List<myTemporalDocument> getDatasetAutoCorrected(String propertyName) throws Exception{
+        if(propertyName.equals("TimeBank_Minus_TBDense_Ser_AutoCorrected")){
+            List<myTemporalDocument> files = getDatasetAutoCorrected("TimeBank_Ser_AutoCorrected");
+            List<myTemporalDocument> filtered = new ArrayList<>();
+            for(myTemporalDocument doc:files){
+                if(TBDense_split.findDoc(doc.getDocid())==0)
+                    filtered.add(doc);
+            }
+            return filtered;
+        }
         String dir = rm.getString(propertyName);
         System.out.println(myLogFormatter.startBlockLog("Loading "+dir));
         mySerialization myser = new mySerialization(false);
