@@ -153,6 +153,15 @@ public class myDatasetLoader {
         return allDocs;
     }
 
+    public List<myTemporalDocument> getDatasetAutoCorrected(String[] propertyNames) throws Exception{
+        List<myTemporalDocument> allDocs = new ArrayList<>();
+        for(String str:propertyNames){
+            System.out.printf("Loading %s...\n",str);
+            allDocs.addAll(getDatasetAutoCorrected(str));
+        }
+        return allDocs;
+    }
+
     public void extractAllFeats(List<myTemporalDocument> docs,int win){
         for(myTemporalDocument d:docs)
             d.extractAllFeats(win);

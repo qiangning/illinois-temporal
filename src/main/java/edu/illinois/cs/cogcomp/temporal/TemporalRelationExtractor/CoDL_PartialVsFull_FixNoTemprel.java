@@ -28,21 +28,29 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
     private boolean ilp=true,respectExistingTempRelsInCoDL=true,respectAsHardConstraints=false;
     private double graphSamplingRate = 1;
     private int budget;
+    private String[] trainFiles_full,trainFiles_partial,testFiles;
 
     private static CommandLine cmd;
     private static boolean debug = false;
 
 
     public CoDL_PartialVsFull_FixNoTemprel(int maxRound, int seed, int budget, double graphSamplingRate,
-                                       boolean OneMdlOrTwoMdl, double lambda, boolean forceUpdate, boolean saveCache,
-                                       String modelDir, String modelNamePrefix,
-                                       ResourceManager rm) throws Exception{
+                                           boolean OneMdlOrTwoMdl, double lambda, boolean forceUpdate, boolean saveCache,
+                                           String modelDir, String modelNamePrefix,
+                                           String[] trainFiles_full, String[] trainFiles_partial, String[] testFiles,
+                                           ResourceManager rm) throws Exception{
         super(OneMdlOrTwoMdl,saveCache,forceUpdate,lambda,maxRound,seed,modelDir,modelNamePrefix+String.format("_sr%.2f",graphSamplingRate));
+        this.trainFiles_full = trainFiles_full;
+        this.trainFiles_partial = trainFiles_partial;
+        this.testFiles = testFiles;
+        CoDL_LoadData();
         this.rm = rm;
         this.graphSamplingRate = graphSamplingRate;
         this.budget = budget;
         System.out.println(myLogFormatter.startBlockLog("Budget="+this.budget));
         List<myTemporalDocument> downsampledDocs = new ArrayList<>();
+        System.out.println("Shuffling trainStructs_partial...");
+        Collections.shuffle(trainStructs_partial,new Random(this.seed++));
         for(myTemporalDocument doc:trainStructs_partial){
             System.out.printf("Doc %s has %d rels originally, ",doc.getDocid(),doc.getGraph().getAllEERelations(-1).size());
             doc.getGraph().downSamplingRelations(graphSamplingRate,this.seed++);
@@ -69,25 +77,23 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
         System.out.printf("[SETUP] ilp=%s, respectExistingTempRelsInCoDL=%s, respectAsHardConstraints=%s\n",ilp,respectExistingTempRelsInCoDL,respectAsHardConstraints);
     }
 
-    public void loadData() throws Exception{
+    private void loadData() throws Exception{
         myDatasetLoader myLoader = new myDatasetLoader();
-        if(!debug) {
-            // real data
+        if(!debug) {// real data
             System.out.println(myLogFormatter.startBlockLog("Loading partial data (auto corrected)"));
-            trainStructs_partial = myLoader.getTimeBank_Minus_TBDense_autoCorrected();
-            //trainStructs_partial.addAll(myLoader.getAQUAINT_autoCorrected());
+            trainStructs_partial = myLoader.getDatasetAutoCorrected(trainFiles_partial);
             System.out.println("Partial data: " + trainStructs_partial.size() + " documents.");
             System.out.println(myLogFormatter.endBlockLog("Loading partial data (auto corrected)"));
 
             System.out.println(myLogFormatter.startBlockLog("Loading full data (auto corrected)"));
-            trainStructs_full = myLoader.getTBDense_Train_autoCorrected();
+            trainStructs_full = myLoader.getDatasetAutoCorrected(trainFiles_full);
+            /*trainStructs_full = myLoader.getTBDense_Train_autoCorrected();
             trainStructs_full.addAll(myLoader.getTBDense_Dev_autoCorrected());
-            trainStructs_full.addAll(myLoader.getTBDense_Test_autoCorrected());
+            trainStructs_full.addAll(myLoader.getTBDense_Test_autoCorrected());*/
             System.out.println("Full data: " + trainStructs_full.size() + " documents.");
             System.out.println(myLogFormatter.endBlockLog("Loading full data (auto corrected)"));
         }
-        else{
-            // mock data
+        else{// mock data
             System.out.println("Loading partial data...");
             trainStructs_partial = myLoader.getTBDense_Test_autoCorrected();
             System.out.println("Loading full data...");
@@ -148,7 +154,8 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
     public void evalTest() throws Exception{
         myDatasetLoader myLoader = new myDatasetLoader();
         System.out.println(myLogFormatter.startBlockLog("Loading test data (auto corrected)"));
-        List<myTemporalDocument> testset = myLoader.getPlatinum_autoCorrected();
+        //List<myTemporalDocument> testset = myLoader.getPlatinum_autoCorrected();
+        List<myTemporalDocument> testset = myLoader.getDatasetAutoCorrected(testFiles);
 
         List<myTemporalDocument> testset_inf = new ArrayList<>();
         for(myTemporalDocument doc:testset){
@@ -280,6 +287,18 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
         debug.setRequired(false);
         options.addOption(debug);
 
+        Option trainFiles_partial = new Option("train_p", "trainFiles_partial", true, "acronym for the training dataset (partial)");
+        trainFiles_partial.setRequired(false);
+        options.addOption(trainFiles_partial);
+
+        Option trainFiles_full = new Option("train_f", "trainFiles_full", true, "acronym for the training dataset (full)");
+        trainFiles_full.setRequired(false);
+        options.addOption(trainFiles_full);
+
+        Option testFiles = new Option("test", "testFiles", true, "acronym for the test dataset");
+        testFiles.setRequired(false);
+        options.addOption(testFiles);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         try {
@@ -317,10 +336,14 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
         boolean forceUpdate = cmd.hasOption("forceUpdate") || CoDL_PartialVsFull_FixNoTemprel.debug;
         boolean saveCache = cmd.hasOption("cache");
 
+        String[] trainFiles_partial = cmd.getOptionValue("trainFiles_partial","TimeBank_Minus_TBDense_Ser_AutoCorrected").split(",");
+        String[] trainFiles_full = cmd.getOptionValue("trainFiles_full","TBDense_Train_Ser_AutoCorrected,TBDense_Dev_Ser_AutoCorrected,TBDense_Test_Ser_AutoCorrected").split(",");
+        String[] testFiles = cmd.getOptionValue("testFiles","PLATINUM_Ser_AutoCorrected").split(",");
+
         if(CoDL_PartialVsFull_FixNoTemprel.debug)
             modelPrefixName += "_debug";
 
-        CoDL_PartialVsFull_FixNoTemprel tester = new CoDL_PartialVsFull_FixNoTemprel(maxIter,seed,budget,samplingRate,OneMdlOrTwoMdl,lambda,forceUpdate,saveCache,modelDir,modelPrefixName,rm);
+        CoDL_PartialVsFull_FixNoTemprel tester = new CoDL_PartialVsFull_FixNoTemprel(maxIter,seed,budget,samplingRate,OneMdlOrTwoMdl,lambda,forceUpdate,saveCache,modelDir,modelPrefixName,trainFiles_full,trainFiles_partial,testFiles,rm);
         tester.ILPSetup(ilp,respect,hard);
         System.out.println("Running CoDL...");
         tester.CoDL();

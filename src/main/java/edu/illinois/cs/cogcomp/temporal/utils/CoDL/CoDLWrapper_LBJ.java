@@ -31,12 +31,7 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
         this.maxRound = maxRound;
         this.seed = seed;
         this.saveCache = saveCache;
-        if(OneMdlOrTwoMdl) {
-            loadData_1model();
-        }
-        else {
-            loadData_2model();
-        }
+
         setForceUpdate(forceUpdate);
         modelNamePrefix += "_sd"+seed;
         setModelDirAndPrefix(modelDir,modelNamePrefix);// this should be before setDefaultCacheDir()
@@ -60,6 +55,16 @@ public abstract class CoDLWrapper_LBJ<LearningStruct, LearningAtom> {
             cls0 = loadBaseCls();
             multiClassifiers = new MultiClassifiers<>(cls0,lambda,true);
             multiClassifiers.addClassifier(cls0);// this is just a placeholder
+        }
+    }
+
+
+    public void CoDL_LoadData() throws Exception{
+        if(OneMdlOrTwoMdl) {
+            loadData_1model();
+        }
+        else {
+            loadData_2model();
         }
     }
 
