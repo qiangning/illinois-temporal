@@ -46,6 +46,8 @@ public class TempRelAnnotator {
     private static TempRelLabeler defaultEE,defaultET;
     public int[][] result;
 
+    public static boolean long_dist = true;
+    public static boolean soft_group = true;
     public static boolean performET = true;
     public static boolean printILP = false;
 
@@ -160,7 +162,7 @@ public class TempRelAnnotator {
         if(performET) {
             etTempRelAnnotator();
         }
-        doc.addEERelationsBasedOnETAndTT();
+        doc.addEERelationsBasedOnETAndTT(long_dist);
         eeTempRelAnnotator();
     }
 
@@ -241,17 +243,19 @@ public class TempRelAnnotator {
         }
         // tune local scores by TT links
         // assume event time can be approx. by its closest timex
-        double pseudoTT = 0.1d;
-        for(TemporalRelation_TT tt:doc.getGraph().getAllTTRelations(-1)){
-            TimexTemporalNode t1 = tt.getSourceNode(), t2 = tt.getTargetNode();
-            if(t1.getSentId()==t2.getSentId()) continue;
-            for(EventTemporalNode e1:eventList) {
-                if(e1.getSentId()!=t1.getSentId()) continue;
-                int i = eventList.indexOf(e1);
-                for (EventTemporalNode e2 : eventList) {
-                    if(e2.getSentId()!=t2.getSentId()) continue;
-                    int j = eventList.indexOf(e2);
-                    local_score[i][j][tt.getRelType().getReltype().getIndex()] += pseudoTT;
+        if(soft_group) {
+            double pseudoTT = 0.1d;
+            for (TemporalRelation_TT tt : doc.getGraph().getAllTTRelations(-1)) {
+                TimexTemporalNode t1 = tt.getSourceNode(), t2 = tt.getTargetNode();
+                if (t1.getSentId() == t2.getSentId()) continue;
+                for (EventTemporalNode e1 : eventList) {
+                    if (e1.getSentId() != t1.getSentId()) continue;
+                    int i = eventList.indexOf(e1);
+                    for (EventTemporalNode e2 : eventList) {
+                        if (e2.getSentId() != t2.getSentId()) continue;
+                        int j = eventList.indexOf(e2);
+                        local_score[i][j][tt.getRelType().getReltype().getIndex()] += pseudoTT;
+                    }
                 }
             }
         }
@@ -401,6 +405,7 @@ public class TempRelAnnotator {
             eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lc",
                     temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lex");
             defaultEE = new TempRelLabelerLBJ_EE(cls0, cls1);
+            TempRelLabelerLBJ_EE.long_dist = long_dist;
         }
         return defaultEE;
 
@@ -448,8 +453,10 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        rawtext2graph("data/SampleInput","apple");
-        /*myDatasetLoader loader = new myDatasetLoader();
+        TempRelAnnotator.long_dist = true;
+        TempRelAnnotator.soft_group = true;
+        //rawtext2graph("data/SampleInput","GeorgeLowe-long");
+        myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -465,6 +472,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
     }
 }
