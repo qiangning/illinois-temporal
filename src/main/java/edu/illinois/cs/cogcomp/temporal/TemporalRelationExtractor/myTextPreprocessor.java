@@ -2,12 +2,12 @@ package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.annotation.AnnotatorService;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotationUtilities;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.myTextAnnotationUtilities;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.curator.CuratorFactory;
 import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
+
+import java.util.List;
 
 public class myTextPreprocessor {
     private AnnotatorService annotator;
@@ -42,6 +42,7 @@ public class myTextPreprocessor {
                 annotator.addView(sentTa[sentenceId], ViewNames.LEMMA);
                 annotator.addView(sentTa[sentenceId], ViewNames.POS);
                 annotator.addView(sentTa[sentenceId], ViewNames.SRL_VERB);
+                annotator.addView(sentTa[sentenceId], ViewNames.DEPENDENCY);
                 /*annotator.addView(sentTa[sentenceId], ViewNames.SRL_NOM);
                 annotator.addView(sentTa[sentenceId], ViewNames.SRL_PREP);*/
             } catch (Exception e) {
@@ -57,8 +58,27 @@ public class myTextPreprocessor {
 
     public static void main(String[] args) throws Exception{
         myTextPreprocessor exc = new myTextPreprocessor();
-        String text = "Helicopters patrol the temporary no-fly zone around New Jersey's MetLife Stadium Sunday, with F-16s based in Atlantic City ready to be scrambled if an unauthorized aircraft does enter the restricted airspace.";
+        String text = "I failed to do it.";
         TextAnnotation ta = exc.extractTextAnnotation(text);
+        TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY);
+        String[] toks = ta.getTokens();
+        for(int i=0;i<toks.length;i++){
+            List<Constituent> clist = dep.getConstituentsCoveringToken(i);
+            for(Constituent c:clist){
+                List<Relation> rels = c.getOutgoingRelations();
+                for(Relation r:rels){
+                    System.out.println(r);
+                    System.out.println(r.getRelationName());
+                }
+                rels = c.getIncomingRelations();
+                for(Relation r:rels){
+                    int tokid = r.getTarget().getStartSpan();
+                    System.out.println(r.getSource());
+                    System.out.println(r.getTarget());
+                }
+                System.out.println();
+            }
+        }
         System.out.println();
     }
 }
