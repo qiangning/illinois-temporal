@@ -216,8 +216,6 @@ public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocum
             Collections.shuffle(atomList, new Random(seed++));
             for(TemporalRelation_EE ee:atomList){
                 try{
-                    if(ee.isNull())
-                        System.out.println();
                     classifier.learn(ee);
                 }
                 catch (Exception e){

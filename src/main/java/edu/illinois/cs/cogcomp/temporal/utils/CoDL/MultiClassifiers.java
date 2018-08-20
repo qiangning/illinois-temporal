@@ -29,7 +29,8 @@ public class MultiClassifiers<LearningObj> implements ScoringFunc<LearningObj> {
     }
     public void dropClassifier(){
         int n = classifiers.size();
-        System.out.printf("Dropping classifier %s\n", classifiers.get(n-1).getModelLocation());
+        if(classifiers.get(n-1)!=null)
+            System.out.printf("Dropping classifier %s\n", classifiers.get(n-1).getModelLocation());
         classifiers.remove(n-1);
     }
 
