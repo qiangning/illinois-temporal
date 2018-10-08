@@ -1,7 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.utils.CrossValidation;
 
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
-import edu.illinois.cs.cogcomp.nlp.util.CrossValidationSplit;
 
 import java.util.ArrayList;
 import java.util.List;

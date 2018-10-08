@@ -1,22 +1,15 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
-import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.configurations.ParamLBJ;
-import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
 import edu.illinois.cs.cogcomp.temporal.lbjava.EventDetector.eventDetector;
 import edu.illinois.cs.cogcomp.temporal.utils.CrossValidation.CVWrapper_LBJ_Perceptron;
 import edu.illinois.cs.cogcomp.temporal.utils.ListSampler;
-import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import org.apache.commons.cli.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
 
 public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTokenCandidate> {
     private int window;
@@ -36,45 +29,10 @@ public class EventAxisPerceptronTrainer extends CVWrapper_LBJ_Perceptron<EventTo
         SAMRATE = new double[]{1};
         ROUND = new double[]{5,10,20};
     }
-    public static List<EventTokenCandidate> preprocess(List<TemporalDocument> docList,HashMap<String,HashMap<Integer,String>> axisMap, int window){
-        // axisMap: docid-->index in doc-->raw axis name from CF
-        HashMap<String,HashMap<Integer,String>> newAxisMap = new HashMap<>();
-        // convert eventid in axisMap to tokenId
-        for(int i=0;i<docList.size();i++){
-            String docid = docList.get(i).getDocID();
-            if(!axisMap.containsKey(docid)) continue;
-            HashMap<Integer,Integer> index2TokId = eventIndex2TokId(docList.get(i));
-            HashMap<Integer,String> tmpMap = axisMap.get(docid);
-            HashMap<Integer,String> tmpMap2 = new HashMap<>();
-            for(int eventid:tmpMap.keySet()){
-                // convert labels in axisMap
-                tmpMap2.put(index2TokId.get(eventid),axis_label_conversion(tmpMap.get(eventid)));
-            }
-            newAxisMap.put(docid,tmpMap2);
-        }
-        List<EventTokenCandidate> ret = new ArrayList<>();
-        for(int i=0;i<docList.size();i++){
-            if(!newAxisMap.containsKey(docList.get(i).getDocID())) continue;
-            myTemporalDocument doc = new myTemporalDocument(docList.get(i),1);
-            ret.addAll(doc.generateAllEventTokenCandidates(window,newAxisMap.get(doc.getDocid())));
-        }
-        return ret;
-    }
 
     @Override
-    public void load(){
-        try {
-            ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-            List<TemporalDocument> allTrainingDocs = TempEval3Reader.deserialize(rm.getString("TimeBank_Ser"));
-            allTrainingDocs.addAll(TempEval3Reader.deserialize(rm.getString("AQUAINT_Ser")));
-            List<TemporalDocument> allTestingDocs = TempEval3Reader.deserialize(rm.getString("PLATINUM_Ser"));
-            HashMap<String,HashMap<Integer,String>> axisMap = readAxisMapFromCrowdFlower(rm.getString("CF_Axis"));// docid-->eventid-->axis_label
-            trainingStructs = preprocess(allTrainingDocs,axisMap,window);
-            testStructs = preprocess(allTestingDocs,axisMap,window);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+    public void load() {
+        // placeholder
     }
 
     @Override

@@ -228,7 +228,7 @@ public class IOManager {
 
     // ======================
     public static void writeContent(String content, String outputFileName) {
-        BufferedWriter writer = edu.illinois.cs.cogcomp.nlp.util.IOManager.openWriter(outputFileName);
+        BufferedWriter writer = openWriter(outputFileName);
         try {
             writer.write(content);
         } catch (Exception e) {
@@ -236,7 +236,7 @@ public class IOManager {
             System.out.println("Unable to write to file " + outputFileName);
             System.exit(1);
         }
-        edu.illinois.cs.cogcomp.nlp.util.IOManager.closeWriter(writer);
+        closeWriter(writer);
     }
 
     // =====================
@@ -283,7 +283,7 @@ public class IOManager {
     }
 
     public static void writeLines(List<String> outputLines, String outputFile) {
-        BufferedWriter writer = edu.illinois.cs.cogcomp.nlp.util.IOManager.openWriter(outputFile);
+        BufferedWriter writer = openWriter(outputFile);
         try {
             for (String line : outputLines) {
                 writer.write(line);
@@ -293,7 +293,7 @@ public class IOManager {
             System.out.println("Unable to write to file " + outputFile);
             System.exit(1);
         }
-        edu.illinois.cs.cogcomp.nlp.util.IOManager.closeWriter(writer);
+        closeWriter(writer);
     }
 
     public static void writeLines(ArrayList<String> outputLines,
@@ -311,7 +311,7 @@ public class IOManager {
 
     public static void writeLinesAddingReturn(List<String> outputLines,
                                               String outputFile) {
-        BufferedWriter writer = edu.illinois.cs.cogcomp.nlp.util.IOManager.openWriter(outputFile);
+        BufferedWriter writer = openWriter(outputFile);
         try {
             for (String line : outputLines) {
                 writer.write(line + "\n");
@@ -321,12 +321,12 @@ public class IOManager {
             System.out.println("Unable to write to file " + outputFile);
             System.exit(1);
         }
-        edu.illinois.cs.cogcomp.nlp.util.IOManager.closeWriter(writer);
+        closeWriter(writer);
     }
 
     public static void writeLinesAddingReturn_BigFile(List<String> outputLines,
                                                       String outputFile) {
-        BufferedWriter writer = edu.illinois.cs.cogcomp.nlp.util.IOManager.openWriter(outputFile);
+        BufferedWriter writer = openWriter(outputFile);
         try {
             StringBuffer buf = new StringBuffer();
             int n = outputLines.size();
@@ -346,7 +346,7 @@ public class IOManager {
             System.out.println("Unable to write to file " + outputFile);
             System.exit(1);
         }
-        edu.illinois.cs.cogcomp.nlp.util.IOManager.closeWriter(writer);
+        closeWriter(writer);
     }
 
     public static void writeString(String line, BufferedWriter writer) {

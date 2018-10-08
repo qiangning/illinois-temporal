@@ -5,8 +5,6 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
-import edu.illinois.cs.cogcomp.nlp.util.Triplet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
@@ -15,8 +13,8 @@ import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls.eeTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.lbjava.TempRelCls_ET.etTempRelCls;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator;
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
-import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
-import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
+import edu.illinois.cs.cogcomp.temporal.utils.ExecutionTimeUtil;
+import edu.illinois.cs.cogcomp.temporal.utils.Triplet;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -399,7 +397,7 @@ public class TempRelAnnotator {
                 temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+1+"_labelMode0_clsMode0_win3.lex");
         return new TempRelLabelerLBJ_EE(cls0,cls1);*/
 
-            String temprelMdlDir = "models/tempRel/bugfix", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
+            String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelClsBugFix";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
             eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lc",
                     temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 0 + "_labelMode0_clsMode0_win3.lex");
             eeTempRelCls cls1 = new eeTempRelCls(temprelMdlDir + File.separator + temprelMldNamePrefix + "_sent" + 1 + "_labelMode0_clsMode0_win3.lc",
@@ -455,8 +453,8 @@ public class TempRelAnnotator {
     public static void main(String[] args) throws Exception{
         TempRelAnnotator.long_dist = true;
         TempRelAnnotator.soft_group = true;
-        //rawtext2graph("data/SampleInput","GeorgeLowe-long");
-        myDatasetLoader loader = new myDatasetLoader();
+        rawtext2graph("data/SampleInput","GeorgeLowe-long");
+        /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -472,6 +470,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
     }
 }
