@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.illinois.cs.cogcomp</groupId>
     <artifactId>illinois-temporal</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -27,11 +27,15 @@
     <start-class>edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.APIController</start-class>
 
 </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-temporal-models</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
@@ -75,20 +79,35 @@
             <version>4.0.4</version>
         </dependency>
         <dependency>
-            <groupId>temporal</groupId>
-            <artifactId>KBconstruction</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId> <!-- Exclude Project-D from Project-B -->
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.jgrapht</groupId> <!-- Exclude Project-D from Project-B -->
-                    <artifactId>jgrapht</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-curator</artifactId>
+            <version>4.0.4</version>
         </dependency>
+        <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-edison</artifactId>
+            <version>3.0.18</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-nlp-pipeline</artifactId>
+            <version>3.1.33</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>temporal</groupId>-->
+            <!--<artifactId>KBconstruction</artifactId>-->
+            <!--<version>1.0-SNAPSHOT</version>-->
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;-->
+                    <!--<artifactId>Illinois-Combined-Coref</artifactId>-->
+                <!--</exclusion>-->
+                <!--<exclusion>-->
+                    <!--<groupId>net.sf.jgrapht</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;-->
+                    <!--<artifactId>jgrapht</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
         <!--<dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-chunker</artifactId>
@@ -153,7 +172,7 @@
         <repository>
             <id>CogcompSoftware</id>
             <name>CogcompSoftware</name>
-            <url>http://cogcomp.cs.illinois.edu/m2repo/</url>
+            <url>http://cogcomp.org/m2repo/</url>
         </repository>
         <repository>
             <id>StanfordNLP</id>
@@ -161,4 +180,29 @@
             <url>http://central.maven.org/maven2/</url>
         </repository>
     </repositories>
+    <distributionManagement>
+        <repository>
+            <id>CogcompSoftware</id>
+            <name>CogcompSoftware</name>
+            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/m2repo</url>
+        </repository>
+        <site>
+            <id>CogcompSoftwareDoc</id>
+            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/software/doc/</url>
+        </site>
+    </distributionManagement>
+    <reporting>
+        <excludeDefaults>true</excludeDefaults>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+            </plugin>
+        </plugins>
+    </reporting>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 </project>

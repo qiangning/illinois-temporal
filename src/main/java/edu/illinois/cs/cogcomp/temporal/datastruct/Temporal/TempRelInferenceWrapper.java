@@ -1,7 +1,7 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.infer.ilp.GurobiHook;
-import edu.illinois.cs.cogcomp.nlp.util.Triplet;
+import edu.illinois.cs.cogcomp.temporal.utils.Triplet;
 
 import java.util.ArrayList;
 import java.util.Arrays;

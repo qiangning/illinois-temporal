@@ -1,12 +1,8 @@
 package edu.illinois.cs.cogcomp.temporal.readers;
 
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.temporal.utils.IO.myIOUtils;
-import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
-import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class axisAnnotationReader {
     public static String LABEL_NOT_ON_ANY_AXIS = "null";
@@ -33,28 +29,6 @@ public class axisAnnotationReader {
             default:
                 return LABEL_NOT_ON_ANY_AXIS;
         }
-    }
-    public static HashMap<Integer,Integer> eventTokId2Index(TemporalDocument doc){
-        // tokenId-->eventid
-        HashMap<Integer,Integer> ret = new HashMap<>();
-        TextAnnotation ta = doc.getTextAnnotation();
-        List<EventChunk> eventList = doc.getBodyEventMentions();
-        for(EventChunk ec:eventList){
-            int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
-            ret.put(tokenId,eventList.indexOf(ec));
-        }
-        return ret;
-    }
-    public static HashMap<Integer,Integer> eventIndex2TokId(TemporalDocument doc){
-        // eventid-->tokenId
-        HashMap<Integer,Integer> ret = new HashMap<>();
-        TextAnnotation ta = doc.getTextAnnotation();
-        List<EventChunk> eventList = doc.getBodyEventMentions();
-        for(EventChunk ec:eventList){
-            int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
-            ret.put(eventList.indexOf(ec),tokenId);
-        }
-        return ret;
     }
     public static HashMap<String,HashMap<Integer,String>> readAxisMapFromCrowdFlower(String fileList){
         // docid-->eventid (index in doc)-->axis_label

@@ -46,7 +46,7 @@ public class CrossValidationSplit {
     public static void main(String[] args) {
         int TotalFold = 3;
         int SampleSize = 10;
-        edu.illinois.cs.cogcomp.nlp.util.CrossValidationSplit cv = new edu.illinois.cs.cogcomp.nlp.util.CrossValidationSplit(TotalFold,SampleSize,1);
+        CrossValidationSplit cv = new CrossValidationSplit(TotalFold,SampleSize,1);
         System.out.println(cv.allIdx);
         for(int i = 1;i<=TotalFold;i++) {
             System.out.println("******Fold: "+i+"******\nTrain:");
