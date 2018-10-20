@@ -25,8 +25,10 @@
 <properties>
     <!-- The main class to start by executing java -jar -->
     <start-class>edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.APIController</start-class>
-
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -201,8 +203,4 @@
             </plugin>
         </plugins>
     </reporting>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
 </project>

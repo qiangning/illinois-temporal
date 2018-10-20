@@ -1,6 +1,6 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
-import com.sun.istack.internal.Nullable;
+//import com.sun.istack.internal.Nullable;
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
@@ -568,7 +568,7 @@ public class myTemporalDocument implements Serializable {
         return dct;
     }
 
-    @Nullable
+    //@Nullable
     public EventTemporalNode getEventFromTokenId(int tokenId){
         if(map_tokenId2event==null||map_tokenId2event.size()==0) {
             map_tokenId2event = new HashMap<>();
@@ -579,7 +579,7 @@ public class myTemporalDocument implements Serializable {
         return map_tokenId2event.get(tokenId);
     }
 
-    @Nullable
+    //@Nullable
     public TimexTemporalNode getTimexFromTokenSpan(String tokenSpanStr){
         if(map_tokenSpan2timex==null||map_tokenSpan2timex.size()==0) {
             map_tokenSpan2timex = new HashMap<>();
