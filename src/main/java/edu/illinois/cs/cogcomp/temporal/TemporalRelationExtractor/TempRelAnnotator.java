@@ -453,7 +453,7 @@ public class TempRelAnnotator {
     public static void main(String[] args) throws Exception{
         TempRelAnnotator.long_dist = true;
         TempRelAnnotator.soft_group = true;
-        rawtext2graph("data/SampleInput","GeorgeLowe-long");
+        rawtext2graph("data/SampleInput","short");
         /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");

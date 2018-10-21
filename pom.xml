@@ -33,7 +33,7 @@
         <dependency>
             <groupId>Gurobi</groupId>
             <artifactId>gurobi</artifactId>
-            <version>6.5.2</version>
+            <version>8.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -110,6 +110,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+			<!--
             <plugin>
                 <groupId>edu.illinois.cs.cogcomp</groupId>
                 <artifactId>lbjava-maven-plugin</artifactId>
@@ -122,36 +123,32 @@
                     </lbjavaInputFileList>
                 </configuration>
             </plugin>
+			-->
         </plugins>
     </build>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>CogcompSoftware</id>
-            <name>CogcompSoftware</name>
-            <url>http://cogcomp.cs.illinois.edu/m2repo/</url>
-        </pluginRepository>
-    </pluginRepositories>
     <repositories>
         <repository>
             <id>CogcompSoftware</id>
             <name>CogcompSoftware</name>
-            <url>http://cogcomp.org/m2repo/</url>
+            <url>http://macniece.seas.upenn.edu/m2repo/</url>
         </repository>
+		<!--
         <repository>
             <id>StanfordNLP</id>
             <name>StanfordNLP</name>
             <url>http://central.maven.org/maven2/</url>
         </repository>
+		-->
     </repositories>
     <distributionManagement>
-        <repository>
+	    <repository>
             <id>CogcompSoftware</id>
             <name>CogcompSoftware</name>
-            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/m2repo</url>
+            <url>scp://macniece.seas.upenn.edu:/pool0/webserver/htdocs/public/m2repo</url>
         </repository>
         <site>
             <id>CogcompSoftwareDoc</id>
-            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/software/doc/</url>
+            <url>scp://macniece.seas.upenn.edu:/pool0/webserver/htdocs/public/software/doc/</url>
         </site>
     </distributionManagement>
     <reporting>

@@ -329,10 +329,12 @@ public class EventTemporalNode extends TemporalNode{
             if(rel instanceof TemporalRelation_ET){
                 TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
                 normVal = timex.getNormVal();
-                if(normVal.equals("PRESENT_REF"))
-                    normVal = doc.getDct().getNormVal();
-                else if(normVal.equals("PAST_REF")||normVal.equals("FURTURE_REF"))
-                    normVal = timex.getText();
+                if (normVal != null) {
+                    if (normVal.equals("PRESENT_REF"))
+                        normVal = doc.getDct().getNormVal();
+                    else if (normVal.equals("PAST_REF") || normVal.equals("FURTURE_REF"))
+                        normVal = timex.getText();
+                }
                 break;
             }
         }
