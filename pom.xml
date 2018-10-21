@@ -130,7 +130,7 @@
         <repository>
             <id>CogcompSoftware</id>
             <name>CogcompSoftware</name>
-            <url>http://macniece.seas.upenn.edu/m2repo/</url>
+            <url>http://cogcomp.org/m2repo/</url>
         </repository>
 		<!--
         <repository>
@@ -141,14 +141,14 @@
 		-->
     </repositories>
     <distributionManagement>
-	    <repository>
+        <repository>
             <id>CogcompSoftware</id>
             <name>CogcompSoftware</name>
-            <url>scp://macniece.seas.upenn.edu:/pool0/webserver/htdocs/public/m2repo</url>
+            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/m2repo</url>
         </repository>
         <site>
             <id>CogcompSoftwareDoc</id>
-            <url>scp://macniece.seas.upenn.edu:/pool0/webserver/htdocs/public/software/doc/</url>
+            <url>scp://legolas.cs.illinois.edu:/srv/data/cogcomp/html/software/doc/</url>
         </site>
     </distributionManagement>
     <reporting>
