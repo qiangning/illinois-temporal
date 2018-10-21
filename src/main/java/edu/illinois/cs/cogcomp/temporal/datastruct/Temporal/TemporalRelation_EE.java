@@ -4,14 +4,12 @@ import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
+import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempLangMdl;
 import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 import org.jetbrains.annotations.NotNull;
-import util.TempLangMdl;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

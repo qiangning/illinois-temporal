@@ -3,8 +3,8 @@ package edu.illinois.cs.cogcomp.temporal.utils.CrossValidation;
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
-import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
-import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
+import edu.illinois.cs.cogcomp.temporal.utils.ExecutionTimeUtil;
+import edu.illinois.cs.cogcomp.temporal.utils.PrecisionRecallManager;
 
 import java.io.File;
 import java.util.List;

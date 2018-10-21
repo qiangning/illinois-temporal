@@ -1,24 +1,17 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
+//import com.sun.istack.internal.Nullable;
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
-import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
-import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
+import edu.illinois.cs.cogcomp.temporal.utils.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
-import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
-import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
-import edu.uw.cs.lil.uwtime.data.TemporalDocument;
-import jline.internal.Nullable;
 
-import java.awt.*;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -37,7 +30,7 @@ public class myTemporalDocument implements Serializable {
     private List<EventTemporalNode> eventList = new ArrayList<>();
     private List<TimexTemporalNode> timexList = new ArrayList<>();
     private TimexTemporalNode dct;// a shallow copy of one of those in timexList
-    private TextAnnotation ta;
+    public TextAnnotation ta;
     private TemporalGraph graph;
     private String docid;
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
@@ -53,8 +46,9 @@ public class myTemporalDocument implements Serializable {
         ta = myTextPreprocessor.extractTextAnnotation(bodytext);
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = new Date();
-        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        //Date date = new Date();
+        //dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        dct = new TimexTemporalNode(0,TimexNodeType,"2010-01-01",timexList.size(),new IntPair(-1,-1),-1,true,"DATE","","2010-01-01",ta);
         addTimex(dct);
     }
 
@@ -67,78 +61,6 @@ public class myTemporalDocument implements Serializable {
         Date date = dateFormat.parse(dct_yyyy_mm_dd);
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
         addTimex(dct);
-    }
-
-    public myTemporalDocument(TemporalDocument temporalDocument, int mode){
-        // mode: 0-->don't load events, timexes, and relations
-        // mode: 1-->load events and timexes in the original temporalDocument
-        // mode: 2-->load all ET relations in the original temporalDocument (only keep equal or not)
-        docid = temporalDocument.getDocID();
-        ta = temporalDocument.getTextAnnotation();
-        graph = new TemporalGraph(this);
-        if(mode>=1) {
-            List<EventChunk> allEvents = temporalDocument.getBodyEventMentions();
-            for (EventChunk ec : allEvents) {
-                int tokenId = ta.getTokenIdFromCharacterOffset(ec.getCharStart());
-                EventTemporalNode tmpNode = new EventTemporalNode(ec.getEiid(), EventNodeType, ec.getText(), ec.getEid(),ec.getEiid(),allEvents.indexOf(ec), tokenId,ta,this);
-                addEvent(tmpNode);
-            }
-            sortAllEvents();
-
-            addTimexFromTemporalJointChunk(temporalDocument.getDocumentCreationTime(),0,true);
-            List<TemporalJointChunk> allTimexes = temporalDocument.getBodyTimexMentions();
-            for (TemporalJointChunk tjc:allTimexes)
-                addTimexFromTemporalJointChunk(tjc,allTimexes.indexOf(tjc)+1,false);
-            sortAllTimexes();
-        }
-        if(mode>=2) {
-            for (TLINK tlink : temporalDocument.getBodyTlinks()) {
-                TemporalNode sourceNode = graph.getNode(getUniqueId(tlink.getSourceType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType,tlink.getSourceId()));
-                TemporalNode targetNode = graph.getNode(getUniqueId(tlink.getTargetType().equals(TempEval3Reader.Type_Event) ? EventNodeType : TimexNodeType,tlink.getTargetId()));
-                if (sourceNode == null || targetNode == null) continue;
-                if(sourceNode.getClass().equals(targetNode.getClass())) continue;//ignore EE or TT links
-                TemporalRelation_ET tmpRel = new TemporalRelation_ET(sourceNode, targetNode, null,this);
-                TemporalRelType reltype;
-                switch (tlink.getReducedRelType().toStringfull()) {
-                    case "before":
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-                        break;
-                    case "after":
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-                        break;
-                    case "equal":
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
-                        break;
-                    case "includes":
-                        if(tmpRel.isEventFirstInPair())
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-                        else
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
-                        break;
-                    case "included":
-                        if(tmpRel.isEventFirstInPair())
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
-                        else
-                            reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-                        break;
-                    default:
-                        reltype = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
-                }
-                tmpRel.setRelType(reltype);
-                graph.addRelNoDup(tmpRel);
-            }
-            // fill missing ET relations by "vague"
-            for(EventTemporalNode e:eventList){
-                for(TimexTemporalNode t:timexList){
-                    if(t.isDCT()||Math.abs(e.getSentId() - t.getSentId()) <= 1){
-                        if(graph.getETRelBetweenEventTimex(e.getUniqueId(), t.getUniqueId()) == null){
-                            TemporalRelation_ET tmpRel = new TemporalRelation_ET(e, t, new TemporalRelType(TemporalRelType.relTypes.VAGUE), this);
-                            graph.addRelNoDup(tmpRel);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     public myTemporalDocument(myTemporalDocument other){
@@ -251,24 +173,6 @@ public class myTemporalDocument implements Serializable {
     public void addTimex(TimexTemporalNode t){
         timexList.add(t);
         graph.addNodeNoDup(t);
-    }
-
-    private void addTimexFromTemporalJointChunk(TemporalJointChunk tjc, int id, boolean isDCT){
-        IntPair tokenSpan;
-        int sentId;
-        if(isDCT){
-            tokenSpan = new IntPair(-1,-1);
-            sentId = -1;
-        }
-        else {
-            tokenSpan = new IntPair(ta.getTokenIdFromCharacterOffset(tjc.getCharStart()), ta.getTokenIdFromCharacterOffset(tjc.getCharEnd() - 1) + 1);
-            sentId = ta.getSentenceId(tokenSpan.getFirst());
-
-        }
-        TimexTemporalNode t = new TimexTemporalNode(tjc.getTID(),TimexNodeType,tjc.getOriginalText(),id,tokenSpan,sentId,isDCT,tjc.getResult().getType(),tjc.getResult().getMod(),tjc.getResult().getValue(),ta);
-        addTimex(t);
-        if(isDCT)
-            dct = t;
     }
 
     public void dropAllEventsAndTimexes(){
@@ -664,7 +568,7 @@ public class myTemporalDocument implements Serializable {
         return dct;
     }
 
-    @Nullable
+    //@Nullable
     public EventTemporalNode getEventFromTokenId(int tokenId){
         if(map_tokenId2event==null||map_tokenId2event.size()==0) {
             map_tokenId2event = new HashMap<>();
@@ -675,7 +579,7 @@ public class myTemporalDocument implements Serializable {
         return map_tokenId2event.get(tokenId);
     }
 
-    @Nullable
+    //@Nullable
     public TimexTemporalNode getTimexFromTokenSpan(String tokenSpanStr){
         if(map_tokenSpan2timex==null||map_tokenSpan2timex.size()==0) {
             map_tokenSpan2timex = new HashMap<>();
@@ -708,8 +612,58 @@ public class myTemporalDocument implements Serializable {
         return et_rel.getRelType();
     }
 
+    public String taVisualization(){
+        Set<Integer> highlights_timex = new HashSet<>();
+        Set<Integer> highlights_events = new HashSet<>();
+        Map<Integer, String> start_idx_map = new HashMap<>();
+        Map<Integer, String> timex_norm_val = new HashMap<>();
+        Set<Integer> ends = new HashSet<>();
+
+        for (TimexTemporalNode node : timexList){
+           for (int i = node.tokenSpan.getFirst(); i < node.tokenSpan.getSecond(); i++){
+                highlights_timex.add(i);
+            } 
+            start_idx_map.put(node.tokenSpan.getFirst(), node.getUniqueId());
+            ends.add(node.tokenSpan.getSecond() - 1);
+            timex_norm_val.put(node.tokenSpan.getSecond() - 1, node.getNormVal());
+        }
+        for (EventTemporalNode node : eventList){
+            highlights_events.add(node.tokenId); 
+            start_idx_map.put(node.tokenId, node.getUniqueId());
+            ends.add(node.tokenId);
+        }
+        String ret = "";
+        for (int i = 0; i < ta.getTokens().length; i++){
+            boolean added = false;
+           if (highlights_events.contains(i)){
+                added = true;
+                ret += "<font color=\"#1f77b4\">";
+            } 
+           if (highlights_timex.contains(i)){
+                added = true;
+                ret += "<font color=\"#ff7f0e\">";
+            }
+            if (start_idx_map.containsKey(i)){
+                ret += "[" + start_idx_map.get(i) + ": ";
+            }
+            ret += ta.getToken(i);
+            if (timex_norm_val.containsKey(i)){
+                ret += " (" + timex_norm_val.get(i) + ")";
+            }
+            if (ends.contains(i)){
+                ret += "]";
+            }
+            ret += " ";
+            if (added){
+                ret += "</font>";
+            }
+
+        }
+        return ret;
+    }
+
     public static void main(String[] args) throws Exception{
-        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+        /*ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         String dir = rm.getString("TBDense_Ser");
         List<TemporalDocument> docs = TempEval3Reader.deserialize(dir);
         myTemporalDocument doc = new myTemporalDocument(docs.get(0),1);
@@ -718,6 +672,6 @@ public class myTemporalDocument implements Serializable {
         doc.keepAnchorableEvents(axisMap.get(doc.getDocid()));
         HashMap<String,List<temprelAnnotationReader.CrowdFlowerEntry>> relMap = readTemprelFromCrowdFlower(rm.getString("CF_TempRel"));
         doc.loadRelationsFromMap(relMap.get(doc.getDocid()),1);
-        System.out.println();
+        System.out.println();*/
     }
 }
