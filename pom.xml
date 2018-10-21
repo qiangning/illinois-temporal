@@ -11,13 +11,13 @@
     <dependencies>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-temporal-models</artifactId>
-            <version>1.0.0</version>
+            <artifactId>illinois-time</artifactId>
+            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-time</artifactId>
-            <version>4.0.4</version>
+            <artifactId>illinois-temporal-models</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
@@ -45,11 +45,6 @@
             <artifactId>jgrapht-core</artifactId>
             <version>1.1.0</version>
         </dependency>
-        <!--<dependency>
-            <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-core-utilities</artifactId>
-            <version>3.0.99</version>
-        </dependency>-->
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-core-utilities</artifactId>
@@ -57,18 +52,18 @@
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-curator</artifactId>
+            <artifactId>illinois-ner</artifactId>
             <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-edison</artifactId>
-            <version>3.0.18</version>
+            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-nlp-pipeline</artifactId>
-            <version>3.1.33</version>
+            <version>4.0.4</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>temporal</groupId>-->

@@ -1,44 +1,36 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
 import edu.illinois.cs.cogcomp.annotation.AnnotatorService;
-import edu.illinois.cs.cogcomp.annotation.BasicAnnotatorService;
-import edu.illinois.cs.cogcomp.annotation.TextAnnotationBuilder;
-import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
-import edu.illinois.cs.cogcomp.core.utilities.configuration.Configurator;
-import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.curator.CuratorFactory;
-import edu.illinois.cs.cogcomp.depparse.DepAnnotator;
-import edu.illinois.cs.cogcomp.nlp.lemmatizer.IllinoisLemmatizer;
 import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
 import edu.illinois.cs.cogcomp.nlp.utility.TokenizerTextAnnotationBuilder;
-import edu.illinois.cs.cogcomp.pipeline.common.PipelineConfigurator;
 import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
-import edu.illinois.cs.cogcomp.pos.POSAnnotator;
-import edu.illinois.cs.cogcomp.srl.SemanticRoleLabeler;
-import edu.illinois.cs.cogcomp.srl.config.SrlConfigurator;
-import edu.illinois.cs.cogcomp.srl.core.SRLType;
 
-import java.util.*;
+import java.util.List;
 
 public class myTextPreprocessor {
-    private BasicAnnotatorService annotator;
+    private AnnotatorService annotator;
+    private TokenizerTextAnnotationBuilder tab;
 
     public myTextPreprocessor() throws Exception{
         annotator = PipelineFactory.buildPipeline(
                 ViewNames.POS,
-                ViewNames.SRL_VERB,
-                ViewNames.DEPENDENCY,
-                ViewNames.LEMMA
+                ViewNames.SHALLOW_PARSE,
+                ViewNames.PARSE_STANFORD,
+                ViewNames.NER_CONLL,
+                ViewNames.LEMMA,
+                ViewNames.SRL_VERB
         );
+        tab = new TokenizerTextAnnotationBuilder(new StatefulTokenizer(false));
     }
 
     public TextAnnotation extractTextAnnotation(String text)  throws Exception{
-        TextAnnotation ta = annotator.createAnnotatedTextAnnotation("", "", text);
+        TextAnnotation ta = tab.createTextAnnotation(text);
         TextAnnotation[] sentTa = new TextAnnotation[ta.sentences().size()];
         for(int sentenceId=0;sentenceId<ta.sentences().size();sentenceId++){// without this, empty views of ta will be added
             sentTa[sentenceId]= TextAnnotationUtilities.getSubTextAnnotation(ta, sentenceId);
+            annotator.annotateTextAnnotation(sentTa[sentenceId], true);
         }
         for (int sentenceId = 0; sentenceId < ta.sentences().size(); ++sentenceId) {
             int start = ta.getSentence(sentenceId).getStartSpan();
