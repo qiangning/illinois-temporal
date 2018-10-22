@@ -12,7 +12,7 @@
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-time</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.13</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
@@ -48,49 +48,23 @@
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-core-utilities</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.13</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-ner</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.13</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-edison</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.13</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-nlp-pipeline</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.13</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>temporal</groupId>-->
-            <!--<artifactId>KBconstruction</artifactId>-->
-            <!--<version>1.0-SNAPSHOT</version>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;-->
-                    <!--<artifactId>Illinois-Combined-Coref</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>net.sf.jgrapht</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;-->
-                    <!--<artifactId>jgrapht</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
-        <!--</dependency>-->
-        <!--<dependency>
-            <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-chunker</artifactId>
-            <version>3.0.99</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;
-                    <artifactId>illinois-chunker-model</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>-->
     </dependencies>
 
 
@@ -105,20 +79,6 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-			<!--
-            <plugin>
-                <groupId>edu.illinois.cs.cogcomp</groupId>
-                <artifactId>lbjava-maven-plugin</artifactId>
-                <version>1.3.1</version>
-                <configuration>
-                    <lbjavaInputFileList>
-                        <param>${project.basedir}/src/main/lbj/eventDetector.lbj</param>
-                        <param>${project.basedir}/src/main/lbj/eeTempRelCls.lbj</param>
-                        <param>${project.basedir}/src/main/lbj/etTempRelCls.lbj</param>
-                    </lbjavaInputFileList>
-                </configuration>
-            </plugin>
-			-->
         </plugins>
     </build>
     <repositories>
@@ -127,13 +87,6 @@
             <name>CogcompSoftware</name>
             <url>http://cogcomp.org/m2repo/</url>
         </repository>
-		<!--
-        <repository>
-            <id>StanfordNLP</id>
-            <name>StanfordNLP</name>
-            <url>http://central.maven.org/maven2/</url>
-        </repository>
-		-->
     </repositories>
     <distributionManagement>
         <repository>
@@ -148,13 +101,6 @@
     </distributionManagement>
     <reporting>
         <excludeDefaults>true</excludeDefaults>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-            </plugin>
-        </plugins>
     </reporting>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

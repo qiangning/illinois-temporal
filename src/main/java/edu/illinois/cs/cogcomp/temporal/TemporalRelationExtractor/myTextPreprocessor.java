@@ -22,7 +22,7 @@ public class myTextPreprocessor {
                 ViewNames.LEMMA,
                 ViewNames.SRL_VERB
         );
-        tab = new TokenizerTextAnnotationBuilder(new StatefulTokenizer(false));
+        tab = new TokenizerTextAnnotationBuilder(new StatefulTokenizer());
     }
 
     public TextAnnotation extractTextAnnotation(String text)  throws Exception{
