@@ -9,6 +9,7 @@ import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -16,10 +17,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.HashSet;
+import java.util.HashMap;
 
 public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>{
     /*Variables*/
     protected myTemporalDocument doc;
+    private DirectedAcyclicGraph<String, DefaultEdge> directedGraph;
     /*Constructors*/
     public TemporalGraph(myTemporalDocument doc) {
         super();
@@ -95,21 +99,71 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         for(String nodeId:nodeMap.keySet()){
             directedGraph.addVertex(nodeId);
         }
-        for(TemporalRelation rel:relations_directed){
+        HashSet<String> processedRels = new HashSet<String>();
+        List<TemporalRelation_EE> ee_rels = getAllEERelations(-1);
+        
+        for (TemporalRelation_EE rel:ee_rels) {
+            if (!rel.getFromT()) {
+                continue;
+            }
             TemporalNode n1 = rel.getSourceNode().getEquivalentNodeHead();
             TemporalNode n2 = rel.getTargetNode().getEquivalentNodeHead();
             String v1 = n1.getUniqueId();
             String v2 = n2.getUniqueId();
+            processedRels.add(v1+" "+v2);
             if(rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE){
-                directedGraph.addEdge(v1,v2);
+                // try {
+                if (!directedGraph.getAncestors(v1).contains(v2)) {
+                    directedGraph.addEdge(v1,v2);
+                    System.out.println("eeT " + n1.toString() + " " + n2.toString() + " " + rel.getRelType().toString());
+                }
+                /*catch (Exception e) {
+                    e.printStackTrace();
+                }*/
             }
             else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
-                try {
+                // try {
+                if (!directedGraph.getAncestors(v2).contains(v1)) {
+                    directedGraph.addEdge(v2, v1);
+                    System.out.println("eeT " + n1.toString() + " " + n2.toString() + " " + rel.getRelType().toString());
+                }
+                /*catch (Exception e){
+                    e.printStackTrace();
+                }*/
+            }
+        }
+        Collections.sort(ee_rels, new Comparator<TemporalRelation_EE>() {
+            public int compare(TemporalRelation_EE one, TemporalRelation_EE two) {
+                Double valueOne = new Double(one.getRelType().getScores()[one.getRelType().getReltype().getIndex()]);
+                Double valueTwo = new Double(two.getRelType().getScores()[two.getRelType().getReltype().getIndex()]);
+                return -1*valueOne.compareTo(valueTwo);
+            }
+        });
+        for(TemporalRelation rel:ee_rels){
+            TemporalNode n1 = rel.getSourceNode().getEquivalentNodeHead();
+            TemporalNode n2 = rel.getTargetNode().getEquivalentNodeHead();
+            String v1 = n1.getUniqueId();
+            String v2 = n2.getUniqueId();
+            if (processedRels.contains(v1+" "+v2)) {
+                continue;
+            }
+            if(rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE){
+                // try {
+                if (!directedGraph.getAncestors(v1).contains(v2)) {
+                    directedGraph.addEdge(v1,v2);
+                }
+                /*catch (Exception e) {
+                    e.printStackTrace();
+                }*/
+            }
+            else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
+                // try {
+                if (!directedGraph.getAncestors(v2).contains(v1)) {
                     directedGraph.addEdge(v2, v1);
                 }
-                catch (Exception e){
+                /* catch (Exception e){
                     e.printStackTrace();
-                }
+                }*/
             }
         }
         return directedGraph;
@@ -126,15 +180,35 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         groupEqualNodes();
 
         // construct graph
-        DirectedAcyclicGraph<String, DefaultEdge> directedGraph = constructJGRAPHT();
+        DirectedAcyclicGraph<String, DefaultEdge> directedGraph = this.directedGraph;
 
         // closure
         TransitiveClosure.INSTANCE.closeDirectedAcyclicGraph(directedGraph);
+        TopologicalOrderIterator<String, DefaultEdge> topoIterator = new TopologicalOrderIterator<String, DefaultEdge>(directedGraph);
 
         // convert to a chain
+        HashMap<String, EventTemporalNode> etnMap = new HashMap<String, EventTemporalNode>();
         for(TemporalNode node:nodeMap.values()){
-            if(node instanceof EventTemporalNode)
-                ret.add((EventTemporalNode)node);
+            if(node instanceof EventTemporalNode) {
+                etnMap.put(node.getUniqueId(), (EventTemporalNode) node);
+            }
+        }
+                /*ret.add((EventTemporalNode)node);
+                EventTemporalNode node1 = (EventTemporalNode) node;
+                if (!node1.getLemma().equals("retire")) {
+                    continue;
+                }
+                System.out.println("RETIREEEE");
+                for (TemporalNode node2:nodeMap.values()) {
+                    if (node2 instanceof EventTemporalNode) {
+                        EventTemporalNode node3 = (EventTemporalNode) node2;
+                        if (node3.getLemma().equals("speak")) {
+                            System.out.println(directedGraph.getEdge(node1.getUniqueId(), node2.getUniqueId()));
+                            System.out.println(directedGraph.getEdge(node2.getUniqueId(), node1.getUniqueId()));
+                        }
+                    }
+                }
+            }
         }
         ret.sort(new Comparator<EventTemporalNode>() {
             @Override
@@ -149,7 +223,16 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                     return 1;
                 return 0;
             }
-        });
+        });*/
+        while (topoIterator.hasNext()) {
+            String nextString = topoIterator.next();
+            if (etnMap.containsKey(nextString)) {
+                ret.add(etnMap.get(nextString));
+            }
+        }
+        for (EventTemporalNode node : ret) {
+            System.out.println(node.getUniqueId());
+        }
         // add back ET edges
         for(TemporalRelation_ET et:allET){
             if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
@@ -168,7 +251,8 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         groupEqualNodes();
 
         // construct graph
-        DirectedAcyclicGraph<String, DefaultEdge> directedGraph = constructJGRAPHT();
+        // DirectedAcyclicGraph<String, DefaultEdge> directedGraph = constructJGRAPHT();
+        this.directedGraph = constructJGRAPHT();
 
         // reduction
         TransitiveReduction.INSTANCE.reduce(directedGraph);

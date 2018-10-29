@@ -58,6 +58,16 @@ public class myTemporalDocument implements Serializable {
         addTimex(dct);
     }
 
+    public myTemporalDocument(TextAnnotation ta, String docid) throws Exception {
+        this.docid = docid;
+        this.ta = ta;
+        graph = new TemporalGraph(this);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+    }
+
     public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
         this.docid = docid;
         myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
@@ -340,6 +350,7 @@ public class myTemporalDocument implements Serializable {
                         ||relType.getReltype()== TemporalRelType.relTypes.EQUAL)// todo now only deals with before/after relations
                     continue;
                 TemporalRelation_TT tt = new TemporalRelation_TT(t1,t2,relType,this);
+                // System.out.println("Adding tt relation " + t1.toString() + " " + t2.toString());
                 getGraph().addRelNoDup(tt);
             }
         }
@@ -372,7 +383,9 @@ public class myTemporalDocument implements Serializable {
                         if(e1.isEqual(e2))
                             continue;
                         TemporalRelation_EE newEE = new TemporalRelation_EE(e1,e2,rel.getRelType(),this);
+                        newEE.setFromT();
                         if(!long_dist&&Math.abs(newEE.getSentDiff()) > 1) continue;
+                        System.out.println("Adding EE");
                         getGraph().addRelNoDup(newEE);
                     }
                 }
