@@ -30,7 +30,7 @@ public class mySerialization {
             if(verbose)
                 System.out.println("Serialization exists. Loading from "+serializedFile.getPath());
             FileInputStream fileIn = new FileInputStream(serializedFile.getPath());
-            ObjectInputStream in = new ObjectInputStream(fileIn);
+            DecompressibleInputStream in = new DecompressibleInputStream(fileIn);
             obj = in.readObject();
             in.close();
             fileIn.close();

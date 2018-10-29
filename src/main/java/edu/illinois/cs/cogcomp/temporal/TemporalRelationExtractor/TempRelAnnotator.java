@@ -7,6 +7,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
+import edu.illinois.cs.cogcomp.slm.nyt.AnnotatedNYTDocAugument;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.BinaryRelationType;
 import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
@@ -17,6 +18,7 @@ import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.myDatasetLoader;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
+import edu.illinois.cs.cogcomp.core.utilities.SerializationHelper;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -141,9 +143,13 @@ public class TempRelAnnotator {
     }
 
     public void annotator(){
+        annotator(null);
+    }
+
+    public void annotator(TextAnnotation ta){
         if(!goldEvent){
             doc.dropAllEventNodes();
-            axisAnnotator();
+            axisAnnotator(ta);
         }
         initAllArrays4ILP();
         if(!goldTimex) {
@@ -166,9 +172,11 @@ public class TempRelAnnotator {
         eeTempRelAnnotator();
     }
 
-    public void axisAnnotator(){
+    public void axisAnnotator(TextAnnotation ta){
         int window = rm.getInt("EVENT_DETECTOR_WINDOW");
-        TextAnnotation ta = doc.getTextAnnotation();
+        if (ta == null) {
+            ta = doc.getTextAnnotation();
+        }
         int eiid = 0;
         List<EventTokenCandidate> eventTokenCandidateList = doc.generateAllEventTokenCandidates(window,new HashMap<>());
         EventTokenCandidate prev_event = null;
@@ -363,6 +371,9 @@ public class TempRelAnnotator {
                     bestET = et;
                 }
             }
+            if (bestET != null) {
+                System.out.println("Adding ET rel");
+            }
             doc.getGraph().addRelNoDup(bestET);
         }
     }
@@ -439,24 +450,58 @@ public class TempRelAnnotator {
             else
                 sb.append(nl);
         }
+        // String jsonString = sb.toString();
+        // TextAnnotation ta = SerializationHelper.deserializeFromJson(jsonString);
+        // String text = ta.text;
         String text = sb.toString();
-        myTemporalDocument doc = new myTemporalDocument(text,fname,dct);
+        // myTemporalDocument doc = new myTemporalDocument(ta,fname);
+        myTemporalDocument doc = new myTemporalDocument(text, fname);
         TempRelAnnotator tra = new TempRelAnnotator(doc);
+        tra.ilp = false;
         ExecutionTimeUtil timer = new ExecutionTimeUtil();
         timer.start();
-        tra.annotator();
+        // tra.annotator(ta);
+        tra.annotator(null);
         timer.end();
         doc.getGraph().reduction();
-        doc.getGraph().graphVisualization("data/html");
-        doc.getGraph().chainVisualization("data/html");
+        doc.getGraph().graphVisualization("data/html/");
+        doc.getGraph().chainVisualization("data/html/");
         System.out.println(timer.getTimeSeconds()+" seconds.");
     }
 
     public static void main(String[] args) throws Exception{
-        TempRelAnnotator.long_dist = true;
-        TempRelAnnotator.soft_group = true;
-        //rawtext2graph("data/SampleInput","GeorgeLowe-long");
-        myDatasetLoader loader = new myDatasetLoader();
+        // TempRelAnnotator.long_dist = true;
+        // TempRelAnnotator.soft_group = true;
+        rawtext2graph("data/SampleInput","GeorgeLowe-long");
+        // final String FOLDER_PATH = "/shared/preprocessed/resources/NYT-TA/";
+        /*final String FOLDER_PATH = "/scratch/sanjay/illinois-temporal/ta/";
+        File folder = new File(FOLDER_PATH);
+        File[] listOfFiles = folder.listFiles();
+        int count = 0;
+        for (File file : listOfFiles) {
+            if (count >= 100) {
+                break;
+            }
+            try {
+                rawtext2graph(FOLDER_PATH, file.getName());
+            } catch (Exception | StackOverflowError e) {
+                System.out.println("Error!");
+            }
+            count += 1;
+        }*/
+        /*rawtext2graph(FOLDER_PATH, args[0]);
+        File folder = new File(FOLDER_PATH);
+        File[] listOfFiles = folder.listFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                try {
+                    rawtext2graph(FOLDER_PATH, listOfFiles[i].getName());
+                }
+                catch (IllegalArgumentException e) {
+                }
+            }
+        }*/
+        /*myDatasetLoader loader = new myDatasetLoader();
         boolean goldEvent = false, goldTimex = false;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
@@ -472,6 +517,6 @@ public class TempRelAnnotator {
         }
 
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
     }
 }

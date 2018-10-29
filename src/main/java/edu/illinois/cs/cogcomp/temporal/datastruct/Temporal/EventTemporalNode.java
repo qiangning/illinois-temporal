@@ -337,7 +337,7 @@ public class EventTemporalNode extends TemporalNode{
             }
         }
         sb.append(String.format("|%-"+normValLen+"s%s\n",normVal,eventVal).replaceAll(" ","-"));
-        /*if(verb_srl!=null) {
+        if(verb_srl!=null) {
             StringBuilder spaces = new StringBuilder();
             for (int i = 0; i < normValLen; i++)
                 spaces.append(" ");
@@ -368,7 +368,7 @@ public class EventTemporalNode extends TemporalNode{
             }
         }
         else
-            sb.append(text);*/
+            sb.append(text);
         return sb.toString();
     }
 

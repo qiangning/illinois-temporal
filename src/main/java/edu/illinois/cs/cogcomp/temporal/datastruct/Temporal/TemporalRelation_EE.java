@@ -30,6 +30,7 @@ public class TemporalRelation_EE extends TemporalRelation{
     private static TempLangMdl tempLangMdl;
     private HashSet<String> closestTimexFeats;
     private boolean sameSynset;
+    private boolean fromT = false;
     public double c_before, c_after, c_vague, c_equal, c_includes, c_included;
 
     public TemporalRelation_EE(TemporalRelation_EE other, myTemporalDocument doc){
@@ -193,6 +194,14 @@ public class TemporalRelation_EE extends TemporalRelation{
 
     public HashSet<String> getClosestTimexFeats() {
         return closestTimexFeats;
+    }
+
+    public void setFromT() {
+        this.fromT = true;
+    }
+
+    public boolean getFromT() {
+        return this.fromT;
     }
 
     public static TempLangMdl getTempLangMdl() {
