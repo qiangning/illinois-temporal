@@ -15,6 +15,8 @@ import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerAnnotator
 import edu.illinois.cs.cogcomp.temporal.normalizer.main.TemporalChunkerConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.temporal.utils.Triplet;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -160,7 +162,8 @@ public class TempRelAnnotator {
         if(performET) {
             etTempRelAnnotator();
         }
-        doc.addEERelationsBasedOnETAndTT(long_dist);
+        if(ilp)
+            doc.addEERelationsBasedOnETAndTT(long_dist);
         eeTempRelAnnotator();
     }
 
@@ -226,15 +229,13 @@ public class TempRelAnnotator {
                     continue;
                 ee.extractAllFeats();
                 TemporalRelType reltype = ee.getRelType();
-                if(reltype.isNull()){
+                if(reltype.isNull()){// doc doesn't have relation between e1 and e2
                     reltype = eeTempRelLabeler.tempRelLabel(ee);
                     if(reltype.isNull()) {// even if eeTempRelLabeler.isIgnore(ee)==false, reltype can still be null (it's an exception when classifiers are null)
                         System.out.println("[WARNING] reltype by TempRelLabeler is unexpectedly null.");
                         continue;
                     }
                     ee.setRelType(reltype);
-                    if(!ilp||!respectAsHardConstraints)
-                        doc.getGraph().addRelNoDup(ee);
                 }
                 local_score[i][j] = reltype.getScores();
             }
@@ -315,6 +316,48 @@ public class TempRelAnnotator {
                     e.printStackTrace();
                 }
             }
+        }
+        else{
+            // use local scores to determine all EE relations
+            for(int i=0;i<n_entity;i++){
+                for(int j=i+1;j<n_entity;j++){
+                    if(ignoreMap[i][j]) continue;
+                    TemporalRelation_EE ee = doc.getGraph().getEERelBetweenEvents(eventList.get(i).getUniqueId(),eventList.get(j).getUniqueId());
+                    if(respectAsHardConstraints&&ee!=null) continue;
+
+                    if(ee==null) {
+                        ee = new TemporalRelation_EE(eventList.get(i), eventList.get(j), new TemporalRelType(TemporalRelType.relTypes.VAGUE), doc);
+                        doc.getGraph().addRelNoDup(ee);
+                    }
+                    int bestrelid = -1;
+                    double bestscore = 0;
+                    for(int k=0;k<TemporalRelType.relTypes.values().length;k++){
+                        double s = local_score[i][j][k];
+                        if(s>bestscore){
+                            bestrelid = k;
+                            bestscore = s;
+                        }
+                    }
+                    ee.getRelType().setReltype(TemporalRelType.relTypes.values()[bestrelid]);
+                    ee.getRelType().setScores(local_score[i][j]);
+                }
+            }
+            // copy all EE
+            List<TemporalRelation> copylist = new ArrayList<>();
+            copylist.addAll(doc.getGraph().getAllEERelations(-1));
+
+            // drop all EE relations
+            doc.getGraph().dropAllEERelations();
+
+            // add EE based on ET and TT
+            doc.addEERelationsBasedOnETAndTT(long_dist);
+
+            // add EE one-by-one in confidence order
+            // make sure no loops are induced
+            copylist.sort((ee1,ee2)->Double.compare(ee2.getRelType().getScore(),ee1.getRelType().getScore()));
+            DirectedAcyclicGraph<String, DefaultEdge> directedGraph = doc.getGraph().constructJGRAPHT();
+            copylist = doc.getGraph().addRel2JGRAPHT(directedGraph,copylist,false);
+            copylist.forEach(a->doc.getGraph().addRelNoDup(a));
         }
         //doc.extractAllFeats(window);
     }
@@ -427,6 +470,7 @@ public class TempRelAnnotator {
 
     public static void rawtext2graph(String dir, String fname) throws Exception{
         // sample input
+        boolean useILP = true;
         String dct = "2013-03-22";//default dct
         Scanner scanner = new Scanner(new File(dir+File.separator+fname));
         StringBuilder sb = new StringBuilder();
@@ -439,7 +483,13 @@ public class TempRelAnnotator {
         }
         String text = sb.toString();
         myTemporalDocument doc = new myTemporalDocument(text,fname,dct);
-        TempRelAnnotator tra = new TempRelAnnotator(doc);
+
+        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+
+        EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
+        TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
+        TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
+        TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,useILP);
         ExecutionTimeUtil timer = new ExecutionTimeUtil();
         timer.start();
         tra.annotator();
@@ -455,7 +505,7 @@ public class TempRelAnnotator {
         TempRelAnnotator.soft_group = true;
         rawtext2graph("data/SampleInput","GeorgeLowe-long");
         /*myDatasetLoader loader = new myDatasetLoader();
-        boolean goldEvent = false, goldTimex = false;
+        boolean goldEvent = true, goldTimex = true, useILP = true;
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
 
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
@@ -464,7 +514,7 @@ public class TempRelAnnotator {
         List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
         TempRelAnnotator.performET = true;
         for(myTemporalDocument doc:myAllDocs){
-            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,true);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,useILP);
             tra.setup(goldTimex,goldEvent,false,false);
             tra.annotator();
         }

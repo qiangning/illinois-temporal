@@ -135,7 +135,10 @@ public class TemporalRelation_ET extends TemporalRelation {
 
     @Override
     public TemporalRelation_ET inverse(){
-        return new TemporalRelation_ET(getTargetNode(), getSourceNode(),getRelType().inverse(), getDoc());
+        TemporalRelation_ET ret = new TemporalRelation_ET(getTargetNode(),getSourceNode(),getRelType().inverse(),getDoc());
+        // since the source & target have been flipped, we need to reverse the scores in reltype
+        ret.getRelType().reverseScores();
+        return ret;
     }
 
     @Override

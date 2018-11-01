@@ -31,7 +31,10 @@ public class TemporalRelation extends BinaryRelation<TemporalNode>{
     /*Functions*/
     @Override
     public TemporalRelation inverse() {
-        return new TemporalRelation(getTargetNode(),getSourceNode(),getRelType().inverse(),doc);
+        TemporalRelation ret = new TemporalRelation(getTargetNode(),getSourceNode(),getRelType().inverse(),doc);
+        // since the source & target have been flipped, we need to reverse the scores in reltype
+        ret.getRelType().reverseScores();
+        return ret;
     }
 
     protected HashSet<String> getSignalsFromText(String text, SignalWordSet signalWordSet){
