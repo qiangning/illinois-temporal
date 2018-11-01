@@ -120,6 +120,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         // todo do ee first
         List<TemporalRelation_ET> allET = getAllETRelations(0);
         dropAllETRelations();
+        List<TemporalRelation_TT> allTT = getAllTTRelations(-1);
         dropAllTTRelations();
 
         // group equal nodes
@@ -154,6 +155,10 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         for(TemporalRelation_ET et:allET){
             if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
                 addRelNoDup(et);
+        }
+        // add back TT edges
+        for(TemporalRelation_TT tt:allTT){
+            addRelNoDup(tt);
         }
         return ret;
     }

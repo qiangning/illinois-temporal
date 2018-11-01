@@ -346,7 +346,6 @@ public class myTemporalDocument implements Serializable {
     }
 
     public void addEERelationsBasedOnETAndTT(boolean long_dist){
-        // todo only add distance<=1; already fixed in loopIssue branch
         for(TemporalRelation_TT rel:getGraph().getAllTTRelations(-1)){
             if(!rel.isNull() && rel.getRelType().getReltype() != TemporalRelType.relTypes.VAGUE){
                 TimexTemporalNode t1 = rel.getSourceNode();
