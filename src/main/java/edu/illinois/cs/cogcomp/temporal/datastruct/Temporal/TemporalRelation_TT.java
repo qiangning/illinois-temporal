@@ -24,7 +24,10 @@ public class TemporalRelation_TT extends TemporalRelation{
 
     @Override
     public TemporalRelation_TT inverse(){
-        return new TemporalRelation_TT(getTargetNode(), getSourceNode(),getRelType().inverse(), getDoc());
+        TemporalRelation_TT ret = new TemporalRelation_TT(getTargetNode(),getSourceNode(),getRelType().inverse(),getDoc());
+        // since the source & target have been flipped, we need to reverse the scores in reltype
+        ret.getRelType().reverseScores();
+        return ret;
     }
 
     @Override
