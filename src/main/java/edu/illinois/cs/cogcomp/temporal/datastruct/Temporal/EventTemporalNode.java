@@ -327,6 +327,8 @@ public class EventTemporalNode extends TemporalNode{
         List<TemporalRelation> outrelations = doc.getGraph().getNodeOutRelationMap().getOrDefault(getUniqueId(),new ArrayList<>());
         for(TemporalRelation rel:outrelations){
             if(rel instanceof TemporalRelation_ET){
+                if(rel.getRelType().getReltype()==TemporalRelType.relTypes.VAGUE)
+                    continue;
                 TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
                 normVal = timex.getNormVal();
                 if(normVal.equals("PRESENT_REF"))
