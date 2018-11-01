@@ -13,10 +13,9 @@ import java.util.List;
 public class myTextPreprocessor {
     private AnnotatorService annotator;
     private TokenizerTextAnnotationBuilder tab;
-    private boolean useCuratorOrPipeline = true; // true->curator. false->pipeline
+    public static boolean useCuratorOrPipeline = true; // true->curator. false->pipeline
 
-    public myTextPreprocessor(boolean useCuratorOrPipeline) throws Exception{
-        this.useCuratorOrPipeline = useCuratorOrPipeline;
+    public myTextPreprocessor() throws Exception{
         if(useCuratorOrPipeline)
             annotator = CuratorFactory.buildCuratorClient();
         else
@@ -79,7 +78,7 @@ public class myTextPreprocessor {
         return ta;
     }
     public static void main(String[] args) throws Exception{
-        myTextPreprocessor exc = new myTextPreprocessor(true);
+        myTextPreprocessor exc = new myTextPreprocessor();
         String text = "I failed to do it.";
         TextAnnotation ta = exc.extractTextAnnotation(text);
         TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY);
