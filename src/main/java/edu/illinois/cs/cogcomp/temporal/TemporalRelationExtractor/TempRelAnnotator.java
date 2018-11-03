@@ -421,7 +421,10 @@ public class TempRelAnnotator {
 
     private static EventAxisLabeler defaultAxisLabeler(){
         String axisMdlDir = "models/eventDetector", axisMdlName = "eventPerceptronDetector_win2_cls0";
-        return new EventAxisLabelerLBJ(
+        /*return new EventAxisLabelerLBJ(
+                new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
+                        axisMdlDir+File.separator+axisMdlName+".lex"));*/
+        return new EventAxisLabelerMix(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
     }
