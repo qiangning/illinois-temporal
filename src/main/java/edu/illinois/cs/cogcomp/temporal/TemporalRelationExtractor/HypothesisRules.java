@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.NegationRules.negationRule;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.eventIndex2TokId;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.readAxisMapFromCrowdFlower;
 
@@ -69,7 +70,7 @@ public class HypothesisRules {
         return pred.equals(HYPOTHESIS)&&gold.equals("no_its_hypotheticalcondition")
                 ||pred.equals(NOT_HYPOTHESIS)&&!gold.equals("no_its_hypotheticalcondition");
     }
-    private List<Constituent> targetConstituentOfRelation(Constituent c, String targetRelationName){
+    private static List<Constituent> targetConstituentOfRelation(Constituent c, String targetRelationName){
         List<Constituent> ret = new ArrayList<>();
         if(c!=null) {
             List<Relation> relations = c.getOutgoingRelations();
@@ -81,7 +82,7 @@ public class HypothesisRules {
         }
         return ret;
     }
-    private List<Constituent> sourceConstituentOfRelation(Constituent c, String sourceRelationName){
+    private static List<Constituent> sourceConstituentOfRelation(Constituent c, String sourceRelationName){
         List<Constituent> ret = new ArrayList<>();
         if(c!=null) {
             List<Relation> relations = c.getIncomingRelations();
@@ -93,25 +94,25 @@ public class HypothesisRules {
         }
         return ret;
     }
-    private boolean match2strings(Constituent c, String[] keys){
+    private static boolean match2strings(Constituent c, String[] keys){
         for(String k:keys){
             if(c.toString().toLowerCase().equals(k.toLowerCase()))
                 return true;
         }
         return false;
     }
-    private boolean startwithStrings(Constituent c, String[] keys){
+    private static boolean startwithStrings(Constituent c, String[] keys){
         for(String k:keys){
             if(c.toString().toLowerCase().startsWith(k.toLowerCase()))
                 return true;
         }
         return false;
     }
-    public String hypothesisRule(EventTokenCandidate etc){
+    public static String hypothesisRule(EventTokenCandidate etc){
         TextAnnotation ta = etc.getDoc().getTextAnnotation();
         TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY);
         // rule1: v->advcl->v2 AND v2->mark->"if"/"unless" AND v->AM-ADV->a constituent starting with "if"/"unless"
-        if(negationRules.negationRule(etc).equals(NegationRules.NEGATION))
+        if(negationRule(etc).equals(NegationRules.NEGATION))
             return NOT_HYPOTHESIS;
         boolean b1 = false, b2 = false; //b1 for dependency parsing rule, and b2 for SRL rule
         List<Constituent> clist = dep.getConstituentsCoveringToken(etc.getTokenId());
@@ -149,7 +150,7 @@ public class HypothesisRules {
                 // check if any advclConsts is negation
                 boolean b3 = false;
                 for(Constituent c3:advclConsts){
-                    if(negationRules.negationRule(ta, c3.getStartSpan()).equals(NegationRules.NEGATION)) {
+                    if(negationRule(ta, c3.getStartSpan()).equals(NegationRules.NEGATION)) {
                         b3 = true;
                         break;
                     }

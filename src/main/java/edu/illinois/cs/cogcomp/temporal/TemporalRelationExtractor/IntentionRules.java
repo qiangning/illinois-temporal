@@ -57,7 +57,7 @@ public class IntentionRules {
         }
         return ret;
     }
-    public String intentionRule_to(EventTokenCandidate etc){
+    public static String intentionRule_to(EventTokenCandidate etc, int window){
         if(etc.getLemma_window()[window-1].equals("to")) {
             return etc.getLemma_window()[window-2].equals("start")||etc.getLemma_window()[window-2].equals("begin")? NOT_INTENTION:INTENTION;
         }
@@ -74,7 +74,7 @@ public class IntentionRules {
         PrintStream ps = new PrintStream(new File(fullpath));
         double tp = 0, fp = 0, fn = 0;
         for(EventTokenCandidate etc:list){
-            String pred = intentionRule_to(etc);
+            String pred = intentionRule_to(etc,window);
             String gold = etc.getLabel();
             if(pred.equals(INTENTION)) {
                 if (compare(gold, pred))

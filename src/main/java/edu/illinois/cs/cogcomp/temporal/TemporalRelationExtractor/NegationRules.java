@@ -67,7 +67,7 @@ public class NegationRules {
         return pred.equals(NEGATION)&&gold.equals("no_its_negation")
                 ||pred.equals(NOT_NEGATION)&&!gold.equals("no_its_negation");
     }
-    public String negationRule(TextAnnotation ta, int tokenId){
+    public static String negationRule(TextAnnotation ta, int tokenId){
         TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY);
         //TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY_STANFORD);
         boolean until = false;
@@ -111,7 +111,7 @@ public class NegationRules {
         }
         return NOT_NEGATION;
     }
-    public String negationRule(EventTokenCandidate etc){
+    public static String negationRule(EventTokenCandidate etc){
         TextAnnotation ta = etc.getDoc().getTextAnnotation();
         return negationRule(ta,etc.getTokenId());
     }

@@ -420,10 +420,13 @@ public class TempRelAnnotator {
     }
 
     private static EventAxisLabeler defaultAxisLabeler(){
+        int window = 2;
+        //String axisMdlDir = "models/eventDetector", axisMdlName = String.format("eventPerceptronDetector_win%d_cls0",window);
         String axisMdlDir = "models/eventDetector", axisMdlName = "eventPerceptronDetector_win2_cls0";
         /*return new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));*/
+        EventAxisLabelerMix.window = window;
         return new EventAxisLabelerMix(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));
