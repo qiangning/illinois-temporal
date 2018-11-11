@@ -54,21 +54,21 @@
             <artifactId>illinois-curator</artifactId>
             <version>4.0.4</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>temporal</groupId>
             <artifactId>KBconstruction</artifactId>
             <version>1.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId> <!-- Exclude Project-D from Project-B -->
+                    <groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;
                     <artifactId>Illinois-Combined-Coref</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>net.sf.jgrapht</groupId> <!-- Exclude Project-D from Project-B -->
+                    <groupId>net.sf.jgrapht</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;
                     <artifactId>jgrapht</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
         <!--<dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-chunker</artifactId>
