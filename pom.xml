@@ -69,17 +69,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--<dependency>
-            <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-chunker</artifactId>
-            <version>3.0.99</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId> &lt;!&ndash; Exclude Project-D from Project-B &ndash;&gt;
-                    <artifactId>illinois-chunker-model</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>-->
     </dependencies>
 
 

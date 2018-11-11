@@ -5,22 +5,30 @@ import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.curator.CuratorFactory;
+import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
+import edu.illinois.cs.cogcomp.nlp.utility.TokenizerTextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
 
 import java.util.List;
 
 public class myTextPreprocessor {
     private AnnotatorService annotator;
+    private TokenizerTextAnnotationBuilder tab;
+    public static boolean useCuratorOrPipeline = true; // true->curator. false->pipeline
 
     public myTextPreprocessor() throws Exception{
-        annotator = CuratorFactory.buildCuratorClient();
-    }
-
-    public TextAnnotation extractTextAnnotationPipeline(String text) throws Exception{
-        ResourceManager userConfig = new ResourceManager("config/pipeline-config.properties");
-        AnnotatorService pipeline = PipelineFactory.buildPipeline(userConfig);
-        TextAnnotation ta = pipeline.createAnnotatedTextAnnotation( "", "", text );
-        return ta;
+        if(useCuratorOrPipeline)
+            annotator = CuratorFactory.buildCuratorClient();
+        else
+            annotator = PipelineFactory.buildPipeline(
+                    ViewNames.POS,
+                    ViewNames.SHALLOW_PARSE,
+                    ViewNames.PARSE_STANFORD,
+                    ViewNames.NER_CONLL,
+                    ViewNames.SRL_VERB,
+                    ViewNames.LEMMA
+            );
+        tab = new TokenizerTextAnnotationBuilder(new StatefulTokenizer());
     }
 
     public TextAnnotation extractTextAnnotation(String text)  throws Exception{

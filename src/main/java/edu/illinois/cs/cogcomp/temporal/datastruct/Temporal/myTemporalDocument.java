@@ -1,7 +1,9 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TokenLabelView;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
@@ -9,21 +11,21 @@ import edu.illinois.cs.cogcomp.nlp.util.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
+import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
+import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 import edu.uw.cs.lil.uwtime.chunking.chunks.EventChunk;
 import edu.uw.cs.lil.uwtime.chunking.chunks.TemporalJointChunk;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 import jline.internal.Nullable;
 
-import java.awt.*;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedNode.getUniqueId;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
@@ -43,10 +45,10 @@ public class myTemporalDocument implements Serializable {
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
     private HashMap<String,TimexTemporalNode> map_tokenSpan2timex = new HashMap<>();
 
-    /*Constructors*/
-    public myTemporalDocument() {
-    }
+    public HashMap<String,List<Integer>> keywordLocationsInText = new HashMap<>();// list of tokenids that match to keywords
+    public HashMap<String,List<Integer>> keywordLocationsInLemma = new HashMap<>();// list of tokenids that match to keywords
 
+    /*Constructors*/
     public myTemporalDocument(String bodytext, String docid) throws Exception{
         this.docid = docid;
         myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
@@ -56,6 +58,7 @@ public class myTemporalDocument implements Serializable {
         Date date = new Date();
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
         addTimex(dct);
+        initKeywordLocations();
     }
 
     public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
@@ -67,6 +70,7 @@ public class myTemporalDocument implements Serializable {
         Date date = dateFormat.parse(dct_yyyy_mm_dd);
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
         addTimex(dct);
+        initKeywordLocations();
     }
 
     public myTemporalDocument(TemporalDocument temporalDocument, int mode){
@@ -177,9 +181,38 @@ public class myTemporalDocument implements Serializable {
                 System.out.println("[WARNING] unexpected type of temporal relations (EE/ET/TT).");
             }
         }
+        keywordLocationsInText = other.keywordLocationsInText;
+        keywordLocationsInLemma  = other.keywordLocationsInLemma;
     }
 
     /*Functions*/
+
+    private void initKeywordLocations(){
+        HashSet<String> allKeywords = SignalWordSet.getInstance().getAllSignals();
+        String textStr = ta.getText().toLowerCase();
+        String lemmaStr = myUtils4TextAnnotation.getLemmaTextInBetween(ta,0,ta.getTokens().length-1);
+        for(String kw:allKeywords){
+            int charid = textStr.indexOf(kw);
+            while(charid!=-1){
+                int tokid = ta.getTokenIdFromCharacterOffset(charid);
+                if(!keywordLocationsInText.containsKey(kw))
+                    keywordLocationsInText.put(kw,new ArrayList<>());
+                keywordLocationsInText.get(kw).add(tokid);
+                charid = textStr.indexOf(kw,charid+kw.length());
+            }
+        }
+        TokenLabelView lemmaView = (TokenLabelView) ta.getView(ViewNames.LEMMA);
+        if(lemmaView!=null) {
+            for(int i=0;i<ta.getTokens().length;i++) {
+                String lemma = lemmaView.getConstituentAtToken(i).getLabel();
+                if(allKeywords.contains(lemma)){
+                    if(!keywordLocationsInLemma.containsKey(lemma))
+                        keywordLocationsInLemma.put(lemma,new ArrayList<>());
+                    keywordLocationsInLemma.get(lemma).add(i);
+                }
+            }
+        }
+    }
 
     public void keepAnchorableEvents(HashMap<Integer,String> axisMap){
         // axisMap: (index in doc, CrowdFlower axis name)
