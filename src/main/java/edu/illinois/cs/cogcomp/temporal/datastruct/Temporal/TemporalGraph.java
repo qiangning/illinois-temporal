@@ -3,7 +3,6 @@ package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 import edu.illinois.cs.cogcomp.core.io.IOUtils;
 import edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedGraph;
 import edu.illinois.cs.cogcomp.temporal.utils.GraphVisualizer.GraphJavaScript;
-import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
@@ -13,7 +12,6 @@ import org.jgrapht.graph.DirectedAcyclicGraph;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -90,40 +88,92 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
         }
     }
 
-    private DirectedAcyclicGraph<String, DefaultEdge> constructJGRAPHT(){
+    public DirectedAcyclicGraph<String, DefaultEdge> constructJGRAPHT(){
         DirectedAcyclicGraph<String, DefaultEdge> directedGraph = new DirectedAcyclicGraph<>(DefaultEdge.class);
         for(String nodeId:nodeMap.keySet()){
             directedGraph.addVertex(nodeId);
         }
-        for(TemporalRelation rel:relations_directed){
+        List<TemporalRelation_ET> allET = doc.getGraph().getAllETRelations(-2);
+        List<TemporalRelation_TT> allTT = doc.getGraph().getAllTTRelations(-1);
+        doc.getGraph().dropAllETRelations();
+        doc.getGraph().dropAllTTRelations();
+        groupEqualNodes();
+        addRel2JGRAPHT(directedGraph,relations_directed,false);
+        addRelations4EqualGroupNodes();
+        allET.forEach(a->doc.getGraph().addRelNoDup(a));
+        allTT.forEach(a->doc.getGraph().addRelNoDup(a));
+        return directedGraph;
+    }
+
+    public List<TemporalRelation> addRel2JGRAPHT(DirectedAcyclicGraph<String, DefaultEdge> directedGraph, List<TemporalRelation> relations, boolean verbose){
+        List<TemporalRelation> ret = new ArrayList<>();
+        for(TemporalRelation rel:relations){
             TemporalNode n1 = rel.getSourceNode().getEquivalentNodeHead();
             TemporalNode n2 = rel.getTargetNode().getEquivalentNodeHead();
             String v1 = n1.getUniqueId();
             String v2 = n2.getUniqueId();
-            if(rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE){
-                directedGraph.addEdge(v1,v2);
+            if(directedGraph.getEdge(v1,v2)!=null||directedGraph.getEdge(v2,v1)!=null) {
+                if(verbose)
+                    System.out.println(rel.toString()+" skipped because it's redundant/conflict with existing edges.");
+                if(directedGraph.getEdge(v1,v2)!=null&&rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE)
+                    ret.add(rel);
+                else if(directedGraph.getEdge(v2,v1)!=null&&rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER)
+                    ret.add(rel);
+                continue;
             }
-            else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
-                try {
-                    directedGraph.addEdge(v2, v1);
+            if(rel.getRelType().getReltype()==TemporalRelType.relTypes.BEFORE){
+                try{
+                    directedGraph.addEdge(v1, v2);
+                    ret.add(rel);
                 }
                 catch (Exception e){
-                    e.printStackTrace();
+                    if(verbose) e.printStackTrace();
                 }
             }
+            else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.AFTER){
+                try{
+                    directedGraph.addEdge(v2, v1);
+                    ret.add(rel);
+                }
+                catch (Exception e){
+                    if(verbose) e.printStackTrace();
+                }
+            }
+            else if(rel.getRelType().getReltype()==TemporalRelType.relTypes.EQUAL){
+                TemporalNode.setEquivalentNodes(rel.getSourceNode(),rel.getTargetNode());
+                TemporalNode newhead = rel.getSourceNode().getEquivalentNodeHead();
+                TemporalNode other = newhead.isEqual(rel.getSourceNode())? rel.getTargetNode():rel.getSourceNode();
+                boolean toAdd = true;
+                for(DefaultEdge e:directedGraph.incomingEdgesOf(other.getUniqueId())){
+                    String v = directedGraph.getEdgeSource(e);
+                    try {
+                        directedGraph.addEdge(v, newhead.getUniqueId());
+                    }
+                    catch (Exception ex){
+                        if(verbose) ex.printStackTrace();
+                        toAdd = false;
+                    }
+                }
+                for(DefaultEdge e:directedGraph.outgoingEdgesOf(other.getUniqueId())){
+                    String v = directedGraph.getEdgeTarget(e);
+                    try{
+                        directedGraph.addEdge(newhead.getUniqueId(),v);
+                    }
+                    catch (Exception ex){
+                        if(verbose) ex.printStackTrace();
+                        toAdd = false;
+                    }
+                }
+                if(toAdd)
+                    ret.add(rel);
+            }
+            TransitiveClosure.INSTANCE.closeDirectedAcyclicGraph(directedGraph);
         }
-        return directedGraph;
+        return ret;
     }
 
     public List<EventTemporalNode> convert2chain(){
         List<EventTemporalNode> ret = new ArrayList<>();
-        // todo do ee first
-        List<TemporalRelation_ET> allET = getAllETRelations(0);
-        dropAllETRelations();
-        dropAllTTRelations();
-
-        // group equal nodes
-        groupEqualNodes();
 
         // construct graph
         DirectedAcyclicGraph<String, DefaultEdge> directedGraph = constructJGRAPHT();
@@ -143,6 +193,8 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                     return -1;
                 if(directedGraph.getEdge(e2.getUniqueId(),e1.getUniqueId())!=null)
                     return 1;
+                if (getEERelBetweenEvents(e1.getUniqueId(), e2.getUniqueId())!=null&&getEERelBetweenEvents(e1.getUniqueId(), e2.getUniqueId()).getRelType().getReltype() == TemporalRelType.relTypes.EQUAL)
+                    return 0;
                 if(e1.getTokenId()<e2.getTokenId())
                     return -1;
                 if(e1.getTokenId()>e2.getTokenId())
@@ -150,23 +202,10 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                 return 0;
             }
         });
-        // add back ET edges
-        for(TemporalRelation_ET et:allET){
-            if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
-                addRelNoDup(et);
-        }
         return ret;
     }
 
     public void reduction(){
-        // todo do ee first
-        List<TemporalRelation_ET> allET = getAllETRelations(0);
-        dropAllETRelations();
-        dropAllTTRelations();
-
-        // group equal nodes
-        groupEqualNodes();
-
         // construct graph
         DirectedAcyclicGraph<String, DefaultEdge> directedGraph = constructJGRAPHT();
 
@@ -187,12 +226,6 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
         // add back equal edges
         addRelations4EqualGroupNodes();
-
-        // add back ET edges
-        for(TemporalRelation_ET et:allET){
-            if(et.getRelType().getReltype()== TemporalRelType.relTypes.EQUAL)
-                addRelNoDup(et);
-        }
     }
 
     // todo graph satuartion

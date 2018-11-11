@@ -200,6 +200,14 @@ public class TemporalRelType extends BinaryRelationType{
         return scores;
     }
 
+    public double getScore(){
+        return getScores()[reltype.getIndex()];
+    }
+
+    public void reverseScores(){
+        scores = new double[]{scores[1],scores[0],scores[3],scores[2],scores[4]};
+    }
+
     public static void main(String[] args) throws Exception{
         String[] test = relTypes.getAllNames();
         TemporalRelType tmp = new TemporalRelType("BEFORE");
