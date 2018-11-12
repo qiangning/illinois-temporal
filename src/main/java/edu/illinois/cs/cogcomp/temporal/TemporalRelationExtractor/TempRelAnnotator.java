@@ -162,9 +162,9 @@ public class TempRelAnnotator {
         doc.addTTRelationsBasedOnNormVals();
         if(performET) {
             etTempRelAnnotator();
-            if(ilp)
-                doc.addEERelationsBasedOnETAndTT(long_dist);
         }
+        if(ilp)
+            doc.addEERelationsBasedOnETAndTT(long_dist);
         eeTempRelAnnotator();
     }
 
@@ -207,20 +207,13 @@ public class TempRelAnnotator {
     public void eeTempRelAnnotator(){// always respect existing relations in doc, so if you don't want to respect them, drop them beforehand or set respectExistingTempRels=false
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
         List<EventTemporalNode> eventList = doc.getEventList();
-
-        ExecutionTimeUtil timer = new ExecutionTimeUtil();
-        timer.start();
         // extract features
         for(EventTemporalNode e:eventList)
             e.extractAllFeats(window);
-        timer.end();
-        System.out.println("extract features: "+timer.getTimeSeconds()+" seconds.");
-
-        timer.start();
+        long tmp = 0;
         for(EventTemporalNode e1:eventList){
             int i = eventList.indexOf(e1);
             for(EventTemporalNode e2:eventList){
-                ExecutionTimeUtil timer2 = new ExecutionTimeUtil();
                 int j = eventList.indexOf(e2);
                 if(e1.isEqual(e2)||e1.getTokenId()>e2.getTokenId())
                     continue;
@@ -234,7 +227,6 @@ public class TempRelAnnotator {
                 }
                 if(ignoreMap[i][j])
                     continue;
-                ee.extractAllFeats();
                 TemporalRelType reltype = ee.getRelType();
                 if(reltype.isNull()){// doc doesn't have relation between e1 and e2
                     reltype = eeTempRelLabeler.tempRelLabel(ee);
@@ -247,9 +239,6 @@ public class TempRelAnnotator {
                 local_score[i][j] = reltype.getScores();
             }
         }
-        timer.end();
-        System.out.println("local scores: "+timer.getTimeSeconds()+" seconds.");
-        timer.start();
         // tune local scores by TT links
         // assume event time can be approx. by its closest timex
         if(soft_group) {
@@ -370,8 +359,6 @@ public class TempRelAnnotator {
             copylist.forEach(a->doc.getGraph().addRelNoDup(a));
         }
         //doc.extractAllFeats(window);
-        timer.end();
-        System.out.println("determining relations: "+timer.getTimeSeconds()+" seconds.");
     }
 
     public void etTempRelAnnotator(){
@@ -486,9 +473,12 @@ public class TempRelAnnotator {
         return defaultET;
     }
 
-    public static void rawtext2graph(String dir, String fname, boolean useILP) throws Exception{
-        // sample input
-        String dct = "2013-03-22";//default dct
+    public static void runExample(String fname, boolean useILP, boolean long_dist, boolean soft_group, boolean performET) throws Exception{
+        TempRelAnnotator.long_dist = long_dist;
+        TempRelAnnotator.soft_group = soft_group;
+        TempRelAnnotator.performET = performET;
+        String dir = "./data/SampleInput";
+        String dct = "2013-03-22";//default dct; used if no DCT in the example file
         Scanner scanner = new Scanner(new File(dir+File.separator+fname));
         StringBuilder sb = new StringBuilder();
         while(scanner.hasNextLine()) {
@@ -517,27 +507,29 @@ public class TempRelAnnotator {
         System.out.println(timer.getTimeSeconds()+" seconds.");
     }
 
-    public static void main(String[] args) throws Exception{
-        TempRelAnnotator.long_dist = false;
-        TempRelAnnotator.soft_group = false;
-        TempRelAnnotator.performET = false;
-        rawtext2graph("data/SampleInput","GeorgeLowe-long",false);
-        /*myDatasetLoader loader = new myDatasetLoader();
-        boolean goldEvent = true, goldTimex = true, useILP = true;
+    public static void benchmark() throws Exception{
+        TempRelAnnotator.long_dist = true;
+        TempRelAnnotator.soft_group = true;
+        TempRelAnnotator.performET = true;
+        boolean goldEvent = true, goldTimex = true;
+        boolean useILP = false;
+        myDatasetLoader loader = new myDatasetLoader();
         ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
         TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
         List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
-        TempRelAnnotator.performET = true;
         for(myTemporalDocument doc:myAllDocs){
             TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,useILP);
             tra.setup(goldTimex,goldEvent,false,false);
             tra.annotator();
         }
-
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
-        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);*/
+        myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
+    }
+
+    public static void main(String[] args) throws Exception{
+        //runExample("GeorgeLowe-long",true,true,true,true);
+        benchmark();
     }
 }

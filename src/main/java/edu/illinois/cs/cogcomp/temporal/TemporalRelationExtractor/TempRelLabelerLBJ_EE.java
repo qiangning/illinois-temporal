@@ -44,7 +44,7 @@ public class TempRelLabelerLBJ_EE extends TempRelLabeler {
         TemporalRelType ret = getNullTempRel();
         if(isIgnore(ee))
             return ret;
-        if(split_q1_q2){
+        if(split_q1_q2){//obsolete
             if (ee.getSentDiff() == 0 && classifier_mod1_dist0 != null && classifier_mod2_dist0 != null){
                 String q1 = classifier_mod1_dist0.discreteValue(ee);
                 String q2 = classifier_mod2_dist0.discreteValue(ee);
@@ -66,10 +66,16 @@ public class TempRelLabelerLBJ_EE extends TempRelLabeler {
         }
         else {
             if (ee.getSentDiff() == 0 && classifier_dist0 != null) {
+                if(!ee.feat_extraction_done){
+                    ee.extractAllFeats();
+                }
                 ret = new TemporalRelType(classifier_dist0.discreteValue(ee));
                 ret.setScores(temporalScores2doubles(classifier_dist0.scores(ee), TemporalRelType.relTypes.getAllNames(), true));
             }
             else if (ee.getSentDiff() == 1 && classifier_dist1 != null) {
+                if(!ee.feat_extraction_done){
+                    ee.extractAllFeats();
+                }
                 ret = new TemporalRelType(classifier_dist1.discreteValue(ee));
                 ret.setScores(temporalScores2doubles(classifier_dist1.scores(ee),TemporalRelType.relTypes.getAllNames(),true));
             }

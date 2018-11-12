@@ -190,14 +190,17 @@ public class myTemporalDocument implements Serializable {
     private void initKeywordLocations(){
         HashSet<String> allKeywords = SignalWordSet.getInstance().getAllSignals();
         String textStr = ta.getText().toLowerCase();
-        String lemmaStr = myUtils4TextAnnotation.getLemmaTextInBetween(ta,0,ta.getTokens().length-1);
         for(String kw:allKeywords){
             int charid = textStr.indexOf(kw);
             while(charid!=-1){
                 int tokid = ta.getTokenIdFromCharacterOffset(charid);
-                if(!keywordLocationsInText.containsKey(kw))
-                    keywordLocationsInText.put(kw,new ArrayList<>());
-                keywordLocationsInText.get(kw).add(tokid);
+                int tokid_pre = charid>=1? ta.getTokenIdFromCharacterOffset(charid-1) : tokid;
+                int tokid_post = (charid+kw.length()<ta.getText().length())? ta.getTokenIdFromCharacterOffset(charid+kw.length()) : tokid;
+                if(tokid!=tokid_pre&&tokid!=tokid_post) {
+                    if (!keywordLocationsInText.containsKey(kw))
+                        keywordLocationsInText.put(kw, new ArrayList<>());
+                    keywordLocationsInText.get(kw).add(tokid);
+                }
                 charid = textStr.indexOf(kw,charid+kw.length());
             }
         }
