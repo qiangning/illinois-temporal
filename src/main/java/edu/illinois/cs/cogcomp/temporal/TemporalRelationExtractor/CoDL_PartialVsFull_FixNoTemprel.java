@@ -168,7 +168,7 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
     private myTemporalDocument inference(myTemporalDocument doc, boolean respectExistingTempRels) {
         myTemporalDocument doc_inf = new myTemporalDocument(doc);// deep copy
         TempRelLabelerMultiLBJ tempRelLabelerMultiLBJ = new TempRelLabelerMultiLBJ(multiClassifiers);
-        TempRelAnnotator tra = new TempRelAnnotator(doc_inf,null,tempRelLabelerMultiLBJ,null,rm,ilp);
+        TempRelAnnotator tra = new TempRelAnnotator(doc_inf,null,tempRelLabelerMultiLBJ,null,rm);
         TempRelAnnotator.performET = false;
         tra.setup(true,true,respectExistingTempRels,respectAsHardConstraints);
         tra.annotator();
@@ -313,7 +313,7 @@ public class CoDL_PartialVsFull_FixNoTemprel  extends CoDLWrapper_LBJ<myTemporal
 
     public static void main(String[] args) throws Exception{
         cmdParser(args);
-        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties","config/TempRelAnnotator.properties");
         int window = rm.getInt("EVENT_TEMPREL_WINDOW");
 
         String modelDir = cmd.getOptionValue("modelDir");

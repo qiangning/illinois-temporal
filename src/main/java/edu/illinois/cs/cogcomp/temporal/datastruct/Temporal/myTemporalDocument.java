@@ -49,10 +49,35 @@ public class myTemporalDocument implements Serializable {
     public HashMap<String,List<Integer>> keywordLocationsInLemma = new HashMap<>();// list of tokenids that match to keywords
 
     /*Constructors*/
+    public myTemporalDocument(TextAnnotation ta, String docid) throws Exception{
+        this.docid = docid;
+        /*myTextPreprocessor preprocessor = myTextPreprocessor.getInstance();
+        this.ta = preprocessor.extractTextAnnotation(ta,ta.getText());*/
+        this.ta = ta;
+        graph = new TemporalGraph(this);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+        initKeywordLocations();
+    }
+
+    public myTemporalDocument(TextAnnotation ta, String docid, String dct_yyyy_mm_dd) throws Exception{
+        this.docid = docid;
+        myTextPreprocessor preprocessor = myTextPreprocessor.getInstance();
+        this.ta = preprocessor.extractTextAnnotation(ta,ta.getText());
+        graph = new TemporalGraph(this);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = dateFormat.parse(dct_yyyy_mm_dd);
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+        initKeywordLocations();
+    }
+
     public myTemporalDocument(String bodytext, String docid) throws Exception{
         this.docid = docid;
-        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
-        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        myTextPreprocessor textPreprocessor = myTextPreprocessor.getInstance();
+        ta = textPreprocessor.extractTextAnnotation(null,bodytext);
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
@@ -63,8 +88,8 @@ public class myTemporalDocument implements Serializable {
 
     public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
         this.docid = docid;
-        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
-        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        myTextPreprocessor textPreprocessor = myTextPreprocessor.getInstance();
+        ta = textPreprocessor.extractTextAnnotation(null,bodytext);
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormat.parse(dct_yyyy_mm_dd);

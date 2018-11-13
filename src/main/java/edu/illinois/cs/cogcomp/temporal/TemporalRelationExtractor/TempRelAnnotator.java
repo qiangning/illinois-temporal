@@ -1,9 +1,11 @@
 package edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor;
 
+import com.google.gson.Gson;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
+import edu.illinois.cs.cogcomp.core.utilities.SerializationHelper;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.util.ExecutionTimeUtil;
 import edu.illinois.cs.cogcomp.nlp.util.Triplet;
@@ -37,7 +39,6 @@ public class TempRelAnnotator {
     private boolean goldTimex=false, goldEvent=false, respectExistingTempRels=false, respectAsHardConstraints=false;
 
     private TempRelInferenceWrapper solver;
-    private boolean ilp;
     private int n_entity;
     // all first two dimensions are upper triangle
     private double[][][] local_score;//n_entity x n_entity x n_relation
@@ -45,18 +46,21 @@ public class TempRelAnnotator {
     private List<int[][][]> constraintMap;// A list of {n_entity x n_entity x (n_relation+1)} //+1dim is the "1" in x1+x2+x3=1
     private static List<Triplet<Integer,Integer,List<Integer>>> transitivityMap;
     private static TempRelLabeler defaultEE,defaultET;
+    private static TemporalChunkerAnnotator defaultTCA;
+    private static EventAxisLabeler defaultAxis;
     public int[][] result;
 
     public static boolean long_dist = true;
     public static boolean soft_group = true;
     public static boolean performET = true;
     public static boolean printILP = false;
+    public static boolean ilp;
 
     /*Constructors*/
     public TempRelAnnotator(myTemporalDocument doc){
         this(doc,null);
         try{
-            rm = new temporalConfigurator().getConfig("config/directory.properties");
+            rm = new temporalConfigurator().getConfig("config/directory.properties","config/TemRelAnnotator.properties");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -66,23 +70,30 @@ public class TempRelAnnotator {
     }
 
     public TempRelAnnotator(myTemporalDocument doc, ResourceManager rm) {
-        this(doc,defaultAxisLabeler(), defaultTempRelLabeler_EE(),rm);
+        this(doc,defaultAxisLabeler(), defaultTempRelLabeler_EE(), defaultTempRelLabeler_ET(),rm);
     }
 
-    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler eeTempRelLabeler, ResourceManager rm) {
-        this(doc,axisLabeler, eeTempRelLabeler, defaultTempRelLabeler_ET(), rm,true);
-    }
-
-    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler eeTempRelLabeler, TempRelLabeler etTempRelLabeler, ResourceManager rm, boolean ilp) {
+    public TempRelAnnotator(myTemporalDocument doc, EventAxisLabeler axisLabeler, TempRelLabeler eeTempRelLabeler, TempRelLabeler etTempRelLabeler, ResourceManager rm) {
         this.doc = doc;
         this.axisLabeler = axisLabeler;
         this.eeTempRelLabeler = eeTempRelLabeler;
         this.etTempRelLabeler = etTempRelLabeler;
         this.rm = rm;
-        this.ilp = ilp;
         tca = defaultTemporalChunkerAnnotator();
         if(doc.getDct()!=null)
             setDCT(doc.getDct().getNormVal());
+        long_dist = rm.getBoolean("useLongDist");
+        soft_group = rm.getBoolean("useSoftGroup");
+        performET = rm.getBoolean("usePerformET");
+        ilp = rm.getBoolean("useILP");
+        EventAxisLabelerMix.useRules = rm.getBoolean("useAxisRules");
+        TemporalRelation_EE.useTemProb = rm.getBoolean("useTemProb");
+
+        boolean goldEvent = rm.getBoolean("useGoldEvent");
+        boolean goldTimex = rm.getBoolean("useGoldTimex");
+        boolean respectExistingTempRels = rm.getBoolean("respectExistingTempRels");
+        boolean respectAsHardConstraints = rm.getBoolean("useHardConstraint");
+        setup(goldTimex,goldEvent,respectExistingTempRels,respectAsHardConstraints);
     }
 
     /*Functions*/
@@ -418,22 +429,28 @@ public class TempRelAnnotator {
     }
 
     private static EventAxisLabeler defaultAxisLabeler(){
-        int window = 2;
-        //String axisMdlDir = "models/eventDetector", axisMdlName = String.format("eventPerceptronDetector_win%d_cls0",window);
-        String axisMdlDir = "models/eventDetector", axisMdlName = "eventPerceptronDetector_win2_cls0";
+        if(defaultAxis==null) {
+            int window = 2;
+            //String axisMdlDir = "models/eventDetector", axisMdlName = String.format("eventPerceptronDetector_win%d_cls0",window);
+            String axisMdlDir = "models/eventDetector", axisMdlName = "eventPerceptronDetector_win2_cls0";
         /*return new EventAxisLabelerLBJ(
                 new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
                         axisMdlDir+File.separator+axisMdlName+".lex"));*/
-        EventAxisLabelerMix.window = window;
-        return new EventAxisLabelerMix(
-                new eventDetector(axisMdlDir+ File.separator+axisMdlName+".lc",
-                        axisMdlDir+File.separator+axisMdlName+".lex"));
+            EventAxisLabelerMix.window = window;
+            defaultAxis = new EventAxisLabelerMix(
+                    new eventDetector(axisMdlDir + File.separator + axisMdlName + ".lc",
+                            axisMdlDir + File.separator + axisMdlName + ".lex"));
+        }
+        return defaultAxis;
     }
 
     private static TemporalChunkerAnnotator defaultTemporalChunkerAnnotator(){
-        Properties rmProps = new TemporalChunkerConfigurator().getDefaultConfig().getProperties();
-        rmProps.setProperty("useHeidelTime", "False");
-        return new TemporalChunkerAnnotator(new ResourceManager(rmProps));
+        if(defaultTCA==null) {
+            Properties rmProps = new TemporalChunkerConfigurator().getDefaultConfig().getProperties();
+            rmProps.setProperty("useHeidelTime", "False");
+            defaultTCA = new TemporalChunkerAnnotator(new ResourceManager(rmProps));
+        }
+        return defaultTCA;
     }
 
     private static TempRelLabeler defaultTempRelLabeler_EE(){
@@ -473,10 +490,8 @@ public class TempRelAnnotator {
         return defaultET;
     }
 
-    public static void runExample(String fname, boolean useILP, boolean long_dist, boolean soft_group, boolean performET) throws Exception{
-        TempRelAnnotator.long_dist = long_dist;
-        TempRelAnnotator.soft_group = soft_group;
-        TempRelAnnotator.performET = performET;
+    public static void runExample(String fname) throws Exception{
+        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties","config/TempRelAnnotator.properties");
         String dir = "./data/SampleInput";
         String dct = "2013-03-22";//default dct; used if no DCT in the example file
         Scanner scanner = new Scanner(new File(dir+File.separator+fname));
@@ -491,12 +506,10 @@ public class TempRelAnnotator {
         String text = sb.toString();
         myTemporalDocument doc = new myTemporalDocument(text,fname,dct);
 
-        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
-
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
         TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
-        TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,useILP);
+        TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm);
         ExecutionTimeUtil timer = new ExecutionTimeUtil();
         timer.start();
         tra.annotator();
@@ -508,20 +521,14 @@ public class TempRelAnnotator {
     }
 
     public static void benchmark() throws Exception{
-        TempRelAnnotator.long_dist = true;
-        TempRelAnnotator.soft_group = true;
-        TempRelAnnotator.performET = true;
-        boolean goldEvent = true, goldTimex = true;
-        boolean useILP = false;
+        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties","config/TempRelAnnotator.benchmark.properties");
         myDatasetLoader loader = new myDatasetLoader();
-        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
         TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
         List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
         for(myTemporalDocument doc:myAllDocs){
-            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm,useILP);
-            tra.setup(goldTimex,goldEvent,false,false);
+            TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm);
             tra.annotator();
         }
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
@@ -529,7 +536,23 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        //runExample("GeorgeLowe-long",true,true,true,true);
-        benchmark();
+        //runExample("GeorgeLowe-long");
+        //benchmark();
+
+        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+        TemporalRelation_EE.useTemProb = false;
+        TextAnnotation ta = SerializationHelper.deserializeTextAnnotationFromFile("/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/HaoruoTA-small/1/1001915.ta.xml",true);
+        myTemporalDocument doc = new myTemporalDocument(ta,"1001915");
+        EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
+        TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
+        TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
+        TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm);
+        ExecutionTimeUtil timer = new ExecutionTimeUtil();
+        timer.start();
+        tra.annotator();
+        timer.end();
+        doc.getGraph().reduction();
+        doc.getGraph().graphVisualization("data/html");
+        doc.getGraph().chainVisualization("data/html");
     }
 }

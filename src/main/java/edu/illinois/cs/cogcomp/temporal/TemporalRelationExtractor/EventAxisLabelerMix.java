@@ -9,6 +9,7 @@ import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABE
 
 public class EventAxisLabelerMix extends EventAxisLabelerLBJ{
     public static int window;
+    public static boolean useRules = false;
 
 
     public EventAxisLabelerMix(Learner classifier) {
@@ -17,12 +18,14 @@ public class EventAxisLabelerMix extends EventAxisLabelerLBJ{
 
     @Override
     public String axisLabel(EventTokenCandidate etc) {
-        if(negationRule(etc).equals(NegationRules.NEGATION))
-            return LABEL_NOT_ON_ANY_AXIS;
-        if(intentionRule_to(etc,window).equals(IntentionRules.INTENTION))
-            return LABEL_NOT_ON_ANY_AXIS;
-        if(hypothesisRule(etc).equals(HypothesisRules.HYPOTHESIS))
-            return LABEL_NOT_ON_ANY_AXIS;
+        if(useRules) {
+            if (negationRule(etc).equals(NegationRules.NEGATION))
+                return LABEL_NOT_ON_ANY_AXIS;
+            if (intentionRule_to(etc, window).equals(IntentionRules.INTENTION))
+                return LABEL_NOT_ON_ANY_AXIS;
+            if (hypothesisRule(etc).equals(HypothesisRules.HYPOTHESIS))
+                return LABEL_NOT_ON_ANY_AXIS;
+        }
         return classifier!=null?
                 classifier.discreteValue(etc):LABEL_NOT_ON_ANY_AXIS;
     }

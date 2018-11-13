@@ -192,8 +192,9 @@ public class CoDL_PartialVsFull_FixNoDoc extends CoDLWrapper_LBJ<myTemporalDocum
     private myTemporalDocument inference(myTemporalDocument doc, boolean respectExistingTempRels) {
         myTemporalDocument doc_inf = new myTemporalDocument(doc);// deep copy
         TempRelLabelerMultiLBJ tempRelLabelerMultiLBJ = new TempRelLabelerMultiLBJ(multiClassifiers);
-        TempRelAnnotator tra = new TempRelAnnotator(doc_inf,null,tempRelLabelerMultiLBJ,null,rm,ilp);
+        TempRelAnnotator tra = new TempRelAnnotator(doc_inf,null,tempRelLabelerMultiLBJ,null,rm);
         TempRelAnnotator.performET = false;
+        TempRelAnnotator.ilp = ilp;
         tra.setup(true,true,respectExistingTempRels,respectAsHardConstraints);
         tra.annotator();
         if(CoDL_PartialVsFull_FixNoDoc.debug) {
