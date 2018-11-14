@@ -5,7 +5,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.transformers.Predicate;
-import edu.illinois.cs.cogcomp.edison.utilities.ParseTreeProperties;
+import edu.illinois.cs.cogcomp.nlp.utilities.ParseTreeProperties;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 
 import java.util.*;
@@ -36,6 +36,18 @@ public class myUtils4TextAnnotation {
         return pos_window;
     }
 
+    public static String retrievePOS_Span(TextAnnotation ta, IntPair tokenSpan){
+        // right span exclusive
+        StringBuilder sb = new StringBuilder();
+        for(int i=tokenSpan.getFirst();i<tokenSpan.getSecond();i++){
+            if(isTokenIdValid(ta,i)) {
+                sb.append(retrievePOSAtTokenId(ta, i));
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
+    }
+
     public static String[] retrievePOSWindow_Span(TextAnnotation ta, IntPair tokenSpan, int window){
         String[] pos_window = new String[window*2];
         for(int i=-window;i<0;i++){// i = -win, -win+1, ..., -2, -1
@@ -63,6 +75,18 @@ public class myUtils4TextAnnotation {
             lemma_window[i+window] = retrieveLemmaAtTokenId(ta,tokenId+i);
         }
         return lemma_window;
+    }
+
+    public static String retrieveLamma_Span(TextAnnotation ta, IntPair tokenSpan){
+        // right span exclusive
+        StringBuilder sb = new StringBuilder();
+        for(int i=tokenSpan.getFirst();i<tokenSpan.getSecond();i++){
+            if(isTokenIdValid(ta,i)) {
+                sb.append(retrieveLemmaAtTokenId(ta, i));
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
     }
 
     public static String[] retrieveLemmaWindow_Span(TextAnnotation ta, IntPair tokenSpan, int window){

@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrieveLamma_Span;
+import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.retrievePOS_Span;
+
 public class Main {
     public static ResourceManager rm;
     public static String sersuffix = ".ser";
@@ -95,7 +98,7 @@ public class Main {
                         for (Relation r : outgoingRelations) {
                             Constituent target = r.getTarget();
                             if(r.getRelationName().charAt(1)>'9'||r.getRelationName().charAt(1)<'0') continue;
-                            sb.append(String.format("[%s] [%d %d] [%d %d] %s\n",r.getRelationName(),target.getStartSpan(),target.getEndSpan(),target.getStartCharOffset(),target.getEndCharOffset(), target.getTokenizedSurfaceForm()));
+                            sb.append(String.format("[%s] [%d %d] [%d %d] %s || %s || %s\n",r.getRelationName(),target.getStartSpan(),target.getEndSpan(),target.getStartCharOffset(),target.getEndCharOffset(), target.getTokenizedSurfaceForm(),retrieveLamma_Span(doc.getTextAnnotation(),target.getSpan()), retrievePOS_Span(doc.getTextAnnotation(),target.getSpan())));
                         }
                         ps_timeline.print(sb);
                     }
