@@ -13,3 +13,5 @@ scripts/
 serialization/
 gurobi.ilp
 gurobi.lp
+annotation-cache
+annotation-cache-test

@@ -8,7 +8,9 @@ import edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,6 +20,7 @@ public class TemporalRelation extends BinaryRelation<TemporalNode>{
     private static int LabelMode;
     private myTemporalDocument doc;
     protected int sentDiff;//always positive
+    public boolean feat_extraction_done = false;
     /*Features that may not be initialized*/
     protected HashSet<String> signals_before,signals_between,signals_after;
     /*Constructors*/
@@ -29,6 +32,8 @@ public class TemporalRelation extends BinaryRelation<TemporalNode>{
     }
 
     /*Functions*/
+
+    public void extractAllFeats() {}
     @Override
     public TemporalRelation inverse() {
         TemporalRelation ret = new TemporalRelation(getTargetNode(),getSourceNode(),getRelType().inverse(),doc);
@@ -37,28 +42,47 @@ public class TemporalRelation extends BinaryRelation<TemporalNode>{
         return ret;
     }
 
-    protected HashSet<String> getSignalsFromText(String text, SignalWordSet signalWordSet){
-        HashSet<String> ret = getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_before,"temporalConnectiveSet_before");
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_after,"temporalConnectiveSet_after"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_during,"temporalConnectiveSet_during"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_contrast,"temporalConnectiveSet_contrast"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.temporalSignalSet.connectives_adverb,"temporalConnectiveSet_adverb"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.modalVerbSet,"modalVerbSet"));
-        ret.addAll(getSignalsHelper(text,signalWordSet.axisSignalWordSet,"axisSignalWordSet"));
+    protected HashSet<String> getSignalsFromTextSpan(int start, int end, SignalWordSet signalWordSet){
+        HashSet<String> ret = getSignalsFromTextSpanHelper(start,end,signalWordSet.temporalSignalSet.connectives_before,"temporalConnectiveSet_before");
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.temporalSignalSet.connectives_after,"temporalConnectiveSet_after"));
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.temporalSignalSet.connectives_during,"temporalConnectiveSet_during"));
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.temporalSignalSet.connectives_contrast,"temporalConnectiveSet_contrast"));
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.temporalSignalSet.connectives_adverb,"temporalConnectiveSet_adverb"));
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.modalVerbSet,"modalVerbSet"));
+        ret.addAll(getSignalsFromTextSpanHelper(start,end,signalWordSet.axisSignalWordSet,"axisSignalWordSet"));
         return ret;
     }
 
-    protected HashSet<String> getSignalsFromLemma(String Lemma, SignalWordSet signalWordSet){
-        HashSet<String> ret = getSignalsHelper(Lemma,signalWordSet.reportingVerbSet,"reportingVerbSet");
-        ret.addAll(getSignalsHelper(Lemma,signalWordSet.intentionVerbSet,"intentionVerbSet"));
+    protected HashSet<String> getSignalsFromLemmaSpan(int start, int end, SignalWordSet signalWordSet){
+        HashSet<String> ret = getSignalsFromLemmaSpanHelper(start,end,signalWordSet.reportingVerbSet,"reportingVerbSet");
+        ret.addAll(getSignalsFromLemmaSpanHelper(start,end,signalWordSet.intentionVerbSet,"intentionVerbSet"));
         return ret;
     }
 
-    protected HashSet<String> getSignalsHelper(String text, Set<String> keywords, String keywordsTag){
-        HashSet<String> ret = myUtils4TextAnnotation.findKeywordsInText(text, keywords,keywordsTag);
-        if(!ret.contains(keywordsTag+":"+"N/A"))
-            ret.add(keywordsTag+":EXISTS");
-        return ret;
+    protected HashSet<String> getSignalsFromTextSpanHelper(int start, int end, Set<String> keywords, String keywordsTag) {
+        return getSignalsFromSpanHelper(start,end,keywords,keywordsTag,doc.keywordLocationsInText);
+    }
+
+    protected HashSet<String> getSignalsFromLemmaSpanHelper(int start, int end, Set<String> keywords, String keywordsTag) {
+        return getSignalsFromSpanHelper(start,end,keywords,keywordsTag,doc.keywordLocationsInLemma);
+    }
+
+    private HashSet<String> getSignalsFromSpanHelper(int start, int end, Set<String> keywords, String keywordsTag, HashMap<String,List<Integer>> keywordsLocationMap) {
+        HashSet<String> matches = new HashSet<>();
+        boolean flag = false;
+        for(String str:keywords){
+            if(!keywordsLocationMap.containsKey(str)) continue;
+            for(int idx:keywordsLocationMap.get(str)){
+                if(idx>end) break;
+                if(idx>=start&&idx<=end){
+                    flag = true;
+                    matches.add(keywordsTag+":"+str.toLowerCase());
+                }
+            }
+        }
+        if(!flag)
+            matches.add(keywordsTag+":"+"N/A");
+        return matches;
     }
 
     /*Getters and Setters*/

@@ -23,12 +23,14 @@ public class TemporalRelation_EE extends TemporalRelation{
     private int tokDiff;// non-negative
     public boolean e1_covering_e2, e2_covering_e1;
     public String e1_covering_e2_type,e2_covering_e1_type;
+    public static boolean useTemProb=true;
+    public double c_before=1, c_after=1, c_vague=1, c_equal=1, c_includes=1, c_included=1;
+
 
     /*Features that may not be initialized*/
     private static TempLangMdl tempLangMdl;
     private HashSet<String> closestTimexFeats;
     private boolean sameSynset;
-    public double c_before, c_after, c_vague, c_equal, c_includes, c_included;
 
     public TemporalRelation_EE(TemporalRelation_EE other, myTemporalDocument doc){
         super(new EventTemporalNode(other.getSourceNode(),doc), new EventTemporalNode(other.getTargetNode(),doc), new TemporalRelType(other.getRelType()), doc);
@@ -80,14 +82,16 @@ public class TemporalRelation_EE extends TemporalRelation{
     }
 
     /*Feature extraction*/
+    @Override
     public void extractAllFeats(){
+        feat_extraction_done = true;
         extractSignalWords();
-        readCorpusStats();
+        if(useTemProb) readCorpusStats();
         extractIfSameSynset();
         extractClosestTimexFeats();
     }
 
-    public void extractSignalWords(){
+    private void extractSignalWords(){
         if(signals_before!=null&&signals_between!=null&&signals_after!=null)
             return;
         signals_before = new HashSet<>();
@@ -101,22 +105,15 @@ public class TemporalRelation_EE extends TemporalRelation{
         int tokId_min = Math.min(sourceEvent.getTokenId(),targetEvent.getTokenId());
         int tokId_max = Math.max(sourceEvent.getTokenId(),targetEvent.getTokenId());
 
-        String text_before = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,start,tokId_min-1);
-        String text_between = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokId_min+1,tokId_max-1);
-        String text_after = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokId_max+1,end);
-        String lemma_before = myUtils4TextAnnotation.getLemmaTextInBetween(ta,start,tokId_min-1);
-        String lemma_between = myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokId_min+1,tokId_max-1);
-        String lemma_after = myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokId_max+1,end);
-
-        signals_before = getSignalsFromText(text_before,SignalWordSet.getInstance());
-        signals_between = getSignalsFromText(text_between,SignalWordSet.getInstance());
-        signals_after = getSignalsFromText(text_after,SignalWordSet.getInstance());
-        signals_before.addAll(getSignalsFromLemma(lemma_before,SignalWordSet.getInstance()));
-        signals_between.addAll(getSignalsFromLemma(lemma_between,SignalWordSet.getInstance()));
-        signals_after.addAll(getSignalsFromLemma(lemma_after,SignalWordSet.getInstance()));
+        signals_before = getSignalsFromTextSpan(start,tokId_min-1,SignalWordSet.getInstance());
+        signals_between = getSignalsFromTextSpan(tokId_min+1,tokId_max-1,SignalWordSet.getInstance());
+        signals_after = getSignalsFromTextSpan(tokId_max+1,end,SignalWordSet.getInstance());
+        signals_before.addAll(getSignalsFromLemmaSpan(start,tokId_min-1,SignalWordSet.getInstance()));
+        signals_between.addAll(getSignalsFromLemmaSpan(tokId_min+1,tokId_max-1,SignalWordSet.getInstance()));
+        signals_after.addAll(getSignalsFromLemmaSpan(tokId_max+1,end,SignalWordSet.getInstance()));
     }
 
-    public void readCorpusStats(){
+    private void readCorpusStats(){
         HashMap<String,HashMap<String,HashMap<TLINK.TlinkType,Integer>>> temporalLM = getTempLangMdl().tempLangMdl;
         if(temporalLM.containsKey(getSourceNode().getCluster())&&temporalLM.get(getSourceNode().getCluster()).containsKey(getTargetNode().getCluster())){
             String cluster1 = getSourceNode().getCluster();
@@ -139,7 +136,7 @@ public class TemporalRelation_EE extends TemporalRelation{
         }
     }
 
-    public void extractIfSameSynset(){
+    private void extractIfSameSynset(){
         List<String> e1Synsets = getSourceNode().getSynsets();
         List<String> e2Synsets = getTargetNode().getSynsets();
         Set<String> e1SetSynsets = new HashSet<String>(e1Synsets);
@@ -148,7 +145,7 @@ public class TemporalRelation_EE extends TemporalRelation{
         sameSynset = e1SetSynsets.size() > 0;
     }
 
-    public void extractClosestTimexFeats(){
+    private void extractClosestTimexFeats(){
         if(closestTimexFeats!=null)
             return;
         EventTemporalNode e1 = getSourceNode();

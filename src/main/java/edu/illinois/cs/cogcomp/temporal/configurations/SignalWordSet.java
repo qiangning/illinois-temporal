@@ -28,6 +28,7 @@ public class SignalWordSet {
     }
     public temporalSignals temporalSignalSet = new temporalSignals();
     public Set<String> modalVerbSet = new HashSet<>(),axisSignalWordSet = new HashSet<>(),reportingVerbSet = new HashSet<>(),intentionVerbSet = new HashSet<>();
+    private HashSet<String> allSignals = new HashSet<>();
     public static SignalWordSet instance;
     private static Set<String> parseRmProperty(ResourceManager rm, String propName){
         String tmp = rm.getString(propName);
@@ -58,5 +59,15 @@ public class SignalWordSet {
         instance.reportingVerbSet = parseRmProperty(rm,"reportingVerbSet");
         instance.intentionVerbSet = parseRmProperty(rm,"intentionVerbSet");
         return instance;
+    }
+    public HashSet<String> getAllSignals(){
+        if(allSignals.size()==0){
+            allSignals.addAll(temporalSignalSet.getAllConnectives());
+            allSignals.addAll(modalVerbSet);
+            allSignals.addAll(axisSignalWordSet);
+            allSignals.addAll(reportingVerbSet);
+            allSignals.addAll(intentionVerbSet);
+        }
+        return allSignals;
     }
 }

@@ -50,12 +50,14 @@ public class TemporalRelation_ET extends TemporalRelation {
     }
 
     /*Feature extraction*/
+    @Override
     public void extractAllFeats(){
+        feat_extraction_done = true;
         extractSignalWords();
         extractClosestTimexFeats();
     }
 
-    public void extractSignalWords(){
+    private void extractSignalWords(){
         if(signals_before!=null&&signals_between!=null&&signals_after!=null)
             return;
         signals_before = new HashSet<>();
@@ -71,26 +73,19 @@ public class TemporalRelation_ET extends TemporalRelation {
         int tokId_max = isEventFirstInText()?targetTimex.getTokenSpan().getSecond()-1:sourceEvent.getTokenId();
         int tokId_middle = isEventFirstInText()?targetTimex.getTokenSpan().getFirst():targetTimex.getTokenSpan().getSecond()-1;
 
-        String text_before = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,start,tokId_min-1);
-        String text_between = isEventFirstInText()?
-                myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokId_min+1,tokId_middle-1):
-                myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokId_middle+1,tokId_max-1);
-        String text_after = myUtils4TextAnnotation.getSurfaceTextInBetween(ta,tokId_max+1,end);
-        String lemma_before = myUtils4TextAnnotation.getLemmaTextInBetween(ta,start,tokId_min-1);
-        String lemma_between = isEventFirstInText()?
-                myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokId_min+1,tokId_middle-1):
-                myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokId_middle+1,tokId_max-1);
-        String lemma_after = myUtils4TextAnnotation.getLemmaTextInBetween(ta,tokId_max+1,end);
-
-        signals_before = getSignalsFromText(text_before, SignalWordSet.getInstance());
-        signals_between = getSignalsFromText(text_between,SignalWordSet.getInstance());
-        signals_after = getSignalsFromText(text_after,SignalWordSet.getInstance());
-        signals_before.addAll(getSignalsFromLemma(lemma_before,SignalWordSet.getInstance()));
-        signals_between.addAll(getSignalsFromLemma(lemma_between,SignalWordSet.getInstance()));
-        signals_after.addAll(getSignalsFromLemma(lemma_after,SignalWordSet.getInstance()));
+        signals_before = getSignalsFromTextSpan(start,tokId_min-1,SignalWordSet.getInstance());
+        signals_between = isEventFirstInText()?
+                getSignalsFromTextSpan(tokId_min+1,tokId_middle-1,SignalWordSet.getInstance()):
+                getSignalsFromTextSpan(tokId_middle+1,tokId_max-1,SignalWordSet.getInstance());
+        signals_after = getSignalsFromTextSpan(tokId_max+1,end,SignalWordSet.getInstance());
+        signals_before.addAll(getSignalsFromLemmaSpan(start,tokId_min-1,SignalWordSet.getInstance()));
+        signals_between.addAll(isEventFirstInText()?
+                getSignalsFromLemmaSpan(tokId_min+1,tokId_max-1,SignalWordSet.getInstance()):
+                getSignalsFromLemmaSpan(tokId_middle+1,tokId_max-1,SignalWordSet.getInstance()));
+        signals_after.addAll(getSignalsFromLemmaSpan(tokId_max+1,end,SignalWordSet.getInstance()));
     }
 
-    public void extractClosestTimexFeats(){
+    private void extractClosestTimexFeats(){
         if(closestTimexFeats!=null)
             return;
         EventTemporalNode e = getEventNode();

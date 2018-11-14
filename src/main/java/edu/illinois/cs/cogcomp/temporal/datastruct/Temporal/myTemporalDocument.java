@@ -1,12 +1,15 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TokenLabelView;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventAxisPerceptronTrainer;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.EventTokenCandidate;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor;
+import edu.illinois.cs.cogcomp.temporal.configurations.SignalWordSet;
 import edu.illinois.cs.cogcomp.temporal.configurations.VerbIgnoreSet;
-import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader;
 import edu.illinois.cs.cogcomp.temporal.utils.PrecisionRecallManager;
 import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
@@ -15,12 +18,11 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.GeneralGraph.AugmentedNode.getUniqueId;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType.getNullTempRel;
-import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.*;
-import static edu.illinois.cs.cogcomp.temporal.readers.temprelAnnotationReader.readTemprelFromCrowdFlower;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
+import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
 
 public class myTemporalDocument implements Serializable {
     private static final long serialVersionUID = -1304837964767492246L;
@@ -35,30 +37,57 @@ public class myTemporalDocument implements Serializable {
     private HashMap<Integer,EventTemporalNode> map_tokenId2event = new HashMap<>();
     private HashMap<String,TimexTemporalNode> map_tokenSpan2timex = new HashMap<>();
 
-    /*Constructors*/
-    public myTemporalDocument() {
-    }
+    public HashMap<String,List<Integer>> keywordLocationsInText = new HashMap<>();// list of tokenids that match to keywords
+    public HashMap<String,List<Integer>> keywordLocationsInLemma = new HashMap<>();// list of tokenids that match to keywords
 
-    public myTemporalDocument(String bodytext, String docid) throws Exception{
+    /*Constructors*/
+    public myTemporalDocument(TextAnnotation ta, String docid) throws Exception{
         this.docid = docid;
-        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
-        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        /*myTextPreprocessor preprocessor = myTextPreprocessor.getInstance();
+        this.ta = preprocessor.extractTextAnnotation(ta,ta.getText());*/
+        this.ta = ta;
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
         addTimex(dct);
+        initKeywordLocations();
     }
 
-    public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
+    public myTemporalDocument(TextAnnotation ta, String docid, String dct_yyyy_mm_dd) throws Exception{
         this.docid = docid;
-        myTextPreprocessor myTextPreprocessor = new myTextPreprocessor();
-        ta = myTextPreprocessor.extractTextAnnotation(bodytext);
+        myTextPreprocessor preprocessor = myTextPreprocessor.getInstance();
+        this.ta = preprocessor.extractTextAnnotation(ta,ta.getText());
         graph = new TemporalGraph(this);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormat.parse(dct_yyyy_mm_dd);
         dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
         addTimex(dct);
+        initKeywordLocations();
+    }
+
+    public myTemporalDocument(String bodytext, String docid) throws Exception{
+        this.docid = docid;
+        myTextPreprocessor textPreprocessor = myTextPreprocessor.getInstance();
+        ta = textPreprocessor.extractTextAnnotation(null,bodytext);
+        graph = new TemporalGraph(this);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+        initKeywordLocations();
+    }
+
+    public myTemporalDocument(String bodytext, String docid, String dct_yyyy_mm_dd) throws Exception{
+        this.docid = docid;
+        myTextPreprocessor textPreprocessor = myTextPreprocessor.getInstance();
+        ta = textPreprocessor.extractTextAnnotation(null,bodytext);
+        graph = new TemporalGraph(this);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = dateFormat.parse(dct_yyyy_mm_dd);
+        dct = new TimexTemporalNode(0,TimexNodeType,dateFormat.format(date),timexList.size(),new IntPair(-1,-1),-1,true,"DATE","",dateFormat.format(date),ta);
+        addTimex(dct);
+        initKeywordLocations();
     }
 
     public myTemporalDocument(myTemporalDocument other){
@@ -97,9 +126,41 @@ public class myTemporalDocument implements Serializable {
                 System.out.println("[WARNING] unexpected type of temporal relations (EE/ET/TT).");
             }
         }
+        keywordLocationsInText = other.keywordLocationsInText;
+        keywordLocationsInLemma  = other.keywordLocationsInLemma;
     }
 
     /*Functions*/
+
+    private void initKeywordLocations(){
+        HashSet<String> allKeywords = SignalWordSet.getInstance().getAllSignals();
+        String textStr = ta.getText().toLowerCase();
+        for(String kw:allKeywords){
+            int charid = textStr.indexOf(kw);
+            while(charid!=-1){
+                int tokid = ta.getTokenIdFromCharacterOffset(charid);
+                int tokid_pre = charid>=1? ta.getTokenIdFromCharacterOffset(charid-1) : tokid;
+                int tokid_post = (charid+kw.length()<ta.getText().length())? ta.getTokenIdFromCharacterOffset(charid+kw.length()) : tokid;
+                if(tokid!=tokid_pre&&tokid!=tokid_post) {
+                    if (!keywordLocationsInText.containsKey(kw))
+                        keywordLocationsInText.put(kw, new ArrayList<>());
+                    keywordLocationsInText.get(kw).add(tokid);
+                }
+                charid = textStr.indexOf(kw,charid+kw.length());
+            }
+        }
+        TokenLabelView lemmaView = (TokenLabelView) ta.getView(ViewNames.LEMMA);
+        if(lemmaView!=null) {
+            for(int i=0;i<ta.getTokens().length;i++) {
+                String lemma = lemmaView.getConstituentAtToken(i).getLabel();
+                if(allKeywords.contains(lemma)){
+                    if(!keywordLocationsInLemma.containsKey(lemma))
+                        keywordLocationsInLemma.put(lemma,new ArrayList<>());
+                    keywordLocationsInLemma.get(lemma).add(i);
+                }
+            }
+        }
+    }
 
     public void keepAnchorableEvents(HashMap<Integer,String> axisMap){
         // axisMap: (index in doc, CrowdFlower axis name)
