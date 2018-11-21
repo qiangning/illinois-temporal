@@ -27,10 +27,10 @@ public class EventTemporalNode extends TemporalNode{
     private String lemma;
     private String sense;
     private String cluster;// to-do: frame cluster, or custom cluster
-    private int eid;
-    private int eiid;
+    public int eid;
+    public int eiid;
     private int index_in_doc;
-    private int tokenId;
+    public int tokenId;
     private String pp_head;//prepositional phrase head
     private boolean isReporting,isIntention;
     private Constituent verb_srl;

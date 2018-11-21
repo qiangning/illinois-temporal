@@ -197,7 +197,7 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
 
     // todo graph satuartion
 
-    public void graphVisualization(String htmlDir){
+    public String graphVisualization(String htmlDir){
         IOUtils.mkdir(htmlDir);
         String fname = htmlDir+ File.separator+doc.getDocid()+".html";
         GraphJavaScript graphJavaScript = new GraphJavaScript(fname);
@@ -230,29 +230,30 @@ public class TemporalGraph extends AugmentedGraph<TemporalNode,TemporalRelation>
                     break;
             }
         }
-        graphJavaScript.createJS();
+        return graphJavaScript.createJS();
     }
 
-    public void chainVisualization(String txtDir){
+    public String chainVisualization(String txtDir){
         IOUtils.mkdir(txtDir);
         String fname = txtDir+ File.separator+doc.getDocid()+".txt";
         List<EventTemporalNode> events = convert2chain();
+        String ret = "";
         try{
-            PrintStream ps = new PrintStream(new File(fname));
-            ps.println("|");
+            ret += "|\n";
             int cnt = 0;
             for(EventTemporalNode e:events) {
-                ps.print(e.interpret());
-                ps.println("|");
+                ret += e.interpret();
+                ret += "|\n";
                 cnt++;
             }
-            ps.println("V\n\nTime Axis");
+            ret += "V\n\nTime Axis";
             if(cnt==0)
-                ps.println("(No main-axis events were found in the given text)");
+                ret += "(No main-axis events were found in the given text)\n";
         }
         catch (Exception e){
             e.printStackTrace();
         }
+        return ret;
     }
 
     public void dropAllEERelations(){

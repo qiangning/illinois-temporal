@@ -42,6 +42,6 @@ public class edge {
     }
 
     public String toString4d3(){
-        return String.format("source: %d, target: %d, label: \"%s\", len: %d, color: %d, markerend: \"%s\"",source,target,label,length, colorId,markerEnd);
+        return String.format("\"source\": %d, \"target\": %d, \"label\": \"%s\", \"len\": %d, \"color\": %d, \"markerend\": \"%s\"",source,target,label,length, colorId,markerEnd);
     }
 }

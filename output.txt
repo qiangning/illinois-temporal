@@ -1,0 +1,122 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building illinois-temporal 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[WARNING] The POM for edu.illinois.cs.cogcomp:illinois-prepsrl-model:jar:3.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+[INFO] 
+[INFO] --- exec-maven-plugin:1.3.2:java (default-cli) @ illinois-temporal ---
+[WARNING] Warning: killAfter is now deprecated. Do you need it ? Please comment on MEXEC-6.
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/home/xzhou45/.m2/repository/ch/qos/logback/logback-classic/1.1.5/logback-classic-1.1.5.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/home/xzhou45/.m2/repository/org/slf4j/slf4j-nop/1.7.13/slf4j-nop-1.7.13.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelectorStaticBinder]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v1.3.3.RELEASE)
+
+2018-06-26 16:59:36.663  INFO 5883 --- [ntroller.main()] e.i.c.c.t.T.APIController                : Starting APIController on sauron with PID 5883 (/home/xzhou45/illinois-temporal-vc/illinois-temporal/target/classes started by xzhou45 in /home/xzhou45/illinois-temporal-vc/illinois-temporal)
+2018-06-26 16:59:36.679  INFO 5883 --- [ntroller.main()] e.i.c.c.t.T.APIController                : No active profile set, falling back to default profiles: default
+2018-06-26 16:59:36.817  INFO 5883 --- [ntroller.main()] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@52929511: startup date [Tue Jun 26 16:59:36 CDT 2018]; root of context hierarchy
+2018-06-26 16:59:38.708  INFO 5883 --- [ntroller.main()] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'beanNameViewResolver' with a different definition: replacing [Root bean: class [null]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=org.springframework.boot.autoconfigure.web.ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration; factoryMethodName=beanNameViewResolver; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/web/ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration.class]] with [Root bean: class [null]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter; factoryMethodName=beanNameViewResolver; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/web/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]]
+2018-06-26 16:59:39.592  INFO 5883 --- [ntroller.main()] org.eclipse.jetty.util.log               : Logging initialized @83404ms
+2018-06-26 16:59:40.021  INFO 5883 --- [ntroller.main()] e.j.JettyEmbeddedServletContainerFactory : Server initialized with port: 8080
+2018-06-26 16:59:40.049  INFO 5883 --- [ntroller.main()] org.eclipse.jetty.server.Server          : jetty-9.2.15.v20160210
+2018-06-26 16:59:40.154  INFO 5883 --- [ntroller.main()] application                              : Initializing Spring embedded WebApplicationContext
+2018-06-26 16:59:40.154  INFO 5883 --- [ntroller.main()] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3342 ms
+2018-06-26 16:59:40.684  INFO 5883 --- [ntroller.main()] o.s.b.c.e.ServletRegistrationBean        : Mapping servlet: 'dispatcherServlet' to [/]
+2018-06-26 16:59:40.689  INFO 5883 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'characterEncodingFilter' to: [/*]
+2018-06-26 16:59:40.692  INFO 5883 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2018-06-26 16:59:40.692  INFO 5883 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'httpPutFormContentFilter' to: [/*]
+2018-06-26 16:59:40.693  INFO 5883 --- [ntroller.main()] o.s.b.c.embedded.FilterRegistrationBean  : Mapping filter: 'requestContextFilter' to: [/*]
+2018-06-26 16:59:40.694  INFO 5883 --- [ntroller.main()] o.e.jetty.server.handler.ContextHandler  : Started o.s.b.c.e.j.JettyEmbeddedWebAppContext@511c7c54{/,file:/tmp/jetty-docbase.4760730189962221490.8080/,AVAILABLE}
+2018-06-26 16:59:40.694  INFO 5883 --- [ntroller.main()] org.eclipse.jetty.server.Server          : Started @84508ms
+2018-06-26 16:59:41.100  INFO 5883 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@52929511: startup date [Tue Jun 26 16:59:36 CDT 2018]; root of context hierarchy
+2018-06-26 16:59:41.199  INFO 5883 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api],methods=[GET]}" onto public java.lang.String edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(java.lang.String)
+2018-06-26 16:59:41.203  INFO 5883 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/],methods=[GET]}" onto public java.lang.String edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.renderidx()
+2018-06-26 16:59:41.210  INFO 5883 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2018-06-26 16:59:41.211  INFO 5883 --- [ntroller.main()] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2018-06-26 16:59:41.258  INFO 5883 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-26 16:59:41.259  INFO 5883 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-26 16:59:41.322  INFO 5883 --- [ntroller.main()] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2018-06-26 16:59:41.604  INFO 5883 --- [ntroller.main()] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2018-06-26 16:59:41.657  INFO 5883 --- [ntroller.main()] application                              : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2018-06-26 16:59:41.657  INFO 5883 --- [ntroller.main()] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization started
+2018-06-26 16:59:41.674  INFO 5883 --- [ntroller.main()] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization completed in 16 ms
+2018-06-26 16:59:41.865  INFO 5883 --- [ntroller.main()] o.eclipse.jetty.server.ServerConnector   : Started ServerConnector@74e2217b{HTTP/1.1}{0.0.0.0:8080}
+2018-06-26 16:59:41.891  INFO 5883 --- [ntroller.main()] .s.b.c.e.j.JettyEmbeddedServletContainer : Jetty started on port(s) 8080 (http/1.1)
+2018-06-26 16:59:41.897  INFO 5883 --- [ntroller.main()] e.i.c.c.t.T.APIController                : Started APIController in 6.42 seconds (JVM running for 85.711)
+They became friends when they attended the same university 9 years ago. Now they are planning their wedding this June.
+java.lang.IllegalArgumentException: java.net.ConnectException: Connection refused (Connection refused)
+	at edu.illinois.cs.cogcomp.curator.CuratorTextAnnotationBuilder.createTextAnnotation(CuratorTextAnnotationBuilder.java:51)
+	at edu.illinois.cs.cogcomp.curator.CuratorAnnotatorService.createBasicTextAnnotation(CuratorAnnotatorService.java:137)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.myTextPreprocessor.extractTextAnnotation(myTextPreprocessor.java:27)
+	at edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.<init>(myTemporalDocument.java:53)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator.processRawText(TempRelAnnotator.java:415)
+	at edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.ResourceController.annotate(ResourceController.java:42)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:859)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:812)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1669)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:311)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:544)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:748)
+2018-06-26 17:01:03.234  INFO 5883 --- [      Thread-11] ationConfigEmbeddedWebApplicationContext : Closing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@52929511: startup date [Tue Jun 26 16:59:36 CDT 2018]; root of context hierarchy
+2018-06-26 17:01:03.244  INFO 5883 --- [      Thread-11] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2018-06-26 17:01:03.282  INFO 5883 --- [      Thread-11] o.eclipse.jetty.server.ServerConnector   : Stopped ServerConnector@74e2217b{HTTP/1.1}{0.0.0.0:8080}
+2018-06-26 17:01:03.283  INFO 5883 --- [      Thread-11] application                              : Destroying Spring FrameworkServlet 'dispatcherServlet'
+2018-06-26 17:01:03.285  INFO 5883 --- [      Thread-11] o.e.jetty.server.handler.ContextHandler  : Stopped o.s.b.c.e.j.JettyEmbeddedWebAppContext@511c7c54{/,file:/tmp/jetty-docbase.4760730189962221490.8080/,UNAVAILABLE}
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 02:44 min
+[INFO] Finished at: 2018-06-26T17:01:03-05:00
+[INFO] Final Memory: 35M/435M
+[INFO] ------------------------------------------------------------------------
