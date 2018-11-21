@@ -1,6 +1,5 @@
 package edu.illinois.cs.cogcomp.temporal.datastruct.Temporal;
 
-import edu.illinois.cs.cogcomp.core.algorithms.Sorters;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
@@ -15,8 +14,10 @@ import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
 import edu.illinois.cs.cogcomp.temporal.utils.WordNet.WNSim;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
 import static edu.illinois.cs.cogcomp.temporal.utils.myUtils4TextAnnotation.*;
@@ -329,9 +330,9 @@ public class EventTemporalNode extends TemporalNode{
             if(rel instanceof TemporalRelation_ET){
                 TimexTemporalNode timex = ((TemporalRelation_ET) rel).getTimexNode();
                 normVal = timex.getNormVal();
-                if(normVal.equals("PRESENT_REF"))
+                if (normVal.equals("PRESENT_REF"))
                     normVal = doc.getDct().getNormVal();
-                else if(normVal.equals("PAST_REF")||normVal.equals("FURTURE_REF"))
+                else if (normVal.equals("PAST_REF") || normVal.equals("FURTURE_REF"))
                     normVal = timex.getText();
                 break;
             }
