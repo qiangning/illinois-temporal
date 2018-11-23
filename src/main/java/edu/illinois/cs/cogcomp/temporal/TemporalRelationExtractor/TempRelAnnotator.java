@@ -152,11 +152,13 @@ public class TempRelAnnotator {
         this.respectAsHardConstraints = respectAsHardConstraints;
     }
 
-    public void annotator(){
+    public boolean annotator(int MAX_NUM_EVENT){
         if(!goldEvent){
             doc.dropAllEventNodes();
             axisAnnotator();
         }
+        if(doc.getEventList().size()>MAX_NUM_EVENT)
+            return false;
         initAllArrays4ILP();
         if(!goldTimex&&performET) {
             doc.dropAllTimexNodes();
@@ -177,6 +179,10 @@ public class TempRelAnnotator {
         if(ilp)
             doc.addEERelationsBasedOnETAndTT(long_dist);
         eeTempRelAnnotator();
+        return true;
+    }
+    public boolean annotator(){
+        return annotator(Integer.MAX_VALUE);
     }
 
     public void axisAnnotator(){
@@ -221,7 +227,6 @@ public class TempRelAnnotator {
         // extract features
         for(EventTemporalNode e:eventList)
             e.extractAllFeats(window);
-        long tmp = 0;
         for(EventTemporalNode e1:eventList){
             int i = eventList.indexOf(e1);
             for(EventTemporalNode e2:eventList){

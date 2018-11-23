@@ -30,11 +30,15 @@ public class Main {
     public static ResourceManager rm;
     public static String sersuffix = ".ser";
     public static String timelinesuffix = ".timeline";
-    public static boolean forceUpdate = true;
+    public static boolean forceUpdate = false;
+    public static int MAX_NUM_EVENT = 100;
     public static void TempRelExtractor(String input_ta_dir, String output_dir, String log_dir, String log_name) throws Exception{
         rm = new temporalConfigurator().getConfig("config/directory.properties","config/TempRelAnnotator.aws.properties");
+        myIOUtils.mkdir(log_dir);
         PrintStream ps = new PrintStream(new FileOutputStream(log_dir + File.separator + log_name, true));
         ps.println("-----START-----");
+        ps.println("forceUpdate="+forceUpdate);
+        ps.println("MAX_NUM_EVENT="+MAX_NUM_EVENT);
         ps.println(ZonedDateTime.now());
         try{
             InetAddress addr = InetAddress.getLocalHost();
@@ -72,6 +76,7 @@ public class Main {
             timer2.start();
             try {
                 myTemporalDocument doc;
+                boolean flag = true;
                 if(!forceUpdate&&output_ser.exists()){
                     doc = (myTemporalDocument) ser.deserialize(output_ser.getAbsolutePath());
                 }
@@ -79,30 +84,37 @@ public class Main {
                     TextAnnotation ta = SerializationHelper.deserializeTextAnnotationFromFile(f.getAbsolutePath(), true);
                     doc = new myTemporalDocument(ta, f.getName());
                     TempRelAnnotator tra = new TempRelAnnotator(doc, rm);
-                    tra.annotator();
+                    flag = tra.annotator(MAX_NUM_EVENT);
                 }
                 ps.printf("\t#E=%d,#T=%d", doc.getEventList().size(), doc.getTimexList().size());
-                doc.getGraph().reduction();
-                ser.serialize(doc, output_ser.getAbsolutePath());
-                cnt_process++;
-                PrintStream ps_timeline = new PrintStream(new FileOutputStream(output_timeline));
-                List<EventTemporalNode> timeline = doc.getGraph().convert2chain();
-                for(EventTemporalNode etn:timeline){
-                    IntPair charSpan = etn.getTa().getTokenCharacterOffset(etn.getTokenId());
-                    ps_timeline.printf("%s/%d/[%d %d]/%s/%s/%s\n",etn.getUniqueId(),etn.getTokenId(),charSpan.getFirst(),charSpan.getSecond(),etn.getText(),etn.getLemma(),etn.getPos());
-                    if(etn.getVerb_srl()!=null) {
-                        StringBuilder sb = new StringBuilder();
-                        List<Relation> outgoingRelations = new ArrayList<>(etn.getVerb_srl().getOutgoingRelations());
-                        outgoingRelations.sort(Comparator.comparing(Relation::getRelationName));
+                if(flag) {
+                    doc.getGraph().reduction();
+                    ser.serialize(doc, output_ser.getAbsolutePath());
+                    cnt_process++;
+                    PrintStream ps_timeline = new PrintStream(new FileOutputStream(output_timeline));
+                    List<EventTemporalNode> timeline = doc.getGraph().convert2chain();
+                    for (EventTemporalNode etn : timeline) {
+                        IntPair charSpan = etn.getTa().getTokenCharacterOffset(etn.getTokenId());
+                        ps_timeline.printf("%s/%d/[%d %d]/%s/%s/%s\n", etn.getUniqueId(), etn.getTokenId(), charSpan.getFirst(), charSpan.getSecond(), etn.getText(), etn.getLemma(), etn.getPos());
+                        if (etn.getVerb_srl() != null) {
+                            StringBuilder sb = new StringBuilder();
+                            List<Relation> outgoingRelations = new ArrayList<>(etn.getVerb_srl().getOutgoingRelations());
+                            outgoingRelations.sort(Comparator.comparing(Relation::getRelationName));
 
-                        for (Relation r : outgoingRelations) {
-                            Constituent target = r.getTarget();
-                            if(r.getRelationName().charAt(1)>'9'||r.getRelationName().charAt(1)<'0') continue;
-                            sb.append(String.format("[%s] [%d %d] [%d %d] %s || %s || %s\n",r.getRelationName(),target.getStartSpan(),target.getEndSpan(),target.getStartCharOffset(),target.getEndCharOffset(), target.getTokenizedSurfaceForm(),retrieveLamma_Span(doc.getTextAnnotation(),target.getSpan()), retrievePOS_Span(doc.getTextAnnotation(),target.getSpan())));
+                            for (Relation r : outgoingRelations) {
+                                Constituent target = r.getTarget();
+                                if (r.getRelationName().charAt(1) > '9' || r.getRelationName().charAt(1) < '0')
+                                    continue;
+                                sb.append(String.format("[%s] [%d %d] [%d %d] %s || %s || %s\n", r.getRelationName(), target.getStartSpan(), target.getEndSpan(), target.getStartCharOffset(), target.getEndCharOffset(), target.getTokenizedSurfaceForm(), retrieveLamma_Span(doc.getTextAnnotation(), target.getSpan()), retrievePOS_Span(doc.getTextAnnotation(), target.getSpan())));
+                            }
+                            ps_timeline.print(sb);
                         }
-                        ps_timeline.print(sb);
+                        ps_timeline.println();
                     }
-                    ps_timeline.println();
+                }
+                else{
+                    ps.print("\tToo many events. Skipped.");
+                    cnt_skip++;
                 }
             }
             catch (Exception e){
@@ -120,6 +132,13 @@ public class Main {
         ps.close();
     }
     public static void main(String[] args) throws Exception {
-        TempRelExtractor("/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/HaoruoTA-small/1","/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/HaoruoTA-small/1-out","/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/HaoruoTA-small","1-log");
+        String input_ta_dir = args[0];
+        String output_dir = args[1];
+        String log_dir = args[2];
+        String log_name = args[3];
+        Main.forceUpdate = Boolean.valueOf(args[4]);
+        Main.MAX_NUM_EVENT = Integer.valueOf(args[5]);
+        TempRelExtractor(input_ta_dir,output_dir,log_dir,log_name);
+        //TempRelExtractor("data/smalltest","data/smalltest-output","data","smalltest-log");
     }
 }
