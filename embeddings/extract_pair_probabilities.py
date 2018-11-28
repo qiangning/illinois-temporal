@@ -1,4 +1,5 @@
 import os
+import time
 from nltk.stem.wordnet import WordNetLemmatizer
 
 # INPUT_DIRECTORY = "/scratch/sanjay/illinois-temporal/output/all_output/"
@@ -12,6 +13,7 @@ print(len(input_files))
 lemmatizer = WordNetLemmatizer()
 adj_list = {}
 all_verbs = set()
+start = time.time()
 for i, infile in enumerate(input_files):
     infile = open(infile, 'r+')
     lines = infile.readlines()
@@ -30,7 +32,7 @@ for i, infile in enumerate(input_files):
                 if verb not in adj_list[v].keys():
                     adj_list[v][verb] = 0
                 adj_list[v][verb] += 1.0/(len(verbs)-i)"""
-            for v in verbs:
+            for v in verbs[-5:]:
                 if v not in adj_list:
                     adj_list[v] = {}
                 if v > verb:
@@ -56,7 +58,9 @@ for i, infile in enumerate(input_files):
             verbs.append(verb)"""
     if i % 1000 == 0:
         print(i)
-prob_file = open('probabilities_full.txt', 'w+')
+end = time.time()
+print(end-start)
+prob_file = open('probabilities_dist5.txt', 'w+')
 for v in adj_list.keys():
     for verb in adj_list[v].keys():
         prob_file.write(v+','+verb+','+str(float(adj_list[v][verb]['forward'])/(float(adj_list[v][verb]['forward'])+float(adj_list[v][verb]['backward'])))+','+str(adj_list[v][verb]['forward']+adj_list[v][verb]['backward'])+'\n')
