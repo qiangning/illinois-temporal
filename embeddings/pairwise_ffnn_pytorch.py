@@ -2,7 +2,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sklearn.metrics import f1_score, recall_score, precision_score
+from sklearn.metrics import f1_score, recall_score, precision_score, log_loss
 from sklearn.model_selection import train_test_split
 import re
 import sys
@@ -35,16 +35,17 @@ class VerbNet(nn.Module):
         return layer3
 
 class FfnnTrainer():
-    def __init__(self, ffnn):
+    def __init__(self, ffnn, batch_size=1000):
         self.ffnn = ffnn
         self.optimizer = torch.optim.Adam(ffnn.parameters(), lr=1e-4)
         self.loss = nn.BCELoss()
-        self.suffix = '_'+sys.argv[1]+'_'+sys.argv[2]+'_'+sys.argv[3]
+        self.suffix = '_'+sys.argv[1]+'_'+sys.argv[2]+'_'+sys.argv[3]+'_'+sys.argv[4]
+        self.batch_size = batch_size
     def train(self, X_train, Y_train, counts_train, X_test, Y_test, counts_test):
         loss_value = np.inf
         prev_loss_value = np.inf
         count = 1
-        batch_size = 1000
+        batch_size = self.batch_size
         train_losses = []
         test_recalls = []
         test_precisions = []
@@ -63,10 +64,11 @@ class FfnnTrainer():
                 """if np.random.rand() >= 0.5:
                     x[:,0], x[:,1] = x[:,1], x[:,0].copy()
                     y = 1.0-y"""
+                # print(x.shape)
+                self.optimizer.zero_grad()
                 y_pre = self.ffnn(torch.from_numpy(x).cuda())
                 L = self.loss(y_pre.cuda().float(), torch.from_numpy(y).cuda().float())
                 loss_value += L.item()
-                self.optimizer.zero_grad()
                 L.backward()
                 self.optimizer.step()
             end = time.time()
@@ -88,24 +90,24 @@ class FfnnTrainer():
                         x[:,0], x[:,1] = x[:,1], x[:,0].copy()
                         y = 1.0-y"""
                     y_true += list(np.int32(y >= 0.5))
-                    y_pre = self.ffnn(torch.from_numpy(x).cuda()).detach()
-                    loss_value += self.loss(y_pre.cuda().float(), torch.from_numpy(y).cuda().float())
-                    y_pre = y_pre.cpu().detach().numpy()
+                    y_pre = self.ffnn(torch.from_numpy(x).cuda()).cpu().detach().numpy()
+                    # loss_value += self.loss(y_pre.cuda().float(), torch.from_numpy(y).cuda().float())
+                    # y_pre = y_pre.cpu().detach().numpy()
                     y_pred += list(np.int32(y_pre >= 0.5))
                 recall = recall_score(y_true, y_pred)
                 precision = precision_score(y_true, y_pred)
                 f1 = f1_score(y_true, y_pred)
                 test_recalls.append(recall)
                 test_precisions.append(precision)
-                test_losses.append(loss_value)
+                # test_losses.append(loss_value)
                 if count % 5 == 0:
                     train_losses_np = np.array(train_losses)
                     test_recalls_np = np.array(test_recalls)
                     test_precisions_np = np.array(test_precisions)
-                    np.save('/scratch/sanjay/illinois-temporal/embeddings/train_losses'+self.suffix+'.npy', train_losses)
-                    np.save('/scratch/sanjay/illinois-temporal/embeddings/test_recalls'+self.suffix+'.npy', test_recalls)
-                    np.save('/scratch/sanjay/illinois-temporal/embeddings/test_precisions'+self.suffix+'.npy', test_precisions)
-                    np.save('/scratch/sanjay/illinois-temporal/embeddings/test_losses'+self.suffix+'.npy', test_losses)
+                    np.save('/scratch/sanjay/illinois-temporal/embeddings/train_losses'+self.suffix+'.npy', train_losses_np)
+                    np.save('/scratch/sanjay/illinois-temporal/embeddings/test_recalls'+self.suffix+'.npy', test_recalls_np)
+                    np.save('/scratch/sanjay/illinois-temporal/embeddings/test_precisions'+self.suffix+'.npy', test_precisions_np)
+                    # np.save('/scratch/sanjay/illinois-temporal/embeddings/test_losses'+self.suffix+'.npy', test_losses_np)
                     torch.save({'epoch': count,
                                 'model_state_dict': self.ffnn.state_dict(),
                                 'optimizer_state_dict': self.optimizer.state_dict(),
@@ -147,7 +149,7 @@ if __name__ == '__main__':
         counts[i] = int(parts[3])
         Y[i] = float(parts[2])"""
     if sys.argv[4] == 'TemProb':
-        temprob = open('TemProb.txt')
+        temprob = open('/shared/preprocessed/sssubra2/embeddings/TemProb.txt')
         lines = temprob.readlines()
         for i, line in enumerate(lines):
             period_count = 0
@@ -216,12 +218,14 @@ if __name__ == '__main__':
     X_train, X_test, Y_train, Y_test, counts_train, counts_test = train_test_split(X, Y, counts, test_size=0.2)
     ffnn = VerbNet(len(all_verbs), hidden_ratio, emb_size, num_layers)
     ffnn.cuda()
-    trainer = FfnnTrainer(ffnn)
+    batch_size = 1000
+    if sys.argv[4] != 'TemProb':
+        batch_size = 500
+    trainer = FfnnTrainer(ffnn, batch_size=batch_size)
     trainer.train(X_train, Y_train, counts_train, X_test, Y_test, counts_test)
     ffnn.is_training = False
     y_true = []
     y_pred = []
-    batch_size = 1000
     for i in range(0, X_test.shape[0], batch_size):
         x = np.int64(X_test[i:min(i+batch_size, X_test.shape[0]),:])
         c = counts_test[i:min(i+batch_size, X_test.shape[0])]
