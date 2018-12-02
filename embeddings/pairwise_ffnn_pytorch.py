@@ -184,7 +184,7 @@ if __name__ == '__main__':
             pair_map[first][second][relation] += int(parts[3])
             if i % 100 == 0:
                 print(i)
-    else:
+    elif sys.argv[4] == 'Timelines':
         pair_map = json.loads(open('/shared/preprocessed/sssubra2/embeddings/timeline_bigram_counts.json').readlines()[0])
         for v in pair_map:
             all_verbs.add(v)
@@ -195,6 +195,32 @@ if __name__ == '__main__':
                     pair_map[v][v2]['after'] = 0
                 all_verbs.add(v2)
                 total_pairs += 1
+    else:
+        pair_map = {}
+        f = open('/shared/preprocessed/qning2/temporal/TempRels-CogCompTime/combined.stats')
+        lines = f.readlines()
+        for line in lines:
+            parts = line.split(',')
+            verb1 = parts[0]
+            verb2 = parts[1]
+            rel = parts[2].lower()
+            count = int(parts[3])+int(parts[4])+int(parts[5])
+            if count == 0:
+                continue
+            if verb1 not in pair_map:
+                pair_map[verb1] = {}
+            if verb2 not in pair_map[verb1]:
+                pair_map[verb1][verb2] = {}
+            pair_map[verb1][verb2][rel] = count
+        for verb1 in pair_map:
+            all_verbs.add(verb1)
+            for verb2 in pair_map[verb1]:
+                if 'before' not in pair_map[verb1][verb2]:
+                    pair_map[verb1][verb2]['before'] = 0
+                elif 'after' not in pair_map[verb1][verb2]:
+                    pair_map[verb1][verb2]['after'] = 0
+                total_pairs += 1
+                all_verbs.add(verb2)
     all_verbs = sorted(list(all_verbs))
     print(len(all_verbs))
     verb_i_map = {}
@@ -220,7 +246,7 @@ if __name__ == '__main__':
     ffnn.cuda()
     batch_size = 1000
     if sys.argv[4] != 'TemProb':
-        batch_size = 500
+        batch_size = 100
     trainer = FfnnTrainer(ffnn, batch_size=batch_size)
     trainer.train(X_train, Y_train, counts_train, X_test, Y_test, counts_test)
     ffnn.is_training = False
