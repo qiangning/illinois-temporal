@@ -4,6 +4,9 @@ from bilstm_crf import BiLSTM_CRF
 import xml.etree.ElementTree as ET
 from allennlp.commands.elmo import ElmoEmbedder
 from sklearn.metrics import f1_score, recall_score, precision_score
+import time
+import sys
+import numpy as np
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
@@ -75,6 +78,8 @@ test_precisions = []
 # Make sure prepare_sequence from earlier in the LSTM section is loaded
 for epoch in range(1, 21):  # again, normally you would NOT do 300 epochs, it is toy data
     total_loss = 0
+    model.train()
+    start = time.time()
     for embeds, tag_seq in zip(embeddings, tags):
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -93,11 +98,16 @@ for epoch in range(1, 21):  # again, normally you would NOT do 300 epochs, it is
         # calling optimizer.step()
         loss.backward()
         optimizer.step()
-    print('epoch', epoch, total_loss)
+    end = time.time()
+    print('epoch', epoch, total_loss, 'time', end-start)
+    training_losses.append(total_loss)
+    sys.stdout.flush()
     target = []
     pred = []
+    model.eval()
+    start = time.time()
     for embeds, tag_seq in zip(embeddings_test, tags_test):
-        _, pred_tags = model(torch.from_numpy(embeds).cuda())
+        _, pred_tags = model(torch.from_numpy(embeds[0]).cuda())
         target += tag_seq
         pred += pred_tags
     test_recall = recall_score(target, pred)
@@ -105,12 +115,13 @@ for epoch in range(1, 21):  # again, normally you would NOT do 300 epochs, it is
     test_f1 = f1_score(target, pred)
     test_recalls.append(test_recall)
     test_precisions.append(test_precision)
-    print('test f1', test_f1)
-    np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_train_losses.npy', train_losses)
-    np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_test_recalls.npy', test_recalls)
-    np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_test_precisions.npy', test_precisions)
     if epoch % 5 == 0:
+        np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_train_losses.npy', training_losses)
+        np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_test_recalls.npy', test_recalls)
+        np.save('/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_test_precisions.npy', test_precisions)
         torch.save({'epoch': epoch,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': total_loss}, '/scratch/sanjay/illinois-temporal/embeddings/bilstm_crf_model.pt')
+    end = time.time()
+    print('test f1', test_f1, 'time', end-start)

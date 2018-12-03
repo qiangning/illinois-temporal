@@ -45,7 +45,7 @@ class BiLSTM_CRF(nn.Module):
 
     def _forward_alg(self, feats):
         # Do the forward algorithm to compute the partition function
-        init_alphas = torch.full((1, self.tagset_size), -10000.)
+        init_alphas = torch.full((1, self.tagset_size), -10000.).cuda()
         # START_TAG has all of the score.
         init_alphas[0][self.START_TAG] = 0.
 
@@ -70,12 +70,12 @@ class BiLSTM_CRF(nn.Module):
                 # scores.
                 alphas_t.append(self.log_sum_exp(next_tag_var).view(1))
             forward_var = torch.cat(alphas_t).view(1, -1)
-        terminal_var = forward_var + self.transitions[self.tag_to_ix[self.STOP_TAG]]
+        terminal_var = forward_var + self.transitions[self.STOP_TAG]
         alpha = self.log_sum_exp(terminal_var)
         return alpha
 
     def _get_lstm_features(self, embeds):
-        # self.hidden = self.init_hidden()
+        self.hidden = self.init_hidden()
         # embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
         embeds = embeds.view(embeds.shape[0], 1, -1)
         lstm_out, self.hidden = self.lstm(embeds, self.hidden)
@@ -85,8 +85,8 @@ class BiLSTM_CRF(nn.Module):
 
     def _score_sentence(self, feats, tags):
         # Gives the score of a provided tag sequence
-        score = torch.zeros(1)
-        tags = torch.cat([torch.tensor([self.START_TAG], dtype=torch.long), tags])
+        score = torch.zeros(1).cuda()
+        tags = torch.cat([torch.tensor([self.START_TAG], dtype=torch.long).cuda(), tags])
         for i, feat in enumerate(feats):
             score = score + \
                 self.transitions[tags[i + 1], tags[i]] + feat[tags[i + 1]]
@@ -97,8 +97,8 @@ class BiLSTM_CRF(nn.Module):
         backpointers = []
 
         # Initialize the viterbi variables in log space
-        init_vvars = torch.full((1, self.tagset_size), -10000.)
-        init_vvars[0][self.tag_to_ix[self.START_TAG]] = 0
+        init_vvars = torch.full((1, self.tagset_size), -10000.).cuda()
+        init_vvars[0][self.START_TAG] = 0
 
         # forward_var at step i holds the viterbi variables for step i-1
         forward_var = init_vvars
