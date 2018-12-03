@@ -44,7 +44,7 @@ class temporal_bigram:
         if v1 not in self.bigram_rel_counts or v2 not in self.bigram_rel_counts[v1] or rel not in self.bigram_rel_counts[v1][v2]:
             return 0
         return self.bigram_rel_counts[v1][v2][rel]
-    def snapshot(self,pairs2monitor=None):
+    """def snapshot(self,pairs2monitor=None):
         print("-------------temporal_bigram: basic stats-------------",flush=True)
         print("Length of vocab: %d" % len(self.vocab),flush=True)
         print("Relation set: %s" % str(self.relationSet),flush=True)
@@ -81,4 +81,4 @@ class temporal_bigram:
                     print('%s not in vocab!' % v2,flush=True)
                 if v1 not in self.bigram_rel_counts or v2 not in self.bigram_rel_counts[v1]:
                     print('(%s,%s) not in bigrams' % (v1,v2),flush=True)
-            print("------------------------------------------------------",flush=True)
+            print("------------------------------------------------------",flush=True)"""

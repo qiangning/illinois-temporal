@@ -204,7 +204,7 @@ if __name__ == '__main__':
             verb1 = parts[0]
             verb2 = parts[1]
             rel = parts[2].lower()
-            count = int(parts[3])+int(parts[4])+int(parts[5])
+            count = int(parts[3])
             if count == 0:
                 continue
             if verb1 not in pair_map:
