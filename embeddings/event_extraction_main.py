@@ -97,7 +97,7 @@ for epoch in range(1, 21):  # again, normally you would NOT do 300 epochs, it is
     target = []
     pred = []
     for embeds, tag_seq in zip(embeddings_test, tags_test):
-        _, pred_tags = model(torch.from_numpy(embeds))
+        _, pred_tags = model(torch.from_numpy(embeds).cuda())
         target += tag_seq
         pred += pred_tags
     test_recall = recall_score(target, pred)

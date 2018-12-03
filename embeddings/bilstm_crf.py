@@ -30,8 +30,8 @@ class BiLSTM_CRF(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (torch.randn(2, 1, self.hidden_dim // 2),
-                torch.randn(2, 1, self.hidden_dim // 2))
+        return (torch.randn(2, 1, self.hidden_dim // 2).cuda(),
+                torch.randn(2, 1, self.hidden_dim // 2).cuda())
 
     def log_sum_exp(self, vec):
         max_score = vec[0, self.argmax(vec)]
@@ -79,7 +79,7 @@ class BiLSTM_CRF(nn.Module):
         # embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
         embeds = embeds.view(embeds.shape[0], 1, -1)
         lstm_out, self.hidden = self.lstm(embeds, self.hidden)
-        lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
+        lstm_out = lstm_out.view(embeds.shape[0], self.hidden_dim)
         lstm_feats = self.hidden2tag(lstm_out)
         return lstm_feats
 
