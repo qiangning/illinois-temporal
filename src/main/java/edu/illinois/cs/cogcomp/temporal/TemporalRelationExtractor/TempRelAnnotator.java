@@ -27,6 +27,7 @@ import java.util.*;
 
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.EventNodeType;
 import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.TimexNodeType;
+import static edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument.removeLongDistEERelations;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_NOT_ON_ANY_AXIS;
 import static edu.illinois.cs.cogcomp.temporal.readers.axisAnnotationReader.LABEL_ON_MAIN_AXIS;
 
@@ -458,7 +459,7 @@ public class TempRelAnnotator {
         return defaultTCA;
     }
 
-    private static TempRelLabeler defaultTempRelLabeler_EE(){
+    public static TempRelLabeler defaultTempRelLabeler_EE(){
         if(defaultEE==null) {
         /*String temprelMdlDir = "models/tempRel", temprelMldNamePrefix = "eeTempRelCls";//eeTempRelCls_sent0_labelMode0_clsMode0_win3
         eeTempRelCls cls0 = new eeTempRelCls(temprelMdlDir+File.separator+temprelMldNamePrefix+"_sent"+0+"_labelMode0_clsMode0_win3.lc",
@@ -536,15 +537,17 @@ public class TempRelAnnotator {
             TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm);
             tra.annotator();
         }
+        myAllDocs_Gold.forEach(d->removeLongDistEERelations(d));
+        myAllDocs.forEach(d->removeLongDistEERelations(d));
         myTemporalDocument.NaiveEvaluator(myAllDocs_Gold,myAllDocs,1);
         myTemporalDocument.AwarenessEvaluator(myAllDocs_Gold,myAllDocs,1);
     }
 
     public static void main(String[] args) throws Exception{
-        //runExample("GeorgeLowe-long");
+        runExample("Einstein");
         //benchmark();
 
-        ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
+        /*ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         TemporalRelation_EE.useTemProb = false;
         TextAnnotation ta = SerializationHelper.deserializeTextAnnotationFromFile("/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/HaoruoTA-small/1/1001915.ta.xml",true);
         myTemporalDocument doc = new myTemporalDocument(ta,"1001915");
@@ -558,6 +561,6 @@ public class TempRelAnnotator {
         timer.end();
         doc.getGraph().reduction();
         doc.getGraph().graphVisualization("data/html");
-        doc.getGraph().chainVisualization("data/html");
+        doc.getGraph().chainVisualization("data/html");*/
     }
 }

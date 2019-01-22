@@ -442,6 +442,13 @@ public class myTemporalDocument implements Serializable {
 
     /*Evaluators*/
 
+    public static void removeLongDistEERelations(myTemporalDocument doc){
+        List<TemporalRelation_EE> ee = doc.getGraph().getAllEERelations(0);
+        ee.addAll(doc.getGraph().getAllEERelations(1));
+        doc.getGraph().dropAllRelations();
+        ee.forEach(rel->doc.getGraph().addRelNoDup(rel));
+    }
+
     public static void NaiveEvaluator(List<myTemporalDocument> doc_gold_list, List<myTemporalDocument> doc_pred_list, int verbose){
         System.out.println(myLogFormatter.startBlockLog("TEMPORAL DOCUMENTS NAIVE EVALUATOR"));
 
