@@ -11,6 +11,7 @@ models/
 logs/
 scripts/
 serialization/
+serialized_data/
 gurobi.ilp
 gurobi.lp
 annotation-cache

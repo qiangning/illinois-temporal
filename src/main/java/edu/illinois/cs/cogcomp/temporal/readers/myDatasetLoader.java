@@ -2,16 +2,14 @@ package edu.illinois.cs.cogcomp.temporal.readers;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.nlp.CompareCAVEO.TBDense_split;
+import edu.illinois.cs.cogcomp.nlp.corpusreaders.TLINK;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.TempEval3Reader;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelAnnotator;
 import edu.illinois.cs.cogcomp.temporal.TemporalRelationExtractor.TempRelLabeler;
 import edu.illinois.cs.cogcomp.temporal.configurations.temporalConfigurator;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelType;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.TemporalRelation_EE;
-import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.myTemporalDocument;
-import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
+import edu.illinois.cs.cogcomp.temporal.datastruct.Temporal.*;
 import edu.illinois.cs.cogcomp.temporal.utils.IO.mySerialization;
+import edu.illinois.cs.cogcomp.temporal.utils.myLogFormatter;
 import edu.uw.cs.lil.uwtime.data.TemporalDocument;
 
 import java.io.File;
@@ -90,6 +88,48 @@ public class myDatasetLoader {
     public List<myTemporalDocument> getTBDense_Test() throws Exception{
         return getDataset("TBDense_Test_Ser");
     }
+    public List<myTemporalDocument> getTCR() throws Exception{
+        // rm.getString(propertyName)
+        TempEval3Reader myReader = new TempEval3Reader("TIMEML", "TemporalPart", "/home/qning2/Servers/home/Research/public-TCR");
+        myReader.ReadData();
+        List<TemporalDocument> allDocs = myReader.getDataset().getDocuments();
+        List<myTemporalDocument> allDocs_new = new ArrayList<>();
+
+        if(allDocs.size()==0){
+            System.out.println("[Warning] No files were loaded");
+        }
+        for(TemporalDocument d:allDocs){
+            d.createTextAnnotation(myReader.getPipeline());
+            myTemporalDocument doc = new myTemporalDocument(d,1);
+            String docid = doc.getDocid();
+            TemporalGraph graph = doc.getGraph();
+            for(TLINK tlink:d.getBodyTlinks()){
+                if(tlink.getSourceType().equals("timex")||tlink.getTargetType().equals("timex")) continue;
+                int eiid1 = tlink.getSourceId();
+                int eiid2 = tlink.getTargetId();
+                EventTemporalNode sourceNode = (EventTemporalNode) graph.getNode(TemporalNode.getUniqueId("E",eiid1));
+                EventTemporalNode targetNode = (EventTemporalNode) graph.getNode(TemporalNode.getUniqueId("E",eiid2));
+                TemporalRelType rel;
+                switch (tlink.getReducedRelType().toStringfull()) {
+                    case "before":
+                        rel = new TemporalRelType(TemporalRelType.relTypes.BEFORE);
+                        break;
+                    case "after":
+                        rel = new TemporalRelType(TemporalRelType.relTypes.AFTER);
+                        break;
+                    case "equal":
+                        rel = new TemporalRelType(TemporalRelType.relTypes.EQUAL);
+                        break;
+                    default:
+                        rel = new TemporalRelType(TemporalRelType.relTypes.VAGUE);
+                }
+                TemporalRelation_EE tmpRel = new TemporalRelation_EE(sourceNode, targetNode, rel, doc);
+                graph.addRelNoDup(tmpRel);
+            }
+            allDocs_new.add(doc);
+        }
+        return allDocs_new;
+    }
     public List<myTemporalDocument> getDataset(String propertyName) throws Exception{
         return getDocs(rm.getString(propertyName));
     }
@@ -114,6 +154,9 @@ public class myDatasetLoader {
     }
     public List<myTemporalDocument> getTBDense_Test_autoCorrected() throws Exception{
         return getDatasetAutoCorrected("TBDense_Test_Ser_AutoCorrected");
+    }
+    public List<myTemporalDocument> getTCR_autoCorrected() throws Exception{
+        return getDatasetAutoCorrected("TCR_Ser_AutoCorrected");
     }
     public List<myTemporalDocument> getDatasetAutoCorrected(String propertyName) throws Exception{
         if(propertyName.equals("TimeBank_Minus_TBDense_Ser_AutoCorrected")){
@@ -193,7 +236,14 @@ public class myDatasetLoader {
         myDatasetLoader loader = new myDatasetLoader();
         mySerialization myser = new mySerialization(true);
         List<myTemporalDocument> docs;
-        docs = loader.getTBDense_Test();
+
+        docs = loader.getTCR();
+        loader.autoTempRelCorrectionViaILP(docs);
+        for(myTemporalDocument doc:docs) {
+            myser.serialize(doc,"serialization/myTemporalDocument/TCR/"+doc.getDocid()+".ser");
+        }
+
+        /*docs = loader.getTBDense_Test();
         loader.autoTempRelCorrectionViaILP(docs);
         for(myTemporalDocument doc:docs) {
             myser.serialize(doc,"serialization/myTemporalDocument/TBDense_Test/"+doc.getDocid()+".ser");
@@ -225,6 +275,6 @@ public class myDatasetLoader {
         loader.autoTempRelCorrectionViaILP(docs);
         for(myTemporalDocument doc:docs) {
             myser.serialize(doc,"serialization/myTemporalDocument/te3-platinum/"+doc.getDocid()+".ser");
-        }
+        }*/
     }
 }
