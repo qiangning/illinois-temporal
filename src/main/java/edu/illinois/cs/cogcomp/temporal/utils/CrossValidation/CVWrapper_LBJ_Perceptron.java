@@ -71,7 +71,7 @@ public abstract class CVWrapper_LBJ_Perceptron<LearningStruct> extends CVWrapper
     }
 
     public static double[] parseStringParamInput(String str){
-        String[] tmp = str.split(" ");
+        String[] tmp = str.split(",");
         double[] ret = new double[tmp.length];
         for(int i=0;i<tmp.length;i++){
             ret[i] = Double.valueOf(tmp[i].trim());

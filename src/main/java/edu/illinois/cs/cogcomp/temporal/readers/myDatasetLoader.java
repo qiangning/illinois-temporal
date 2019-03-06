@@ -156,7 +156,9 @@ public class myDatasetLoader {
         return getDatasetAutoCorrected("TBDense_Test_Ser_AutoCorrected");
     }
     public List<myTemporalDocument> getTCR_autoCorrected() throws Exception{
-        return getDatasetAutoCorrected("TCR_Ser_AutoCorrected");
+        List<myTemporalDocument> ret = getDatasetAutoCorrected("TCR_Train_Ser_AutoCorrected");
+        ret.addAll(getDatasetAutoCorrected("TCR_Test_Ser_AutoCorrected"));
+        return ret;
     }
     public List<myTemporalDocument> getDatasetAutoCorrected(String propertyName) throws Exception{
         if(propertyName.equals("TimeBank_Minus_TBDense_Ser_AutoCorrected")){

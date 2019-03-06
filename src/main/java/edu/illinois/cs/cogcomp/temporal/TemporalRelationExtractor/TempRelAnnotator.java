@@ -532,7 +532,8 @@ public class TempRelAnnotator {
         EventAxisLabeler eventAxisLabeler = defaultAxisLabeler();
         TempRelLabeler eeTempRelLabeler = defaultTempRelLabeler_EE();
         TempRelLabeler etTempRelLabeler = defaultTempRelLabeler_ET();
-        List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
+        //List<myTemporalDocument> myAllDocs = loader.getPlatinum_autoCorrected(), myAllDocs_Gold = loader.getPlatinum_autoCorrected();
+        List<myTemporalDocument> myAllDocs = loader.getTCR_autoCorrected(), myAllDocs_Gold = loader.getTCR_autoCorrected();
         for(myTemporalDocument doc:myAllDocs){
             TempRelAnnotator tra = new TempRelAnnotator(doc,eventAxisLabeler,eeTempRelLabeler,etTempRelLabeler,rm);
             tra.annotator();
@@ -544,8 +545,8 @@ public class TempRelAnnotator {
     }
 
     public static void main(String[] args) throws Exception{
-        runExample("Einstein");
-        //benchmark();
+        //runExample("Einstein");
+        benchmark();
 
         /*ResourceManager rm = new temporalConfigurator().getConfig("config/directory.properties");
         TemporalRelation_EE.useTemProb = false;
