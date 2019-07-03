@@ -11,6 +11,11 @@ import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
 import edu.illinois.cs.cogcomp.nlp.utility.TokenizerTextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
 
+import java.io.File;
+import java.util.Scanner;
+
+import static edu.illinois.cs.cogcomp.core.utilities.SerializationHelper.serializeTextAnnotationToFile;
+
 public class myTextPreprocessor {
     private AnnotatorService annotator;
     private TokenizerTextAnnotationBuilder tab;
@@ -82,6 +87,39 @@ public class myTextPreprocessor {
         }
         return ta;
     }
+    public void extractTextAnnotationFromDir(String input_dir, String output_dir) throws Exception{
+        /*Read all text files in input_dir, process it, and save all the TAs into output_dir as json files*/
+        File file = new File(input_dir);
+        File[] filelist = file.listFiles();
+        if(filelist==null) {
+            System.out.println(input_dir+" is empty.");
+            return;
+        }
+        System.out.println("Loading from "+input_dir+". In total "+filelist.length+" files.");
+        for(File f:filelist){
+            if(f.isFile()) {
+                if (f.getName().equals(".DS_Store"))
+                    continue;
+                Scanner scanner = new Scanner(new File(f.getAbsolutePath()));
+                StringBuilder sb = new StringBuilder();
+                while(scanner.hasNextLine()) {
+                    String nl = scanner.nextLine();
+                    sb.append(nl);
+                    sb.append("\n");
+                }
+                scanner.close();
+                String text = sb.toString().trim();
+                try {
+                    TextAnnotation ta = extractTextAnnotation(null, text);
+                    serializeTextAnnotationToFile(ta, output_dir + File.separator + f.getName(), true, true);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    System.out.printf("Failed to process file %s and it's not saved.\n",f.getAbsolutePath());
+                }
+            }
+        }
+    }
     public static myTextPreprocessor getInstance() throws Exception{
         if(instance==null) {
             instance = new myTextPreprocessor();
@@ -90,10 +128,24 @@ public class myTextPreprocessor {
         return instance;
     }
     public static void main(String[] args) throws Exception{
-        myTextPreprocessor exc = myTextPreprocessor.getInstance();
+        myTextPreprocessor exc = new myTextPreprocessor(new ResourceManager("config/shallowparsing.properties"));
+        String input_dir = "/home/qning2/Servers/root/shared/corpora/temporal/TempEval3-Rawtext/AQUAINT";
+        String output_dir = "/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/TempEval3-TextAnnotations-json/AQUAINT";
+        exc.extractTextAnnotationFromDir(input_dir,output_dir);
+
+        input_dir = "/home/qning2/Servers/root/shared/corpora/temporal/TempEval3-Rawtext/TimeBank";
+        output_dir = "/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/TempEval3-TextAnnotations-json/TimeBank";
+        exc.extractTextAnnotationFromDir(input_dir,output_dir);
+
+        input_dir = "/home/qning2/Servers/root/shared/corpora/temporal/TempEval3-Rawtext/Silver";
+        output_dir = "/home/qning2/Servers/root/shared/preprocessed/qning2/temporal/TempEval3-TextAnnotations-json/Silver";
+        exc.extractTextAnnotationFromDir(input_dir,output_dir);
+
+        /*myTextPreprocessor exc = myTextPreprocessor.getInstance();
         String text = "I failed to do it.";
         TextAnnotation ta = exc.extractTextAnnotation(null,text);
-        System.out.println(ta.getAvailableViews());
+        System.out.println(ta.getAvailableViews());*/
+
         /*TreeView dep = (TreeView) ta.getView(ViewNames.DEPENDENCY);
         String[] toks = ta.getTokens();
         for(int i=0;i<toks.length;i++){
